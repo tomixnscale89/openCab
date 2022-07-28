@@ -20,11 +20,28 @@ public:
 private:
   std::string m_device;
 
-  int speed; // current speed
+  int speed = 0; // current speed
   int engineID;
   std::string engineIDStr = "0";
   bool legacyEnabled = true;
+  bool consistentBellDing = true;
+  int bellDingCount = 2;
+  int currentKeypadStyle = 0;
 
+  // 0 - CAB1
+  // 1 - TMCC
+  // 2 - Legacy Steam
+  // 3 - Page 2 Steam
+  // 4 - Legacy Diesel
+  // 5 - Page 2 Diesel
+  // 6 - Legacy Electric
+  // 7 - Page 2 Electric
+  // 5 - Legacy Freight Sounds
+  // 6 - Legacy Station Sounds Diner
+  // 7 - TMCC Crane
+
+
+  bool test = true;
 
   bool legacyBellOn = false;
   bool smokeOn = true; // This is a bit tricky, since a locomotive may already have it's smoke unit on, or the switch is set to the off switch already. Will try with auto set to true.
@@ -50,6 +67,10 @@ private:
   int currentLocoBrake = 0;
   int currentPantoPosition = 0;
 
-  void DrawKeypad();
+  void DrawCAB1Keypad();
+  void DrawTMCCKeypad();
+  void DrawCAB2SteamKeypad();
+  void DrawKeypadType(int currentKeypadType);
+
   ;
 };

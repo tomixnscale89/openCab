@@ -1,4 +1,4 @@
-#include "throttlemenu.h"
+﻿#include "throttlemenu.h"
 #include "imgui.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include "imgui_impl_sdl.h"
@@ -15,6 +15,8 @@ ThrottleMenu::ThrottleMenu()
 {
   speed = 0;
   currentTrainBrake = 0;
+  currentQuill = 0;
+  engineID = 1;
 }
 
 ThrottleMenu::~ThrottleMenu()
@@ -25,6 +27,31 @@ ThrottleMenu::~ThrottleMenu()
 
 void ThrottleMenu::Draw()
 {
+
+  // Menu Bar
+  if (ImGui::BeginMenuBar())
+  {
+    if (ImGui::BeginMenu("Menu"))
+    {
+
+      ImGui::EndMenu();
+    }
+    if (ImGui::BeginMenu("Engine Roster"))
+    {
+
+      ImGui::EndMenu();
+    }
+    //if (ImGui::MenuItem("MenuItem")) {} // You can also use MenuItem() inside a menu bar!
+    if (ImGui::BeginMenu("Feature Windows"))
+    {
+      ImGui::MenuItem("CrewTalk/TowerCom Voice Testing", NULL, &test);
+      ImGui::MenuItem("Lighting Menu", NULL, &test);
+      ImGui::EndMenu();
+    }
+    ImGui::EndMenuBar();
+  }
+
+
   if (ImGui::BeginCombo("Devices", m_device.c_str()))
   {
     DeviceInfo* devices;
@@ -45,6 +72,12 @@ void ThrottleMenu::Draw()
         ImGui::SetItemDefaultFocus();
     }
     ImGui::EndCombo();
+  }
+
+  if (ImGui::InputText("ITEM: InputText", &engineIDStr))
+  {
+    engineID = std::stoi(engineIDStr);
+    printf("engineID: %d\n", (int)engineID);
   }
 
   //static int value = 0;
@@ -68,64 +101,226 @@ void ThrottleMenu::Draw()
 
 
   //ImGui::Text("counter = %d", counter);
-
-
-  DrawKeypad();
-
-  if (ImGui::InputText("ITEM: InputText", &engineIDStr))
+  //ImGui::ProgressBar(speed/200, ImVec2(0.0f, 0.0f));
+  if (ImGui::BeginTable("split", 4))
   {
-    engineID = std::stoi(engineIDStr);
-    printf("engineID: %d\n", (int)engineID);
+    ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, 100.0f);
+    ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, 256.0f);
+    ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, 256.0f);
+    ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, 100.0f);
+
+    ImGui::TableNextColumn();
+    // Train Brake
+    if (ImGui::VSliderInt("##int", ImVec2(70, 250), &currentTrainBrake, 8, 0, "Train\nBrake"))
+    {
+
+    };
+
+    ImGui::TableNextColumn();
+    ImGui::SetNextItemWidth(50);
+
+    DrawKeypadType(currentKeypadStyle);
+
+    ImGui::TableNextColumn();
+    if (ImGuiKnobs::KnobInt("Throttle", &speed, 0, 200, 1, "%d MPH", ImGuiKnobVariant_Wiper, 256)) {
+      // value was changed
+      TMCCInterface::EngineSetAbsoluteSpeed2(engineID, speed);
+    }
+
+    if (ImGui::Button("Forward", ImVec2(80, 60)))
+    {
+      printf("Front\n");
+
+      TMCCInterface::EngineSetDirection(engineID, TMCC_FORWARD);
+    };
+
+    ImGui::SameLine();
+
+    if (ImGui::Button("Bell", ImVec2(80, 60)))
+    {
+      if (consistentBellDing)
+      {
+        printf("Bell Toggle\n");
+        TMCCInterface::EngineSetBell(engineID, TMCC_ON);
+      }
+      else
+      {
+        printf("One Shot Bell Ding: %d\n",bellDingCount);
+        TMCCInterface::EngineBellOneShotDing(engineID, bellDingCount);
+      }
+    };
+
+    ImGui::SameLine();
+    if (ImGui::Button("Reverse", ImVec2(80, 60)))
+    {
+      printf("Reverse\n");
+      TMCCInterface::EngineSetDirection(engineID, TMCC_REVERSE);
+
+    };
+
+    if (ImGui::Button("Rear\nCoupler", ImVec2(80, 60)))
+    {
+      printf("Fire Rear coupler\n");
+      TMCCInterface::EngineOpenRearCoupler(engineID);
+    };
+
+    ImGui::SameLine();
+
+    ImGui::Checkbox("Bell Type", &consistentBellDing);
+
+
+    ImGui::SameLine();
+    if (ImGui::Button("Front\nCoupler", ImVec2(80, 60)))
+    {
+      printf("Fire Front coupler\n");
+
+      TMCCInterface::EngineOpenRearCoupler(engineID);
+
+    };
+
+    if (ImGui::ArrowButton("##left", ImGuiDir_Left)) { bellDingCount--; }
+    if (bellDingCount < 0)
+      bellDingCount = 3;
+    ImGui::SameLine();
+    ImGui::Text("Times to Ding:%d", bellDingCount);
+    ImGui::SameLine();
+    if (ImGui::ArrowButton("##right", ImGuiDir_Right)) { bellDingCount++; }
+    if (bellDingCount > 3)
+      bellDingCount = 0;
+
+    ImGui::TableNextColumn();
+
+    // Whistle
+    if (ImGui::VSliderInt("##int2", ImVec2(70, 250), &currentQuill, 8, 0, "Whistle"))
+    {
+      printf("Quilling: %d\n", currentQuill);
+      TMCCInterface::EngineSetQuillingHornIntensity(engineID, currentQuill);
+    };
+    
+    if (ImGuiKnobs::KnobInt("Labour/Rev", &currentEngineLabour, 0, 31, 1, "%f Labour", ImGuiKnobVariant_Wiper, 100)) {
+      // value was changed
+      // if steam, use labour
+      // else, use diesel run level
+      TMCCInterface::EngineSetLabor(engineID, currentEngineLabour);
+    }
+;
+    ImGui::EndTable();
   }
 
-  if (ImGui::Button("Whistle", ImVec2(80, 60)))
-  {
+  
 
-  };
-  ImGui::SameLine();
-  if (ImGui::Button("Bell", ImVec2(80, 60)))
-  {
 
-  };
-  ImGui::SameLine();
+  ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+  
+  ImGui::PushButtonRepeat(true);
   if (ImGui::Button("Aux 1", ImVec2(80, 60)))
   {
-
+    printf("Aux 1: Pressed\n");
+    TMCCInterface::EngineSetQuillingHornIntensity(engineID, currentQuill);
   };
+  ImGui::PopButtonRepeat();
   ImGui::SameLine();
+
+  ImGui::PushButtonRepeat(true);
   if (ImGui::Button("Aux 2", ImVec2(80, 60)))
   {
-
+    printf("Aux 2: Pressed\n");
   };
+  ImGui::PopButtonRepeat();
   ImGui::SameLine();
+  ImGui::PushButtonRepeat(true);
+
   if (ImGui::Button("Aux 3", ImVec2(80, 60)))
   {
-
+    printf("Aux 3: Pressed\n");
+    TMCCInterface::EngineAux3Trigger(engineID);
   };
+  ImGui::PopButtonRepeat();
+
   ImGui::SameLine();
   if (ImGui::Button("TMCC/Legacy Mode", ImVec2(80, 60)))
   {
+    printf("Set control mode %s\n", legacyEnabled ? "legacy" : "standard");
     legacyEnabled = !legacyEnabled;
   };
 
 
-  if (ImGuiKnobs::KnobInt("Throttle", &speed, 0, 200, 1, "%dMPH", ImGuiKnobVariant_Wiper, 128, 0, 1)) {
-    // value was changed
-  }
-
-
-  if(ImGui::VSliderInt("##v", ImVec2(40, 160), &currentTrainBrake, 0, 8, "%.2f\nsec"));
-
-
-  ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+  
+  
   ImGui::End();
 }
 
-void ThrottleMenu::DrawKeypad()
+void ThrottleMenu::DrawCAB1Keypad()
 {
-  if (ImGui::BeginTable("split", 3))
+  if (ImGui::Button("1", ImVec2(80, 80)))
   {
-    ImGui::TableNextColumn();
+
+  };
+  ImGui::SameLine();
+  if (ImGui::Button("2", ImVec2(80, 80)))
+  {
+
+  };
+  ImGui::SameLine();
+  if (ImGui::Button("3", ImVec2(80, 80)))
+  {
+
+  };
+
+
+  if (ImGui::Button("4", ImVec2(80, 80)))
+  {
+
+  };
+  ImGui::SameLine();
+  if (ImGui::Button("5", ImVec2(80, 80)))
+  {
+
+  };
+  ImGui::SameLine();
+  if (ImGui::Button("6", ImVec2(80, 80)))
+  {
+
+  };
+
+  if (ImGui::Button("7", ImVec2(80, 80)))
+  {
+
+  };
+  ImGui::SameLine();
+  if (ImGui::Button("8", ImVec2(80, 80)))
+  {
+
+  };
+  ImGui::SameLine();
+  if (ImGui::Button("9", ImVec2(80, 80)))
+  {
+
+  };
+
+  if (ImGui::Button("<-", ImVec2(80, 80)))
+  {
+    currentKeypadStyle--;
+    if (currentKeypadStyle < 0)
+      currentKeypadStyle = 7;
+  };
+  ImGui::SameLine();
+  if (ImGui::Button("0", ImVec2(80, 80)))
+  {
+
+  };
+  ImGui::SameLine();
+  if (ImGui::Button("->", ImVec2(80, 80)))
+  {
+    currentKeypadStyle++;
+    if (currentKeypadStyle > 7)
+      currentKeypadStyle = 0;
+  };
+
+}
+
+void ThrottleMenu::DrawTMCCKeypad()
+{
     if (ImGui::Button("1", ImVec2(80, 80)))
     {
 
@@ -141,10 +336,7 @@ void ThrottleMenu::DrawKeypad()
 
     };
 
-    ImGui::TableNextRow();
 
-
-    ImGui::TableNextColumn();
     if (ImGui::Button("4", ImVec2(80, 80)))
     {
 
@@ -159,9 +351,7 @@ void ThrottleMenu::DrawKeypad()
     {
 
     };
-    ImGui::TableNextRow();
 
-    ImGui::TableNextColumn();
     if (ImGui::Button("7", ImVec2(80, 80)))
     {
 
@@ -176,12 +366,12 @@ void ThrottleMenu::DrawKeypad()
     {
 
     };
-    ImGui::TableNextRow();
 
-    ImGui::TableNextColumn();
-    if (ImGui::InvisibleButton("NULL", ImVec2(80, 80)))
+    if (ImGui::Button("<-", ImVec2(80, 80)))
     {
-
+      currentKeypadStyle--;
+      if (currentKeypadStyle < 0)
+        currentKeypadStyle = 7;
     };
     ImGui::SameLine();
     if (ImGui::Button("0", ImVec2(80, 80)))
@@ -189,13 +379,111 @@ void ThrottleMenu::DrawKeypad()
 
     };
     ImGui::SameLine();
-    if (ImGui::InvisibleButton("NULL", ImVec2(80, 80)))
+    if (ImGui::Button("->", ImVec2(80, 80)))
     {
-
+      currentKeypadStyle++;
+      if (currentKeypadStyle > 7)
+        currentKeypadStyle = 0;
     };
 
-    ImGui::EndTable();
   }
 
+void ThrottleMenu::DrawCAB2SteamKeypad()
+{
+  if (ImGui::Button("1", ImVec2(80, 80)))
+  {
 
+  };
+  ImGui::SameLine();
+  if (ImGui::Button("666", ImVec2(80, 80)))
+  {
+
+  };
+  ImGui::SameLine();
+  if (ImGui::Button("3", ImVec2(80, 80)))
+  {
+
+  };
+
+
+  if (ImGui::Button("4", ImVec2(80, 80)))
+  {
+
+  };
+  ImGui::SameLine();
+  if (ImGui::Button("5", ImVec2(80, 80)))
+  {
+
+  };
+  ImGui::SameLine();
+  if (ImGui::Button("6", ImVec2(80, 80)))
+  {
+
+  };
+
+  if (ImGui::Button("7", ImVec2(80, 80)))
+  {
+
+  };
+  ImGui::SameLine();
+  if (ImGui::Button("8", ImVec2(80, 80)))
+  {
+
+  };
+  ImGui::SameLine();
+  if (ImGui::Button("9", ImVec2(80, 80)))
+  {
+
+  };
+
+  if (ImGui::Button("", ImVec2(80, 80)))
+  {
+
+  };
+  ImGui::SameLine();
+  if (ImGui::Button("0", ImVec2(80, 80)))
+  {
+
+  };
+  ImGui::SameLine();
+  if (ImGui::Button("", ImVec2(80, 80)))
+  {
+
+  };
+
+  if (ImGui::Button("<-", ImVec2(80, 80)))
+  {
+    currentKeypadStyle--;
+    if (currentKeypadStyle < 0)
+      currentKeypadStyle = 7;
+  };
+  ImGui::SameLine();
+  if (ImGui::Button("", ImVec2(80, 80)))
+  {
+    
+  };
+  ImGui::SameLine();
+  if (ImGui::Button("->", ImVec2(80, 80)))
+  {
+    currentKeypadStyle++;
+    if (currentKeypadStyle > 7)
+      currentKeypadStyle = 0;
+  };
+}
+
+void ThrottleMenu::DrawKeypadType(int currentKeypadType)
+{
+  switch (currentKeypadType)
+  {
+  case 0:
+  default:
+    DrawCAB1Keypad();
+    break;
+  case 1:
+    DrawTMCCKeypad();
+    break;
+  case 2:
+    DrawCAB2SteamKeypad();
+    break;
+  }
 }
