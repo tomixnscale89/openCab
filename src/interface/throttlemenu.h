@@ -51,7 +51,6 @@ public:
   void Draw(const std::string& appDir);
 
 private:
-  json engineJson;
 
   std::string m_device;
   float lastQuillTime = 0.0f;

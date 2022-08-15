@@ -291,15 +291,23 @@ void ThrottleMenu::AddEngineWindow(bool* p_open, const std::string& appDir)
 
     if (ImGui::Button("Add Engine", ImVec2(80, 60)))
     {
-      json test;
       if (newEngineisLegacy)
         newEngineType = engineTypesLegacy[type_index].engineType;
       else
         newEngineType = engineTypes[type_index].engineType;
+
+      EngineDef engine = EngineDef();
+      engine.engineID = newEngineID;
+      engine.engineName = newEngineName.c_str();
+      engine.engineType = newEngineType;
+      engine.legacyEngine = newEngineisLegacy;
+      m_enginedefs.push_back(engine);
       printf("Engine ID: %d, EngineName: %s, engineType: %d, Legacy: %d\n", newEngineID, newEngineName.c_str(), newEngineType, newEngineisLegacy);
       printf("%s\n", appDir.c_str());
       //EngineManagement::AddEngineToJson(test, newEngineID, newEngineType, newEngineisLegacy, appDir.c_str());
-      AddEngineDataToJson(test, newEngineID, newEngineName, newEngineType, newEngineisLegacy, appDir.c_str());
+      json j;
+
+      AddEngineDataToJson(j, newEngineID, newEngineName.c_str(), newEngineType, newEngineisLegacy, appDir.c_str());
     }
 
 
