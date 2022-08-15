@@ -1,11 +1,12 @@
 
 #include "EngineManagement.h"
-#include "StdAfx.h"
+//#include "StdAfx.h"
 #include <cstdlib>
 #include "TMCCInterface.h"
 #include <thread>
-#include <json.hpp>
+#include "json.hpp"
 #include <fstream>
+#include "interface/throttlemenu.h"
 
 using json = nlohmann::json;
 
@@ -34,6 +35,8 @@ void EngineManagement::WriteEngineRoster(json& engineRoster, const std::string& 
   o << std::setw(4) << engineRoster << std::endl;
 }
 
+
+
 void EngineManagement::AddEngineToJson(json& engineRoster, int engineID, int currentEngineType, bool isLegacy, const std::string& appDir)
 {
   //if (engineRoster)
@@ -41,9 +44,9 @@ void EngineManagement::AddEngineToJson(json& engineRoster, int engineID, int cur
     if(0 <= engineID <= 99)
     {
       engineRoster[std::string("engine") + std::to_string(engineID)] = {
-{"engineID", engineID},
-{"engineType", currentEngineType},
-{"isLegacy", isLegacy} };
+      {"engineID", engineID},
+      {"engineType", currentEngineType},
+      {"isLegacy", isLegacy} };
       //}
       WriteEngineRoster(engineRoster, appDir);
     }

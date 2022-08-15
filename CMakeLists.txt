@@ -45,6 +45,9 @@ set(CABPC_SOURCES
     src/imgui/imstb_rectpack.h
     src/imgui/imstb_textedit.h
     src/imgui/imstb_truetype.h
+    src/EngineManagement.cpp
+    src/EngineManagement.h
+    src/stb_image.h
     src/json.hpp
     src/imgui-knobs.cpp
     src/imgui-knobs.h

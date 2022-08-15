@@ -1,6 +1,7 @@
-#include "StdAfx.h"
+//#include "StdAfx.h"
 #include "TMCCInterface.h"
-#include <json.hpp>
+#include "json.hpp"
+
 using json = nlohmann::json;
 
 
@@ -16,5 +17,6 @@ public:
   static void WriteEngineLegacyConditionToJson(json& engineRoster, int engineID, bool legacyState, const std::string& appDir);
   static bool EngineExistsInJson(json& engineRoster, int engineID);
   static void WriteEngineRoster(json& engineRoster, const std::string& appDir);
+
 ;
 };
