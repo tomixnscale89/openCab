@@ -118,8 +118,7 @@ ThrottleMenu::ThrottleMenu(const std::string& appDir)
   currentQuill = 0;
   engineID = 1;
 
-  texture0 = Image("C:/Users/tomix/Documents/GitHub/CABPC/build/bin/graphics/legacy_blowdown.png");
-
+  texture0 = std::make_shared<Image>("C:/Users/tomix/Documents/GitHub/CABPC/build/bin/graphics/legacy_blowdown.png");
 }
 
 ThrottleMenu::~ThrottleMenu()
@@ -464,10 +463,7 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
     };
     
 
-
-
-    ImGui::Image((void*)(intptr_t)texture0.GetGLHandle(), ImVec2(texture0.GetWidth(), texture0.GetHeight()));
-
+    ImGui::Image((void*)(intptr_t)texture0->GetGLHandle(), ImVec2(128, 128));
 
     ImGui::EndTable();
   }

@@ -73,7 +73,7 @@ private:
   int m_selected_engine = 0;
   int m_selected_engine_voice_menu = 0;
 
-  Image texture0;
+  std::shared_ptr<Image> texture0;
 
   int currentKeypadStyle = 0;
   // 0 - CAB1

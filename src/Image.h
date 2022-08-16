@@ -2,10 +2,7 @@
 #pragma once
 class Image
 {
- 
-
 public:
-  Image();
   Image(const std::string& filename);
   ~Image();
 
@@ -23,7 +20,6 @@ private:
 
 unsigned int Image::GetGLHandle() const
 {
-  printf("Handle: %d\n", handle);
   return handle;
 }
 

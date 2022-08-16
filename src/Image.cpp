@@ -5,10 +5,6 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-
-
-
-
 // Simple helper function to load an image into a OpenGL texture with common settings
 static bool LoadTextureFromFile(const char* filename, GLuint* out_texture, int* out_width, int* out_height)
 {
@@ -48,17 +44,10 @@ static bool LoadTextureFromFile(const char* filename, GLuint* out_texture, int* 
   return true;
 }
 
-Image::Image()
-  : handle(0)
-{
-}
-
 Image::Image(const std::string& filename)
   : handle(0)
 {
-  // blah blah blah
   LoadTextureFromFile(filename.c_str(), &handle, &width, &height);
-  // upload the data, etc
 }
 
 Image::~Image()
