@@ -10,6 +10,7 @@
 
 using json = nlohmann::json;
 
+// RD2TMCC ReadEngineRoster
 void EngineManagement::ReadEngineRoster(json& engineRoster, const std::string& appDir)
 {
   std::string dir = appDir.substr(0, appDir.find_last_of("/\\"));
@@ -19,14 +20,42 @@ void EngineManagement::ReadEngineRoster(json& engineRoster, const std::string& a
     printf("No roster found. Creating...\n");
     WriteEngineRoster(engineRoster, appDir);
   }
-    
-  
+
+
   else
   {
     printf("Roster found. Reading...\n");
     i >> engineRoster;
   }
 }
+
+// OpenCAB ReadEngineRoster
+
+void EngineManagement::ReadEngineRoster(std::vector<EngineDef>& enginedefs, const std::string& appDir)
+{
+  json engineRoster;
+  std::string dir = appDir.substr(0, appDir.find_last_of("/\\"));
+  std::ifstream i(dir + "/engineRoster.json");
+  if (i.fail()) // if we fail, the file doesn't exist, so create our own later
+  {
+    printf("No roster found. Please add some engines.\n");
+    return;
+  }
+
+  printf("Roster found. Reading...\n");
+  i >> engineRoster;
+
+  for (const auto& engine : engineRoster["engines"])
+  {
+    EngineDef enginedef = EngineDef();
+    enginedef.engineID = engine["engineID"].get<int>();
+    enginedef.engineType = engine["engineType"].get<int>();
+    enginedef.engineName = engine["engineName"];
+    enginedef.legacyEngine = engine["isLegacy"].get<bool>();
+    enginedefs.push_back(enginedef);
+  }
+}
+
 
 void EngineManagement::WriteEngineRoster(json& engineRoster, const std::string& appDir)
 {
@@ -35,7 +64,23 @@ void EngineManagement::WriteEngineRoster(json& engineRoster, const std::string& 
   o << std::setw(4) << engineRoster << std::endl;
 }
 
+void EngineManagement::AddEngineDataToJson(json& engineRoster, std::vector<EngineDef> enginedefs, const std::string& appDir)
+{
+  std::vector<json> engines;
+  for (const auto& engine : enginedefs)
+  {
+    json enginedata;
+    enginedata["engineID"] = engine.engineID;
+    enginedata["engineName"] = engine.engineName;
+    enginedata["engineType"] = engine.engineType;
+    enginedata["isLegacy"] = engine.legacyEngine;
+    engines.push_back(enginedata);
+  }
+  engineRoster["engines"] = engines;
+  //engineRoster["engines"] = engines;
+  EngineManagement::WriteEngineRoster(engineRoster, appDir);
 
+}
 
 void EngineManagement::AddEngineToJson(json& engineRoster, int engineID, int currentEngineType, bool isLegacy, const std::string& appDir)
 {

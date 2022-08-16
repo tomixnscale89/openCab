@@ -33,7 +33,6 @@ struct dialog_entry
 };
 
 
-
 static engine_type_legacy engineTypesLegacy[]{
     {"Steam Locomotive", ENGINE_TYPE_STEAM},
     {"Diesel Locomotive", ENGINE_TYPE_DIESEL},
@@ -112,12 +111,15 @@ static dialog_entry dialog_map[]{
 };
 
 
-ThrottleMenu::ThrottleMenu()
+ThrottleMenu::ThrottleMenu(const std::string& appDir)
 {
   speed = 0;
   currentTrainBrake = 0;
   currentQuill = 0;
   engineID = 1;
+
+  texture0 = Image("C:/Users/tomix/Documents/GitHub/CABPC/build/bin/graphics/legacy_blowdown.png");
+
 }
 
 ThrottleMenu::~ThrottleMenu()
@@ -183,22 +185,27 @@ void ThrottleMenu::Draw(const std::string& appDir)
     ImGui::EndCombo();
   }
 
-
+    std::string engineHint = "No Engines Found.";
+    if (m_enginedefs.size())
+      engineHint = m_enginedefs[m_selected_engine].engineName;
     // second argument is the text hint for the current item
-    //if (ImGui::BeginCombo("Engine", m_enginedefs[m_selected_engine].name.c_str()))
-    //{
-    //  // combobox has been clicked, list the options
-    //  for (int i = 0; i < m_enginedefs.size(); i++)
-    //  {
-    //    // first argument is the option name, second argument is whether to display this item as selected
-    //    if (ImGui::Selectable(m_enginedefs[i].name.c_str(), m_selected_engine == i))
-    //    {
-    //      // combobox item has been clicked, set the new selected engine
-    //      m_selected_engine = i;
-    //    }
-    //  }
-    //  ImGui::EndCombo();
-    //}
+    if (ImGui::BeginCombo("Engine", engineHint.c_str()))
+    {
+      // combobox has been clicked, list the options
+      for (int i = 0; i < m_enginedefs.size(); i++)
+      {
+        // first argument is the option name, second argument is whether to display this item as selected
+        if (ImGui::Selectable(m_enginedefs[i].engineName.c_str(), m_selected_engine == i))
+        {
+          // combobox item has been clicked, set the new selected engine
+          m_selected_engine = i;
+          engineID = m_enginedefs[m_selected_engine].engineID;
+          printf("Engine ID to use: %d\n", engineID);
+
+        }
+      }
+      ImGui::EndCombo();
+    }
 
     //static int value = 0;
     static float f = 0.0f;
@@ -307,7 +314,7 @@ void ThrottleMenu::AddEngineWindow(bool* p_open, const std::string& appDir)
       //EngineManagement::AddEngineToJson(test, newEngineID, newEngineType, newEngineisLegacy, appDir.c_str());
       json j;
 
-      AddEngineDataToJson(j, newEngineID, newEngineName.c_str(), newEngineType, newEngineisLegacy, appDir.c_str());
+      EngineManagement::AddEngineDataToJson(j, m_enginedefs, appDir.c_str());
     }
 
 
@@ -316,23 +323,7 @@ void ThrottleMenu::AddEngineWindow(bool* p_open, const std::string& appDir)
   }
 };
 
-void ThrottleMenu::AddEngineDataToJson(json& engineRoster, int engineID, std::string engineName, int currentEngineType, bool isLegacy, const std::string& appDir)
-{
-  std::vector<json> engines;
-  for (const auto& engine : m_enginedefs)
-  {
-    json enginedata;
-    enginedata["engineID"] = engineID;
-    enginedata["engineName"] = engineName;
-    enginedata["engineType"] = currentEngineType;
-    enginedata["isLegacy"] = isLegacy;
-    engines.push_back(enginedata);
-  }
-  engineRoster["engines"] = engines;
-  //engineRoster["engines"] = engines;
-  EngineManagement::WriteEngineRoster(engineRoster, appDir);
 
-}
 
 void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
 {
@@ -412,6 +403,9 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
     if (bellDingCount > 3)
       bellDingCount = 1;
 
+
+
+
     ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(50);
 
@@ -472,8 +466,7 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
 
 
 
-
-    
+    ImGui::Image((void*)(intptr_t)texture0.GetGLHandle(), ImVec2(texture0.GetWidth(), texture0.GetHeight()));
 
 
     ImGui::EndTable();
@@ -485,6 +478,28 @@ void ThrottleMenu::ShowVoiceWindow(bool* p_open)
   ImGui::SetNextWindowSize(ImVec2(480, 574), ImGuiCond_FirstUseEver);
   if (ImGui::Begin("CrewTalk/TowerCom Voice Testing", p_open, ImGuiWindowFlags_MenuBar))
   {
+    std::string engineHint = "No Engines Found.";
+    if (m_enginedefs.size())
+      engineHint = m_enginedefs[m_selected_engine_voice_menu].engineName;
+    // second argument is the text hint for the current item
+    if (ImGui::BeginCombo("Engine", engineHint.c_str()))
+    {
+      // combobox has been clicked, list the options
+      for (int i = 0; i < m_enginedefs.size(); i++)
+      {
+        // first argument is the option name, second argument is whether to display this item as selected
+        if (ImGui::Selectable(m_enginedefs[i].engineName.c_str(), m_selected_engine_voice_menu == i))
+        {
+          // combobox item has been clicked, set the new selected engine
+          m_selected_engine_voice_menu = i;
+          engineID_voice_menu = m_enginedefs[m_selected_engine_voice_menu].engineID;
+          printf("Engine ID to use for Voice Clips: %d\n", engineID_voice_menu);
+
+        }
+      }
+      ImGui::EndCombo();
+    }
+
     if (ImGui::BeginListBox("##", ImVec2(320, 512)))
     {
       for (int i = 0; i < IM_ARRAYSIZE(dialog_map); i++)
@@ -499,7 +514,7 @@ void ThrottleMenu::ShowVoiceWindow(bool* p_open)
     if (ImGui::Button("Play Clip", ImVec2(80, 60)))
     {
       //printf("Voice clip: " + dialog_map[dialog_map[m_dialog_index].value].name.c_str());
-      TMCCInterface::EngineDialogCommand(engineID, dialog_map[m_dialog_index].value);
+      TMCCInterface::EngineDialogCommand(engineID_voice_menu, dialog_map[m_dialog_index].value);
     };
 
     ImGui::End();

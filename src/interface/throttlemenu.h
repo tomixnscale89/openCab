@@ -8,6 +8,9 @@
 #include "../json.hpp"
 #include "../imgui-knobs.h"
 #include "types.h"
+#include "../Image.h"
+
+#pragma once
 
 using json = nlohmann::json;
 
@@ -35,6 +38,7 @@ enum EngineTypeTMCC : uint8
 };
 
 
+
 struct EngineDef
  {
     int engineID;
@@ -46,9 +50,10 @@ struct EngineDef
 class ThrottleMenu
 {
 public:
-  ThrottleMenu();
+  ThrottleMenu(const std::string& appDir);
   ~ThrottleMenu();
   void Draw(const std::string& appDir);
+  std::vector<EngineDef> m_enginedefs;
 
 private:
 
@@ -57,6 +62,7 @@ private:
   bool whistleEnabled = false;
   int speed = 0; // current speed
   int engineID;
+  int engineID_voice_menu = 0;
   std::string engineIDStr = "0";
   bool legacyEnabled = true;
   bool consistentBellDing = true;
@@ -65,10 +71,9 @@ private:
 
 
   int m_selected_engine = 0;
+  int m_selected_engine_voice_menu = 0;
 
-
-
-  std::vector<EngineDef> m_enginedefs;
+  Image texture0;
 
   int currentKeypadStyle = 0;
   // 0 - CAB1
@@ -125,7 +130,6 @@ private:
   void ShowVoiceWindow(bool* p_open);
   void AddEngineWindow(bool* p_open, const std::string& appDir);
   void ThrottleWindow(bool* p_open, float curTime);
-  void AddEngineDataToJson(json& engineRoster, int engineID, std::string engineName, int currentEngineType, bool isLegacy, const std::string& appDir);
 
   char newEngineNameChar[64] = " ";
   std::string newEngineIDStr = "0";
