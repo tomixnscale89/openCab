@@ -45,6 +45,7 @@ struct EngineDef
     int engineType;
     bool legacyEngine;
     std::string engineName;
+    // add temp engine speed
   };
 
 class ThrottleMenu
@@ -62,6 +63,7 @@ private:
   bool whistleEnabled = false;
   int speed = 0; // current speed
   int engineID;
+  int engineID_sound_menu = 0;
   int engineID_voice_menu = 0;
   std::string engineIDStr = "0";
   bool legacyEnabled = true;
@@ -71,6 +73,7 @@ private:
 
 
   int m_selected_engine = 0;
+  int m_selected_engine_sound_menu = 0;
   int m_selected_engine_voice_menu = 0;
 
   std::shared_ptr<Image> texture0;
@@ -91,7 +94,9 @@ private:
 
   bool test = true;
 
+  bool soundMenuVisible = false;
   bool voiceClipMenuVisible = false;
+  bool dinerVoiceClipMenuVisible = false;
   bool addEngineMenuVisible = false;
 
   bool legacyBellOn = false;
@@ -127,7 +132,9 @@ private:
   void DrawCAB2SteamKeypad();
   void DrawKeypadType(int currentKeypadType);
   void PlayWhistle(bool enabled, float curTime, int currentQuill, int engineID);
+  void ShowSoundWindow(bool* p_open);
   void ShowVoiceWindow(bool* p_open);
+  void ShowDinerVoiceWindow(bool* p_open);
   void AddEngineWindow(bool* p_open, const std::string& appDir);
   void ThrottleWindow(bool* p_open, float curTime);
 

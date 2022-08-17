@@ -110,6 +110,25 @@ static dialog_entry dialog_map[]{
   {"Conventional Short Horn Trigger", DC_CONVENTIONAL_SHORT_HORN_TRIGGER}
 };
 
+static dialog_entry diner_dialog_map[]{
+  {"Conductor: All Aboard", DC_CONDUCTOR_ALL_ABOARD},
+  {"Conductor: Next Stop", STATION_SOUND_CAR_CONDUCTOR_NEXT_STOP},
+  {"Conductor: Watch your step", STATION_SOUND_CAR_CONDUCTOR_WATCH_STEP},
+  {"Conductor: All Aboard 2", STATION_SOUND_CAR_CONDUCTOR_ALL_ABOARD},
+  {"Conductor: Tickets Please", STATION_SOUND_CAR_CONDUCTOR_TICKETS_PLZ},
+  {"Conductor: Premature Stop", STATION_SOUND_CAR_CONDUCTOR_PREMATURE_STOP},
+  {"Steward: Welcome", STATION_SOUND_CAR_STEWARD_WELCOME},
+  {"Steward: First Seating now Open", STATION_SOUND_CAR_STEWARD_FIRST_SEATING},
+  {"Steward: Second Seating now Open", STATION_SOUND_CAR_STEWARD_SECOND_SEATING},  
+  {"Steward: Lounge now Open", STATION_SOUND_CAR_STEWARD_LOUNGE_OPEN},
+  {"PA System: Train Arriving", STATION_SOUND_CAR_PA_TRAIN_ARRIVING},
+  {"PA System: Train Arrived", STATION_SOUND_CAR_PA_TRAIN_ARRIVED},  
+  {"PA System: Train Boarding", STATION_SOUND_CAR_PA_TRAIN_BOARDING},
+  {"PA System: Train Departing", STATION_SOUND_CAR_PA_TRAIN_DEPARTING},
+  {"Startup", STATION_SOUND_CAR_STARTUP},
+  {"Shutdown", STATION_SOUND_CAR_SHUTDOWN}
+};
+
 
 ThrottleMenu::ThrottleMenu(const std::string& appDir)
 {
@@ -133,7 +152,9 @@ void ThrottleMenu::Draw(const std::string& appDir)
 
   float curTime = (float)clock() / CLOCKS_PER_SEC;
 
+  if (soundMenuVisible)              ShowSoundWindow(&soundMenuVisible);
   if (voiceClipMenuVisible)              ShowVoiceWindow(&voiceClipMenuVisible);
+  if (dinerVoiceClipMenuVisible)              ShowDinerVoiceWindow(&dinerVoiceClipMenuVisible);
   if (addEngineMenuVisible)              AddEngineWindow(&addEngineMenuVisible, appDir);
 
   // Menu Bar
@@ -155,7 +176,9 @@ void ThrottleMenu::Draw(const std::string& appDir)
     //if (ImGui::MenuItem("MenuItem")) {} // You can also use MenuItem() inside a menu bar!
     if (ImGui::BeginMenu("Feature Windows"))
     {
-      ImGui::MenuItem("CrewTalk/TowerCom Voice Testing", NULL, &voiceClipMenuVisible);
+      ImGui::MenuItem("Sound Menu", NULL, &soundMenuVisible);
+      ImGui::MenuItem("CrewTalk/TowerCom Announcements", NULL, &voiceClipMenuVisible);
+      ImGui::MenuItem("StationSounds Diner Announcements", NULL, &dinerVoiceClipMenuVisible);
       ImGui::MenuItem("Lighting Menu", NULL, &test);
       ImGui::EndMenu();
     }
@@ -199,6 +222,7 @@ void ThrottleMenu::Draw(const std::string& appDir)
           // combobox item has been clicked, set the new selected engine
           m_selected_engine = i;
           engineID = m_enginedefs[m_selected_engine].engineID;
+          legacyEnabled = m_enginedefs[m_selected_engine].legacyEngine;
           printf("Engine ID to use: %d\n", engineID);
 
         }
@@ -388,7 +412,7 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
       TMCCInterface::EngineSetAbsoluteSpeed2(engineID, speed);
     }
 
-    ImGui::Text("One Shot Bell Enabled:");
+    ImGui::Text("One Shot Bell Disabled:");
     ImGui::SameLine();
     ImGui::Checkbox("##OneShotBellEnabler", &consistentBellDing);
 
@@ -463,9 +487,58 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
     };
     
 
-    ImGui::Image((void*)(intptr_t)texture0->GetGLHandle(), ImVec2(128, 128));
+    //ImGui::Image();
 
     ImGui::EndTable();
+  }
+}
+void ThrottleMenu::ShowSoundWindow(bool* p_open)
+{
+  ImGui::SetNextWindowSize(ImVec2(480, 574), ImGuiCond_FirstUseEver);
+  if (ImGui::Begin("Sounds and more!", p_open, ImGuiWindowFlags_MenuBar))
+  {
+    std::string engineHint = "No Engines Found.";
+    if (m_enginedefs.size())
+      engineHint = m_enginedefs[m_selected_engine_sound_menu].engineName;
+    // second argument is the text hint for the current item
+    if (ImGui::BeginCombo("Engine", engineHint.c_str()))
+    {
+      // combobox has been clicked, list the options
+      for (int i = 0; i < m_enginedefs.size(); i++)
+      {
+        // first argument is the option name, second argument is whether to display this item as selected
+        if (ImGui::Selectable(m_enginedefs[i].engineName.c_str(), m_selected_engine_sound_menu == i))
+        {
+          // combobox item has been clicked, set the new selected engine
+          m_selected_engine_sound_menu = i;
+          engineID_sound_menu = m_enginedefs[m_selected_engine_sound_menu].engineID;
+          printf("Engine ID to use for Sound Clips: %d\n", engineID_sound_menu);
+
+        }
+      }
+      ImGui::EndCombo();
+    }
+
+    if (m_enginedefs[m_selected_engine_sound_menu].legacyEngine) // if selected engine is legacy, show legacy menu options
+    {
+      if (ImGui::Button("Cycle Legacy Horn", ImVec2(128, 60)))
+      {
+        //printf("Voice clip: " + dialog_map[dialog_map[m_dialog_index].value].name.c_str());
+        TMCCInterface::EngineAux1Option1(engineID_sound_menu);
+        TMCCInterface::EngineSetQuillingHornIntensity(engineID_sound_menu, 1);
+        //TMCCInterface::EngineBlowHorn1TMCC2(engineID_sound_menu);
+      };
+      if (ImGui::Button("Cycle Legacy Bell", ImVec2(128, 60)))
+      {
+        //printf("Voice clip: " + dialog_map[dialog_map[m_dialog_index].value].name.c_str());
+        TMCCInterface::EngineAux1Option1(engineID_sound_menu);
+        TMCCInterface::EngineBellOneShotDing(engineID_sound_menu, 3);
+        //TMCCInterface::EngineBlowHorn1TMCC2(engineID_sound_menu);
+      };
+    }
+    
+
+    ImGui::End();
   }
 }
 
@@ -511,6 +584,54 @@ void ThrottleMenu::ShowVoiceWindow(bool* p_open)
     {
       //printf("Voice clip: " + dialog_map[dialog_map[m_dialog_index].value].name.c_str());
       TMCCInterface::EngineDialogCommand(engineID_voice_menu, dialog_map[m_dialog_index].value);
+    };
+
+    ImGui::End();
+  }
+}
+
+void ThrottleMenu::ShowDinerVoiceWindow(bool* p_open)
+{
+  ImGui::SetNextWindowSize(ImVec2(480, 574), ImGuiCond_FirstUseEver);
+  if (ImGui::Begin("StationSounds Diner Voice Clips", p_open, ImGuiWindowFlags_MenuBar))
+  {
+    std::string engineHint = "No Engines Found.";
+    if (m_enginedefs.size())
+      engineHint = m_enginedefs[m_selected_engine_voice_menu].engineName;
+    // second argument is the text hint for the current item
+    if (ImGui::BeginCombo("Engine", engineHint.c_str()))
+    {
+      // combobox has been clicked, list the options
+      for (int i = 0; i < m_enginedefs.size(); i++)
+      {
+        // first argument is the option name, second argument is whether to display this item as selected
+        if (ImGui::Selectable(m_enginedefs[i].engineName.c_str(), m_selected_engine_voice_menu == i))
+        {
+          // combobox item has been clicked, set the new selected engine
+          m_selected_engine_voice_menu = i;
+          engineID_voice_menu = m_enginedefs[m_selected_engine_voice_menu].engineID;
+          printf("Engine ID to use for Voice Clips: %d\n", engineID_voice_menu);
+
+        }
+      }
+      ImGui::EndCombo();
+    }
+
+    if (ImGui::BeginListBox("##", ImVec2(320, 512)))
+    {
+      for (int i = 0; i < IM_ARRAYSIZE(diner_dialog_map); i++)
+      {
+        const bool is_selected = (m_dialog_index == i);
+        if (ImGui::Selectable(diner_dialog_map[i].name.c_str(), is_selected))
+          m_dialog_index = i;
+      }
+      ImGui::EndListBox();
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Play Clip", ImVec2(80, 60)))
+    {
+      //printf("Voice clip: " + dialog_map[dialog_map[m_dialog_index].value].name.c_str());
+      TMCCInterface::EngineDialogCommand(engineID_voice_menu, diner_dialog_map[m_dialog_index].value);
     };
 
     ImGui::End();
@@ -699,7 +820,8 @@ void ThrottleMenu::DrawCAB2SteamKeypad()
 
   };
   ImGui::SameLine();
-  if (ImGui::Button("6", ImVec2(80, 80)))
+  
+  if (ImGui::ImageButton((void*)(intptr_t)texture0->GetGLHandle(), ImVec2(80, 80)))
   {
 
   };
