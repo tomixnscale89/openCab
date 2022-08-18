@@ -137,7 +137,31 @@ ThrottleMenu::ThrottleMenu(const std::string& appDir)
   currentQuill = 0;
   engineID = 1;
 
-  texture0 = std::make_shared<Image>("C:/Users/tomix/Documents/GitHub/CABPC/build/bin/graphics/legacy_blowdown.png");
+  std::string dir = appDir.substr(0, appDir.find_last_of("/\\"));
+
+  blowdownIcon = std::make_shared<Image>(dir + "/graphics/blowdown.png");
+  volUpIcon = std::make_shared<Image>(dir + "/graphics/volup.png");
+  volDownIcon = std::make_shared<Image>(dir + "/graphics/voldown.png");
+  towerComIcon = std::make_shared<Image>(dir + "/graphics/towercom.png");
+  crewTalkIcon = std::make_shared<Image>(dir + "/graphics/crewtalk.png");
+  smokeOnIcon = std::make_shared<Image>(dir + "/graphics/smokeon.png");
+  smokeOffIcon = std::make_shared<Image>(dir + "/graphics/smokeoff.png");
+  resetIcon = std::make_shared<Image>(dir + "/graphics/reset.png");
+  tenderMarkerOnIcon = std::make_shared<Image>(dir + "/graphics/marker_on.png");
+  tenderMarkerOffIcon = std::make_shared<Image>(dir + "/graphics/marker_off.png");
+  waterIcon = std::make_shared<Image>(dir + "/graphics/water.png");
+  startUpIcon = std::make_shared<Image>(dir + "/graphics/startup.png");
+  shutDownIcon = std::make_shared<Image>(dir + "/graphics/shutdown.png");
+  rule17onIcon = std::make_shared<Image>(dir + "/graphics/rule17on.png");
+  rule17offIcon = std::make_shared<Image>(dir + "/graphics/rule17off.png");
+  blankIcon = std::make_shared<Image>(dir + "/graphics/blank.png");
+
+  leftArrowIcon = std::make_shared<Image>(dir + "/graphics/left_arrow.png");
+  rightArrowIcon = std::make_shared<Image>(dir + "/graphics/right_arrow.png");
+  panto_front_upIcon = std::make_shared<Image>(dir + "/graphics/panto_front_up.png");
+  panto_front_downIcon = std::make_shared<Image>(dir + "/graphics/panto_front_down.png");
+  panto_rear_upIcon = std::make_shared<Image>(dir + "/graphics/panto_rear_up.png");
+  panto_rear_downIcon = std::make_shared<Image>(dir + "/graphics/panto_rear_down.png");
 }
 
 ThrottleMenu::~ThrottleMenu()
@@ -394,37 +418,62 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
       TMCCInterface::EngineAux2Option1(engineID);
     };
     ImGui::PopButtonRepeat();
-    ImGui::PushButtonRepeat(true);
 
-    if (ImGui::Button("Aux 3", ImVec2(80, 60)))
+    if (m_enginedefs[m_selected_engine].legacyEngine)
     {
-      printf("Aux 3: Pressed\n");
-      TMCCInterface::EngineAux3Trigger(engineID);
-    };
-    ImGui::PopButtonRepeat();
+      ImGui::PushButtonRepeat(true);
+      if (ImGui::Button("Aux 3", ImVec2(80, 60)))
+      {
+        printf("Aux 3: Pressed\n");
+        TMCCInterface::EngineAux3Trigger(engineID);
+      };
+      ImGui::PopButtonRepeat();
+    }
+    
 
     ImGui::TableNextColumn();
     ImGui::SetNextItemWidth(50);
 
-    DrawKeypadType(currentKeypadStyle);
-    if (ImGuiKnobs::KnobInt("Throttle", &speed, 0, 200, 1, "%d MPH", ImGuiKnobVariant_Wiper, 256)) {
-      // value was changed
-      TMCCInterface::EngineSetAbsoluteSpeed2(engineID, speed);
+    DrawKeypadType(currentKeypadStyle, m_enginedefs[m_selected_engine].legacyEngine, m_enginedefs[m_selected_engine].engineType);
+
+    if (m_enginedefs[m_selected_engine].legacyEngine)
+    {
+      // Legacy Version
+      if (ImGuiKnobs::KnobInt("Throttle", &speed, 0, 200, 1, "%d MPH", ImGuiKnobVariant_Wiper, 256)) {
+        // value was changed
+        TMCCInterface::EngineSetAbsoluteSpeed2(engineID, speed);
+      }
+    }
+    else if(!m_enginedefs[m_selected_engine].legacyEngine && m_enginedefs[m_selected_engine].engineType == EngineTypeTMCC::ENGINE_TYPE_TMCC_CRANE)
+    {
+      // No Throttle for TMCC Crane
+    }
+    else
+    {
+      // TMCC Version
+      if (ImGuiKnobs::KnobInt("Throttle", &speed, 0, 32, 1, "%d MPH", ImGuiKnobVariant_Wiper, 256)) {
+        // value was changed
+        TMCCInterface::EngineSetAbsoluteSpeed(engineID, speed);
+      }
     }
 
-    ImGui::Text("One Shot Bell Disabled:");
-    ImGui::SameLine();
-    ImGui::Checkbox("##OneShotBellEnabler", &consistentBellDing);
+    if (m_enginedefs[m_selected_engine].legacyEngine)
+    {
+      ImGui::Text("One Shot Bell Disabled:");
+      ImGui::SameLine();
+      ImGui::Checkbox("##OneShotBellEnabler", &consistentBellDing);
 
-    if (ImGui::ArrowButton("##left", ImGuiDir_Left)) { bellDingCount--; }
-    if (bellDingCount < 1)
-      bellDingCount = 3;
-    ImGui::SameLine();
-    ImGui::Text("One Shot Bell Volume:%d", bellDingCount);
-    ImGui::SameLine();
-    if (ImGui::ArrowButton("##right", ImGuiDir_Right)) { bellDingCount++; }
-    if (bellDingCount > 3)
-      bellDingCount = 1;
+      if (ImGui::ArrowButton("##left", ImGuiDir_Left)) { bellDingCount--; }
+      if (bellDingCount < 1)
+        bellDingCount = 3;
+      ImGui::SameLine();
+      ImGui::Text("One Shot Bell Volume:%d", bellDingCount);
+      ImGui::SameLine();
+      if (ImGui::ArrowButton("##right", ImGuiDir_Right)) { bellDingCount++; }
+      if (bellDingCount > 3)
+        bellDingCount = 1;
+    }
+
 
 
 
@@ -453,24 +502,39 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
 
     };
 
-
-    if (ImGui::Button("Bell", ImVec2(80, 60)))
+    if (m_enginedefs[m_selected_engine].legacyEngine)
     {
-      if (consistentBellDing)
+      if (ImGui::Button("Bell", ImVec2(80, 60)))
       {
-        printf("Bell Toggle\n");
-        bellOn = !bellOn;
-        if (bellOn)
-          TMCCInterface::EngineSetBell(engineID, TMCC_ON);
+        if (consistentBellDing)
+        {
+          printf("Bell Toggle\n");
+          bellOn = !bellOn;
+          if (bellOn)
+            TMCCInterface::EngineSetBell(engineID, TMCC_ON);
+          else
+            TMCCInterface::EngineSetBell(engineID, TMCC_OFF);
+        }
         else
-          TMCCInterface::EngineSetBell(engineID, TMCC_OFF);
+        {
+          printf("One Shot Bell Ding: %d\n", bellDingCount);
+          TMCCInterface::EngineBellOneShotDing(engineID, bellDingCount);
+        }
       }
-      else
+    }
+    else
+    {
+      if (ImGui::Button("Bell", ImVec2(80, 60)))
       {
-        printf("One Shot Bell Ding: %d\n", bellDingCount);
-        TMCCInterface::EngineBellOneShotDing(engineID, bellDingCount);
-      }
-    };
+          printf("Bell Toggle\n");
+          bellOn = !bellOn;
+          if (bellOn)
+            TMCCInterface::EngineSetBell(engineID, TMCC_ON);
+          else
+            TMCCInterface::EngineSetBell(engineID, TMCC_OFF);
+        }
+    }
+    
     
 
     if (ImGui::Button("Rear\nCoupler", ImVec2(80, 60)))
@@ -491,7 +555,8 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
 
     ImGui::EndTable();
   }
-}
+};
+
 void ThrottleMenu::ShowSoundWindow(bool* p_open)
 {
   ImGui::SetNextWindowSize(ImVec2(480, 574), ImGuiCond_FirstUseEver);
@@ -528,6 +593,7 @@ void ThrottleMenu::ShowSoundWindow(bool* p_open)
         TMCCInterface::EngineSetQuillingHornIntensity(engineID_sound_menu, 1);
         //TMCCInterface::EngineBlowHorn1TMCC2(engineID_sound_menu);
       };
+      ImGui::SameLine();
       if (ImGui::Button("Cycle Legacy Bell", ImVec2(128, 60)))
       {
         //printf("Voice clip: " + dialog_map[dialog_map[m_dialog_index].value].name.c_str());
@@ -794,81 +860,115 @@ void ThrottleMenu::DrawTMCCKeypad()
 
 void ThrottleMenu::DrawCAB2SteamKeypad()
 {
-  if (ImGui::Button("1", ImVec2(80, 80)))
+  ImGui::PushButtonRepeat(true);
+  if (ImGui::ImageButton((void*)(intptr_t)volUpIcon->GetGLHandle(), ImVec2(70, 70)))
   {
+    TMCCInterface::EngineSetMasterVolume(engineID, TMCC_ON);
 
   };
   ImGui::SameLine();
-  if (ImGui::Button("666", ImVec2(80, 80)))
+  ImGui::PopButtonRepeat();
+
+  ImGui::PushButtonRepeat(true);
+  if (ImGui::ImageButton((void*)(intptr_t)crewTalkIcon->GetGLHandle(), ImVec2(70, 70)))
   {
+    TMCCInterface::EngineNumericCommand2(engineID, 2);
+  };
+  ImGui::PopButtonRepeat();
+
+  ImGui::SameLine();
+  ImGui::PushButtonRepeat(true);
+  if (ImGui::ImageButton((void*)(intptr_t)waterIcon->GetGLHandle(), ImVec2(70, 70)))
+  {
+    TMCCInterface::EngineRSTriggerWaterInjector(engineID);
+  };
+  ImGui::PopButtonRepeat();
+
+
+  if (ImGui::ImageButton((void*)(intptr_t)volDownIcon->GetGLHandle(), ImVec2(70, 70)))
+  {
+    TMCCInterface::EngineSetMasterVolume(engineID, TMCC_OFF);
 
   };
   ImGui::SameLine();
-  if (ImGui::Button("3", ImVec2(80, 80)))
+  if (ImGui::ImageButton((void*)(intptr_t)shutDownIcon->GetGLHandle(), ImVec2(70, 70)))
   {
-
-  };
-
-
-  if (ImGui::Button("4", ImVec2(80, 80)))
-  {
-
-  };
-  ImGui::SameLine();
-  if (ImGui::Button("5", ImVec2(80, 80)))
-  {
+    TMCCInterface::EngineNumericCommand2(engineID, 5);
 
   };
   ImGui::SameLine();
   
-  if (ImGui::ImageButton((void*)(intptr_t)texture0->GetGLHandle(), ImVec2(80, 80)))
+  if (ImGui::ImageButton((void*)(intptr_t)blowdownIcon->GetGLHandle(), ImVec2(70, 70)))
   {
+    TMCCInterface::EngineRSTriggerLongLetOff(engineID);
 
   };
 
-  if (ImGui::Button("7", ImVec2(80, 80)))
+  Tooltip("Blowdown");
+
+  if (ImGui::ImageButton((void*)(intptr_t)towerComIcon->GetGLHandle(), ImVec2(70, 70)))
+  {
+    TMCCInterface::EngineNumericCommand2(engineID, 7);
+
+  };
+
+  
+
+  ImGui::SameLine();
+  if (ImGui::ImageButton((void*)(intptr_t)smokeOffIcon->GetGLHandle(), ImVec2(70, 70)))
   {
 
   };
   ImGui::SameLine();
-  if (ImGui::Button("8", ImVec2(80, 80)))
+  if (ImGui::ImageButton((void*)(intptr_t)smokeOnIcon->GetGLHandle(), ImVec2(70, 70)))
+  {
+
+  };
+
+  if (ImGui::ImageButton((void*)(intptr_t)tenderMarkerOnIcon->GetGLHandle(), ImVec2(70, 70)))
   {
 
   };
   ImGui::SameLine();
-  if (ImGui::Button("9", ImVec2(80, 80)))
+  if (ImGui::ImageButton((void*)(intptr_t)resetIcon->GetGLHandle(), ImVec2(70, 70)))
+  {
+    TMCCInterface::EngineNumericCommand2(engineID, 0);
+
+  };
+  ImGui::SameLine();
+  if (ImGui::ImageButton((void*)(intptr_t)rule17onIcon->GetGLHandle(), ImVec2(70, 70)))
   {
 
   };
 
-  if (ImGui::Button("", ImVec2(80, 80)))
+  if (ImGui::ImageButton((void*)(intptr_t)tenderMarkerOffIcon->GetGLHandle(), ImVec2(70, 70)))
   {
 
   };
   ImGui::SameLine();
-  if (ImGui::Button("0", ImVec2(80, 80)))
+  if (ImGui::ImageButton((void*)(intptr_t)blankIcon->GetGLHandle(), ImVec2(70, 70)))
   {
 
   };
   ImGui::SameLine();
-  if (ImGui::Button("", ImVec2(80, 80)))
+  if (ImGui::ImageButton((void*)(intptr_t)rule17offIcon->GetGLHandle(), ImVec2(70, 70)))
   {
 
   };
 
-  if (ImGui::Button("<-", ImVec2(80, 80)))
+  if (ImGui::ImageButton((void*)(intptr_t)leftArrowIcon->GetGLHandle(), ImVec2(70, 70)))
   {
     currentKeypadStyle--;
     if (currentKeypadStyle < 0)
       currentKeypadStyle = 7;
   };
   ImGui::SameLine();
-  if (ImGui::Button("", ImVec2(80, 80)))
+  if (ImGui::ImageButton((void*)(intptr_t)blankIcon->GetGLHandle(), ImVec2(70, 70)))
   {
     
   };
   ImGui::SameLine();
-  if (ImGui::Button("->", ImVec2(80, 80)))
+  if (ImGui::ImageButton((void*)(intptr_t)rightArrowIcon->GetGLHandle(), ImVec2(70, 70)))
   {
     currentKeypadStyle++;
     if (currentKeypadStyle > 7)
@@ -876,19 +976,174 @@ void ThrottleMenu::DrawCAB2SteamKeypad()
   };
 }
 
-void ThrottleMenu::DrawKeypadType(int currentKeypadType)
+void ThrottleMenu::DrawCAB2ElectricKeypad()
 {
-  switch (currentKeypadType)
+  ImGui::PushButtonRepeat(true);
+  if (ImGui::ImageButton((void*)(intptr_t)volUpIcon->GetGLHandle(), ImVec2(70, 70)))
   {
-  case 0:
-  default:
-    DrawCAB1Keypad();
-    break;
-  case 1:
-    DrawTMCCKeypad();
-    break;
-  case 2:
-    DrawCAB2SteamKeypad();
-    break;
+    TMCCInterface::EngineSetMasterVolume(engineID, TMCC_ON);
+
+  };
+  ImGui::SameLine();
+  ImGui::PopButtonRepeat();
+
+  ImGui::PushButtonRepeat(true);
+  if (ImGui::ImageButton((void*)(intptr_t)crewTalkIcon->GetGLHandle(), ImVec2(70, 70)))
+  {
+    TMCCInterface::EngineNumericCommand2(engineID, 2);
+  };
+  ImGui::PopButtonRepeat();
+
+  ImGui::SameLine();
+  ImGui::PushButtonRepeat(true);
+  if (ImGui::ImageButton((void*)(intptr_t)waterIcon->GetGLHandle(), ImVec2(70, 70)))
+  {
+    TMCCInterface::EngineRSTriggerWaterInjector(engineID);
+  };
+  ImGui::PopButtonRepeat();
+
+
+  if (ImGui::ImageButton((void*)(intptr_t)volDownIcon->GetGLHandle(), ImVec2(70, 70)))
+  {
+    TMCCInterface::EngineSetMasterVolume(engineID, TMCC_OFF);
+
+  };
+  ImGui::SameLine();
+  if (ImGui::ImageButton((void*)(intptr_t)shutDownIcon->GetGLHandle(), ImVec2(70, 70)))
+  {
+    TMCCInterface::EngineNumericCommand2(engineID, 5);
+
+  };
+  ImGui::SameLine();
+
+  if (ImGui::ImageButton((void*)(intptr_t)blowdownIcon->GetGLHandle(), ImVec2(70, 70)))
+  {
+    TMCCInterface::EngineRSTriggerLongLetOff(engineID);
+
+  };
+
+  Tooltip("Blowdown");
+
+  if (ImGui::ImageButton((void*)(intptr_t)towerComIcon->GetGLHandle(), ImVec2(70, 70)))
+  {
+    printf("Numerical Key 7 Towercom\n");
+    TMCCInterface::EngineNumericCommand2(engineID, 7);
+
+  };
+
+
+
+  ImGui::SameLine();
+  if (ImGui::ImageButton((void*)(intptr_t)smokeOffIcon->GetGLHandle(), ImVec2(70, 70)))
+  {
+
+  };
+  ImGui::SameLine();
+  if (ImGui::ImageButton((void*)(intptr_t)smokeOnIcon->GetGLHandle(), ImVec2(70, 70)))
+  {
+
+  };
+
+  if (ImGui::ImageButton((void*)(intptr_t)panto_front_upIcon->GetGLHandle(), ImVec2(70, 70)))
+  {
+    printf("Front Panto up\n");
+
+    TMCCInterface::EngineSetFrontPantograph(engineID, TMCC_UP);
+
+  };
+  ImGui::SameLine();
+  if (ImGui::ImageButton((void*)(intptr_t)resetIcon->GetGLHandle(), ImVec2(70, 70)))
+  {
+    TMCCInterface::EngineNumericCommand2(engineID, 0);
+
+  };
+  ImGui::SameLine();
+  if (ImGui::ImageButton((void*)(intptr_t)panto_rear_upIcon->GetGLHandle(), ImVec2(70, 70)))
+  {
+    printf("Rear Panto up\n");
+
+    TMCCInterface::EngineSetRearPantograph(engineID, TMCC_UP);
+
+  };
+
+  if (ImGui::ImageButton((void*)(intptr_t)panto_front_downIcon->GetGLHandle(), ImVec2(70, 70)))
+  {
+    printf("Front Panto down\n");
+
+    TMCCInterface::EngineSetFrontPantograph(engineID, TMCC_DOWN);
+
+  };
+  ImGui::SameLine();
+  if (ImGui::ImageButton((void*)(intptr_t)blankIcon->GetGLHandle(), ImVec2(70, 70)))
+  {
+
+  };
+  ImGui::SameLine();
+  if (ImGui::ImageButton((void*)(intptr_t)panto_rear_downIcon->GetGLHandle(), ImVec2(70, 70)))
+  {
+    printf("Rear Panto down\n");
+
+    TMCCInterface::EngineSetRearPantograph(engineID, TMCC_DOWN);
+  };
+
+  if (ImGui::ImageButton((void*)(intptr_t)leftArrowIcon->GetGLHandle(), ImVec2(70, 70)))
+  {
+    currentKeypadStyle--;
+    if (currentKeypadStyle < 0)
+      currentKeypadStyle = 7;
+  };
+  ImGui::SameLine();
+  if (ImGui::ImageButton((void*)(intptr_t)blankIcon->GetGLHandle(), ImVec2(70, 70)))
+  {
+
+  };
+  ImGui::SameLine();
+  if (ImGui::ImageButton((void*)(intptr_t)rightArrowIcon->GetGLHandle(), ImVec2(70, 70)))
+  {
+    currentKeypadStyle++;
+    if (currentKeypadStyle > 7)
+      currentKeypadStyle = 0;
+  };
+}
+
+void ThrottleMenu::DrawKeypadType(int currentKeypadType, bool isLegacy, int engineType)
+{
+  if (isLegacy) // Legacy Locos
+  {
+    switch (engineType)
+    {
+    case EngineTypeLegacy::ENGINE_TYPE_STEAM:
+    default:
+      DrawCAB2SteamKeypad();
+      break;
+    
+    case EngineTypeLegacy::ENGINE_TYPE_DIESEL:
+      DrawCAB2SteamKeypad();
+      break;
+
+    case EngineTypeLegacy::ENGINE_TYPE_ELECTRIC:
+      DrawCAB2ElectricKeypad();
+      break;
+    case EngineTypeLegacy::ENGINE_TYPE_STATIONSOUND_CAR:
+      DrawCAB2SteamKeypad();
+      break;
+    case EngineTypeLegacy::ENGINE_TYPE_STOCK_CAR:
+      DrawCAB2SteamKeypad();
+      break;
+    case EngineTypeLegacy::ENGINE_TYPE_SUBWAY:
+      DrawCAB2SteamKeypad();
+      break;
+    }
+    
+  }
+
+  else // TMCC Locos
+  {
+    switch (currentKeypadType)
+    {
+    default:
+      DrawTMCCKeypad();
+      break;
+    }
   }
 }

@@ -46,6 +46,12 @@ struct EngineDef
     bool legacyEngine;
     std::string engineName;
     // add temp engine speed
+    int legacy_speed;
+    int tmcc_speed;
+    int steam_labour_intensity;
+    int diesel_electric_rev_lvl;
+    int smoke_state_legacy;
+
   };
 
 class ThrottleMenu
@@ -76,7 +82,31 @@ private:
   int m_selected_engine_sound_menu = 0;
   int m_selected_engine_voice_menu = 0;
 
-  std::shared_ptr<Image> texture0;
+  std::shared_ptr<Image> blowdownIcon;
+  std::shared_ptr<Image> volUpIcon;
+  std::shared_ptr<Image> volDownIcon;
+  std::shared_ptr<Image> towerComIcon;
+  std::shared_ptr<Image> crewTalkIcon;
+  std::shared_ptr<Image> smokeOnIcon;
+  std::shared_ptr<Image> smokeOffIcon;
+  std::shared_ptr<Image> resetIcon;
+  std::shared_ptr<Image> tenderMarkerOnIcon;
+  std::shared_ptr<Image> tenderMarkerOffIcon;
+  std::shared_ptr<Image> waterIcon;
+  std::shared_ptr<Image> startUpIcon;
+  std::shared_ptr<Image> shutDownIcon;
+  std::shared_ptr<Image> rule17onIcon;
+  std::shared_ptr<Image> rule17offIcon;
+  std::shared_ptr<Image> blankIcon;
+
+  std::shared_ptr<Image> leftArrowIcon;
+  std::shared_ptr<Image> rightArrowIcon;
+
+  std::shared_ptr<Image> panto_front_upIcon;
+  std::shared_ptr<Image> panto_front_downIcon;
+  std::shared_ptr<Image> panto_rear_upIcon;
+  std::shared_ptr<Image> panto_rear_downIcon;
+
 
   int currentKeypadStyle = 0;
   // 0 - CAB1
@@ -130,7 +160,8 @@ private:
   void DrawCAB1Keypad();
   void DrawTMCCKeypad();
   void DrawCAB2SteamKeypad();
-  void DrawKeypadType(int currentKeypadType);
+  void DrawCAB2ElectricKeypad();
+  void DrawKeypadType(int currentKeypadType, bool isLegacy, int engineType);
   void PlayWhistle(bool enabled, float curTime, int currentQuill, int engineID);
   void ShowSoundWindow(bool* p_open);
   void ShowVoiceWindow(bool* p_open);
@@ -149,6 +180,10 @@ private:
 
 
 
-
+  void ThrottleMenu::Tooltip(const char* text)
+  {
+    if (ImGui::IsItemHovered())
+      ImGui::SetTooltip(text);
+  }
   
 };
