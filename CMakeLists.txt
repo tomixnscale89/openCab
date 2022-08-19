@@ -55,6 +55,11 @@ set(CABPC_SOURCES
     src/imgui-knobs.h
     src/interface/throttlemenu.cpp
     src/interface/throttlemenu.h
+    src/surface/DeviceListener.cpp
+    src/surface/DeviceListener.h
+    src/surface/stdafx.cpp
+    src/surface/stdafx.h
+    src/surface/targetver.h
     src/CABPC.cpp)
 
 add_executable(CABPC ${CABPC_SOURCES})

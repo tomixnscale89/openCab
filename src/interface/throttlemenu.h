@@ -46,12 +46,13 @@ struct EngineDef
     bool legacyEngine;
     std::string engineName;
     // add temp engine speed
-    int legacy_speed;
-    int tmcc_speed;
-    int steam_labour_intensity;
-    int diesel_electric_rev_lvl;
-    int smoke_state_legacy;
-
+    int legacy_speed = 0;
+    int tmcc_speed = 0;
+    int steam_labour_intensity = 0;
+    int diesel_electric_rev_lvl = 0;
+    int smoke_state_legacy = 0;
+    int keyPadPage = 0;
+    bool useHorn2 = false;
   };
 
 class ThrottleMenu
@@ -95,9 +96,12 @@ private:
   std::shared_ptr<Image> waterIcon;
   std::shared_ptr<Image> startUpIcon;
   std::shared_ptr<Image> shutDownIcon;
+  std::shared_ptr<Image> extstartUpIcon;
+  std::shared_ptr<Image> extshutDownIcon;
   std::shared_ptr<Image> rule17onIcon;
   std::shared_ptr<Image> rule17offIcon;
   std::shared_ptr<Image> blankIcon;
+  std::shared_ptr<Image> coalIcon;
 
   std::shared_ptr<Image> leftArrowIcon;
   std::shared_ptr<Image> rightArrowIcon;
@@ -128,6 +132,8 @@ private:
   bool voiceClipMenuVisible = false;
   bool dinerVoiceClipMenuVisible = false;
   bool addEngineMenuVisible = false;
+
+  bool surfaceDialEnabled = false;
 
   bool legacyBellOn = false;
   bool smokeOn = true; // This is a bit tricky, since a locomotive may already have it's smoke unit on, or the switch is set to the off switch already. Will try with auto set to true.
@@ -163,6 +169,7 @@ private:
   void DrawCAB2ElectricKeypad();
   void DrawKeypadType(int currentKeypadType, bool isLegacy, int engineType);
   void PlayWhistle(bool enabled, float curTime, int currentQuill, int engineID);
+  void PlayWhistleTMCC(bool enabled, float curTime, int currentQuill, int engineID, bool horn2Enabled);
   void ShowSoundWindow(bool* p_open);
   void ShowVoiceWindow(bool* p_open);
   void ShowDinerVoiceWindow(bool* p_open);

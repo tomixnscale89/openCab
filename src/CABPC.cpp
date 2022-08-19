@@ -2,6 +2,7 @@
 #include "imgui_impl_sdl.h"
 #include "imgui_impl_opengl3.h"
 #include <SDL.h>
+#include <SDL_syswm.h>
 #include <SDL_opengl.h>
 #include <stdio.h>
 #include <TMCCInterface.h>
@@ -9,7 +10,7 @@
 #include "imgui-knobs.h"
 #include "interface/throttlemenu.h"
 #include "EngineManagement.h"
-
+#include "surface/DeviceListener.h"
 
 int main(int argc, char* argv[])
 {
@@ -41,7 +42,7 @@ int main(int argc, char* argv[])
   SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
   SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
   SDL_Window* window = SDL_CreateWindow("OpenCAB",
-    SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 480, 1024, window_flags);
+    SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1024, 1024, window_flags);
   SDL_GLContext gl_context = SDL_GL_CreateContext(window);
   SDL_GL_MakeCurrent(window, gl_context);
   SDL_GL_SetSwapInterval(1); // Enable vsync
@@ -60,6 +61,19 @@ int main(int argc, char* argv[])
   // Setup Platform/Renderer backends
   ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
   ImGui_ImplOpenGL3_Init(glsl_version);
+
+  // Surface Dial
+  // 
+  // 
+  
+  SDL_SysWMinfo info;
+  SDL_VERSION(&info.version);
+  SDL_GetWindowWMInfo(window, &info);
+
+
+  HWND hwnd = info.info.win.window;
+
+  DeviceListener::Init(hwnd);
 
   // Load Fonts
   // - If no fonts are loaded, dear imgui will use the default font. You can also load multiple fonts and use ImGui::PushFont()/PopFont() to select them.
