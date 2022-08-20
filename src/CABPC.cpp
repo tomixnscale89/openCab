@@ -10,7 +10,7 @@
 #include "imgui-knobs.h"
 #include "interface/throttlemenu.h"
 #include "EngineManagement.h"
-#include "surface/DeviceListener.h"
+//#include "surface/DeviceListener.h"
 
 int main(int argc, char* argv[])
 {
@@ -73,7 +73,7 @@ int main(int argc, char* argv[])
 
   HWND hwnd = info.info.win.window;
 
-  DeviceListener::Init(hwnd);
+ //DeviceListener::Init(hwnd);
 
   // Load Fonts
   // - If no fonts are loaded, dear imgui will use the default font. You can also load multiple fonts and use ImGui::PushFont()/PopFont() to select them.

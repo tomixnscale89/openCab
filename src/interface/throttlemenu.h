@@ -41,9 +41,9 @@ enum EngineTypeTMCC : uint8
 
 struct EngineDef
  {
-    int engineID;
-    int engineType;
-    bool legacyEngine;
+    int engineID = 0;
+    int engineType = 0;
+    bool legacyEngine = false;
     std::string engineName;
     // add temp engine speed
     int legacy_speed = 0;
@@ -53,6 +53,8 @@ struct EngineDef
     int smoke_state_legacy = 0;
     int keyPadPage = 0;
     bool useHorn2 = false;
+    bool oneShotBellEnabled = false;
+    int bellDingCount;
   };
 
 class ThrottleMenu
@@ -111,6 +113,29 @@ private:
   std::shared_ptr<Image> panto_rear_upIcon;
   std::shared_ptr<Image> panto_rear_downIcon;
 
+  std::shared_ptr<Image> front_couplerIcon;
+  std::shared_ptr<Image> rear_couplerIcon;
+
+  std::shared_ptr<Image> fwdIcon;
+  std::shared_ptr<Image> reverseIcon;
+  std::shared_ptr<Image> aux1arrowIcon;
+  std::shared_ptr<Image> aux2arrowIcon;
+  std::shared_ptr<Image> aux3arrowIcon;  
+  
+  std::shared_ptr<Image> swapHornIcon;  
+
+  std::shared_ptr<Image> num1Icon;
+  std::shared_ptr<Image> num2Icon;
+  std::shared_ptr<Image> num3Icon;
+  std::shared_ptr<Image> num4Icon;
+  std::shared_ptr<Image> num5Icon;
+  std::shared_ptr<Image> num6Icon;
+  std::shared_ptr<Image> num7Icon;
+  std::shared_ptr<Image> num8Icon;
+  std::shared_ptr<Image> num9Icon;
+  std::shared_ptr<Image> num0Icon;
+
+
 
   int currentKeypadStyle = 0;
   // 0 - CAB1
@@ -164,7 +189,6 @@ private:
 
 
   void DrawCAB1Keypad();
-  void DrawTMCCKeypad();
   void DrawCAB2SteamKeypad();
   void DrawCAB2ElectricKeypad();
   void DrawKeypadType(int currentKeypadType, bool isLegacy, int engineType);
