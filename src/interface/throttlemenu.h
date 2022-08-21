@@ -54,7 +54,7 @@ struct EngineDef
     int keyPadPage = 0;
     bool useHorn2 = false;
     bool oneShotBellEnabled = false;
-    int bellDingCount;
+    int bellDingCount = 3;
   };
 
 class ThrottleMenu
@@ -123,6 +123,7 @@ private:
   std::shared_ptr<Image> aux3arrowIcon;  
   
   std::shared_ptr<Image> swapHornIcon;  
+  std::shared_ptr<Image> bellIcon;  
 
   std::shared_ptr<Image> num1Icon;
   std::shared_ptr<Image> num2Icon;
@@ -135,6 +136,32 @@ private:
   std::shared_ptr<Image> num9Icon;
   std::shared_ptr<Image> num0Icon;
 
+  std::shared_ptr<Image> stopSlow0Icon;
+  std::shared_ptr<Image> marsonIcon;
+  std::shared_ptr<Image> marsoffIcon;
+  std::shared_ptr<Image> doglightoffIcon;
+  std::shared_ptr<Image> doglightonIcon;
+  std::shared_ptr<Image> groundlightonIcon;
+  std::shared_ptr<Image> groundlightoffIcon;
+  std::shared_ptr<Image> ditchlightoffIcon;
+  std::shared_ptr<Image> ditchlightonIcon;
+  std::shared_ptr<Image> ditchlightautoIcon;
+  std::shared_ptr<Image> locomarkeronIcon;
+  std::shared_ptr<Image> locomarkeroffIcon;
+  std::shared_ptr<Image> doorcloseIcon;
+  std::shared_ptr<Image> dooropenIcon;
+  std::shared_ptr<Image> buttonAnnouncementIcon;
+  std::shared_ptr<Image> nextStopIcon;
+  std::shared_ptr<Image> prevStopIcon;
+  std::shared_ptr<Image> lastStopIcon;
+  std::shared_ptr<Image> conductorAnnouncementIcon;
+  std::shared_ptr<Image> railClatterOnIcon;
+  std::shared_ptr<Image> railClatterOffIcon;
+
+  std::shared_ptr<Image> curveGrindOffIcon;
+  std::shared_ptr<Image> curveGrindOnIcon;
+  std::shared_ptr<Image> lightOnIcon;
+  std::shared_ptr<Image> lightOffIcon;
 
 
   int currentKeypadStyle = 0;
@@ -191,6 +218,8 @@ private:
   void DrawCAB1Keypad();
   void DrawCAB2SteamKeypad();
   void DrawCAB2ElectricKeypad();
+  void DrawStationDinerKeypad();
+  void DrawTMCCAcelaKeypad();
   void DrawKeypadType(int currentKeypadType, bool isLegacy, int engineType);
   void PlayWhistle(bool enabled, float curTime, int currentQuill, int engineID);
   void PlayWhistleTMCC(bool enabled, float curTime, int currentQuill, int engineID, bool horn2Enabled);
