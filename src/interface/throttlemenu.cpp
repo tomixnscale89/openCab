@@ -454,7 +454,7 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
     {
       int brakevalue = (int)(m_enginedefs[m_selected_engine].currentTrainBrake * 8.0f); // or, if you want a tolerance, (int)(engine.currentTrainBrake * 8.0f + 0.5f)
       printf("brake value: %d\n", brakevalue);
-      m_enginedefs[m_selected_engine].SetSpeedMultiplier(brakevalue);
+      m_enginedefs[m_selected_engine].SetSpeedMultiplier(1.0 - m_enginedefs[m_selected_engine].currentTrainBrake);
       TMCCInterface::EngineSetTrainBrake2(engineID, brakevalue);
       if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_STEAM)
       {
@@ -550,7 +550,7 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
       if (ImGuiKnobs::KnobInt("Throttle", &m_enginedefs[m_selected_engine].legacy_speed, 0, 200, 1, "%d MPH", ImGuiKnobVariant_Wiper, 256)) {
         // value was changed
         
-        m_enginedefs[m_selected_engine].SetSpeed(engine.legacy_speed);
+        m_enginedefs[m_selected_engine].SetSpeed(m_enginedefs[m_selected_engine].legacy_speed);
         //TMCCInterface::EngineSetAbsoluteSpeed2(engineID, m_enginedefs[m_selected_engine].legacy_speed);
       }
     }

@@ -82,7 +82,7 @@ struct EngineDef
       // don't send a command if the speed hasn't changed
       if (value != legacy_speed_multiplier)
       {
-        printf("legacy_speed_multiplier:%d", value);
+        printf("legacy_speed_multiplier:%f\n", value);
         legacy_speed_multiplier = value;
         TMCCInterface::EngineSetAbsoluteSpeed2(engineID, GetFinalSpeed());
       }
