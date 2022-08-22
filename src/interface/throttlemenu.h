@@ -55,7 +55,41 @@ struct EngineDef
     bool useHorn2 = false;
     bool oneShotBellEnabled = false;
     int bellDingCount = 3;
+    bool bellOn = false;
+    float currentTrainBrake;
+
+
+    float legacy_speed_multiplier = 1.0f;
+
+    inline int GetFinalSpeed()
+    {
+      printf("speed: %d, multipler: %d, new Speed: %d\n", legacy_speed, legacy_speed_multiplier,(int)(legacy_speed * legacy_speed_multiplier * 200.0f));
+      return (int)(legacy_speed * legacy_speed_multiplier * 200.0f);
+    }
+
+    void EngineDef::SetSpeed(float value)
+    {
+      // don't send a command if the speed hasn't changed
+      if (value != legacy_speed)
+      {
+        legacy_speed = value;
+        TMCCInterface::EngineSetAbsoluteSpeed2(engineID, GetFinalSpeed());
+      }
+    }
+
+    void EngineDef::SetSpeedMultiplier(float value)
+    {
+      // don't send a command if the speed hasn't changed
+      if (value != legacy_speed_multiplier)
+      {
+        printf("legacy_speed_multiplier:%d", value);
+        legacy_speed_multiplier = value;
+        TMCCInterface::EngineSetAbsoluteSpeed2(engineID, GetFinalSpeed());
+      }
+    }
   };
+
+
 
 class ThrottleMenu
 {
@@ -164,6 +198,11 @@ private:
   std::shared_ptr<Image> lightOffIcon;
 
 
+  std::shared_ptr<Image> acelaArriveIcon;
+  std::shared_ptr<Image> acelaDepartIcon;
+
+
+
   int currentKeypadStyle = 0;
   // 0 - CAB1
   // 1 - TMCC
@@ -228,6 +267,7 @@ private:
   void ShowDinerVoiceWindow(bool* p_open);
   void AddEngineWindow(bool* p_open, const std::string& appDir);
   void ThrottleWindow(bool* p_open, float curTime);
+
 
   char newEngineNameChar[64] = " ";
   std::string newEngineIDStr = "0";
