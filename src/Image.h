@@ -4,7 +4,9 @@ class Image
 {
 public:
   Image(const std::string& filename);
+  Image();
   ~Image();
+  bool Load(const std::string& filename);
 
   inline unsigned int GetGLHandle() const;
   inline int GetWidth() const;
@@ -17,6 +19,7 @@ private:
 
   
 };
+
 
 unsigned int Image::GetGLHandle() const
 {

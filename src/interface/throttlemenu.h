@@ -41,8 +41,8 @@ enum EngineTypeTMCC : uint8
 
 struct EngineDef
  {
-    int engineID = 0;
-    int engineType = 0;
+    int engineID;
+    int engineType;
     bool legacyEngine = false;
     std::string engineName;
     // add temp engine speed
@@ -58,6 +58,8 @@ struct EngineDef
     bool bellOn = false;
     float currentTrainBrake;
 
+    std::shared_ptr<Image> locoIcon;
+    bool engineHasCustomIcon = false;
 
     float legacy_speed_multiplier = 1.0f;
 
@@ -101,11 +103,13 @@ public:
 
 private:
 
+  std::string dir;
+
   std::string m_device;
   float lastQuillTime = 0.0f;
   bool whistleEnabled = false;
   int speed = 0; // current speed
-  int engineID;
+  int engineID = 0;
   int engineID_sound_menu = 0;
   int engineID_voice_menu = 0;
   std::string engineIDStr = "0";
@@ -119,6 +123,7 @@ private:
   int m_selected_engine_sound_menu = 0;
   int m_selected_engine_voice_menu = 0;
 
+  std::shared_ptr<Image> engineTestIcon;
   std::shared_ptr<Image> blowdownIcon;
   std::shared_ptr<Image> volUpIcon;
   std::shared_ptr<Image> volDownIcon;

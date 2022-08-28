@@ -44,12 +44,23 @@ static bool LoadTextureFromFile(const char* filename, GLuint* out_texture, int* 
   return true;
 }
 
+
+
 Image::Image(const std::string& filename)
   : handle(0)
 {
   LoadTextureFromFile(filename.c_str(), &handle, &width, &height);
 }
 
+Image::Image()
+  : handle(0)
+{
+}
+
+bool Image::Load(const std::string& filename)
+{
+  return LoadTextureFromFile(filename.c_str(), &handle, &width, &height);
+}
 Image::~Image()
 {
   if (handle)
