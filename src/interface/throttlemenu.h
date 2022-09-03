@@ -97,6 +97,7 @@ class ThrottleMenu
 {
 public:
   ThrottleMenu(const std::string& appDir);
+  void LoadRosterLaunch(const std::string& appDir);
   ~ThrottleMenu();
   void Draw(const std::string& appDir);
   std::vector<EngineDef> m_enginedefs;
@@ -112,6 +113,7 @@ private:
   int engineID = 0;
   int engineID_sound_menu = 0;
   int engineID_voice_menu = 0;
+  int engineID_diner_voice_menu = 0;
   std::string engineIDStr = "0";
   bool legacyEnabled = true;
   bool consistentBellDing = true;
@@ -122,6 +124,7 @@ private:
   int m_selected_engine = 0;
   int m_selected_engine_sound_menu = 0;
   int m_selected_engine_voice_menu = 0;
+  int m_selected_engine_diner_voice_menu = 0;
 
   std::shared_ptr<Image> engineTestIcon;
   std::shared_ptr<Image> blowdownIcon;
@@ -251,7 +254,7 @@ private:
   int currentEngineType = 0;
   int currentLegacySmoke = 0;
   int currentLegacyMomentum = 0;
-  int currentQuill = 0;
+  float currentQuill = 0;
   int currentLocoBrake = 0;
   int currentPantoPosition = 0;
 
@@ -265,8 +268,8 @@ private:
   void DrawStationDinerKeypad();
   void DrawTMCCAcelaKeypad();
   void DrawKeypadType(int currentKeypadType, bool isLegacy, int engineType);
-  void PlayWhistle(bool enabled, float curTime, int currentQuill, int engineID);
-  void PlayWhistleTMCC(bool enabled, float curTime, int currentQuill, int engineID, bool horn2Enabled);
+  void PlayWhistle(bool enabled, float curTime, float currentQuill, int engineID);
+  void PlayWhistleTMCC(bool enabled, float curTime, float currentQuill, int engineID, bool horn2Enabled);
   void ShowSoundWindow(bool* p_open);
   void ShowVoiceWindow(bool* p_open);
   void ShowDinerVoiceWindow(bool* p_open);
