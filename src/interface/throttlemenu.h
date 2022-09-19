@@ -266,6 +266,7 @@ private:
   void DrawCAB2SteamKeypad();
   void DrawCAB2ElectricKeypad();
   void DrawStationDinerKeypad();
+  void DrawTMCCSteamKeypad();
   void DrawTMCCAcelaKeypad();
   void DrawKeypadType(int currentKeypadType, bool isLegacy, int engineType);
   void PlayWhistle(bool enabled, float curTime, float currentQuill, int engineID);
