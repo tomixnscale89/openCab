@@ -264,6 +264,7 @@ private:
 
   void DrawCAB1Keypad();
   void DrawCAB2SteamKeypad();
+  void DrawCAB2DieselKeypad();
   void DrawCAB2ElectricKeypad();
   void DrawStationDinerKeypad();
   void DrawTMCCSteamKeypad();

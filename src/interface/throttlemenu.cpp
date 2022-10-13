@@ -1221,7 +1221,7 @@ void ThrottleMenu::PlayWhistle(bool enabled , float curTime, float currentQuill,
   {
     if (curTime - ThrottleMenu::lastQuillTime >= quillInterval)
     {
-      int value = (int)(currentQuill * 8.0f);
+      int value = (int)(currentQuill * 16.0f);
       ThrottleMenu::lastQuillTime = curTime;
       printf("Quilling: %d\n", value);
       TMCCInterface::EngineSetQuillingHornIntensity(engineID, value);
@@ -1658,6 +1658,327 @@ void ThrottleMenu::DrawCAB2SteamKeypad()
         m_enginedefs[m_selected_engine].keyPadPage = 0;
     };
     }
+  else
+  {
+    DrawCAB1Keypad();
+  }
+}
+// DIESEL
+
+void ThrottleMenu::DrawCAB2DieselKeypad()
+{
+  if (m_enginedefs[m_selected_engine].keyPadPage == 0)
+  {
+    if (ImGui::ImageButton((void*)(intptr_t)volUpIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+      TMCCInterface::EngineSetMasterVolume(engineID, TMCC_ON);
+
+    };
+    Tooltip("Volume Up");
+
+    ImGui::SameLine();
+
+    ImGui::ImageButton((void*)(intptr_t)crewTalkIcon->GetGLHandle(), ImVec2(70, 70));
+    if (ImGui::IsItemHovered() && ImGui::IsMouseDown(0))
+    {
+      printf("Crewtalk\n");
+      TMCCInterface::EngineNumericCommand2(engineID, 2);
+    };
+
+    Tooltip("CrewTalk");
+
+    ImGui::SameLine();
+
+    ImGui::ImageButton((void*)(intptr_t)waterIcon->GetGLHandle(), ImVec2(70, 70));
+    if (ImGui::IsItemHovered() && ImGui::IsMouseDown(0))
+    {
+      printf("Water injector\n");
+      TMCCInterface::EngineRSTriggerWaterInjector(engineID);
+    };
+
+    Tooltip("Water Refill");
+
+
+    if (ImGui::ImageButton((void*)(intptr_t)volDownIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+      TMCCInterface::EngineSetMasterVolume(engineID, TMCC_OFF);
+
+    };
+
+    Tooltip("Volume Down");
+
+    ImGui::SameLine();
+    if (ImGui::ImageButton((void*)(intptr_t)shutDownIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+      TMCCInterface::EngineNumericCommand2(engineID, 5);
+
+    };
+
+    Tooltip("Shut Down");
+
+    ImGui::SameLine();
+
+    ImGui::ImageButton((void*)(intptr_t)blowdownIcon->GetGLHandle(), ImVec2(70, 70));
+    if (ImGui::IsItemHovered() && ImGui::IsMouseDown(0))
+    {
+      printf("Blowdown\n");
+      TMCCInterface::EngineRSTriggerLongLetOff(engineID);
+    };
+
+    Tooltip("Blowdown");
+
+
+    ImGui::ImageButton((void*)(intptr_t)towerComIcon->GetGLHandle(), ImVec2(70, 70));
+    if (ImGui::IsItemHovered() && ImGui::IsMouseDown(0))
+    {
+      printf("Tower com\n");
+      TMCCInterface::EngineNumericCommand2(engineID, 7);
+    };
+
+    Tooltip("Tower Com");
+
+    ImGui::SameLine();
+    if (ImGui::ImageButton((void*)(intptr_t)smokeOffIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+      m_enginedefs[m_selected_engine].smoke_state_legacy--;
+      if (m_enginedefs[m_selected_engine].smoke_state_legacy < 0)
+        m_enginedefs[m_selected_engine].smoke_state_legacy = 3;
+      printf("Smoke system: %d\n", m_enginedefs[m_selected_engine].smoke_state_legacy);
+      TMCCInterface::EngineSetSmokeSystem(engineID, m_enginedefs[m_selected_engine].smoke_state_legacy);
+    };
+
+    Tooltip("Smoke Off");
+
+    ImGui::SameLine();
+    if (ImGui::ImageButton((void*)(intptr_t)smokeOnIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+      m_enginedefs[m_selected_engine].smoke_state_legacy++;
+      if (m_enginedefs[m_selected_engine].smoke_state_legacy > 3)
+        m_enginedefs[m_selected_engine].smoke_state_legacy = 0;
+      printf("Smoke system: %d\n", m_enginedefs[m_selected_engine].smoke_state_legacy);
+      TMCCInterface::EngineSetSmokeSystem(engineID, m_enginedefs[m_selected_engine].smoke_state_legacy);
+    };
+    Tooltip("Smoke On");
+
+    if (ImGui::ImageButton((void*)(intptr_t)tenderMarkerOnIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+      TMCCInterface::EngineSetTenderMarkerLight(engineID, TMCC_ON);
+    };
+    Tooltip("Tender Marker On");
+
+    ImGui::SameLine();
+    if (ImGui::ImageButton((void*)(intptr_t)resetIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+      TMCCInterface::EngineNumericCommand2(engineID, 0);
+
+    };
+    Tooltip("Reset (0 key)");
+
+    ImGui::SameLine();
+    if (ImGui::ImageButton((void*)(intptr_t)rule17onIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+      TMCCInterface::EngineSetRule17(engineID, TMCC_ON);
+
+    };
+
+    Tooltip("Rule 17 Lighting On");
+
+    if (ImGui::ImageButton((void*)(intptr_t)tenderMarkerOffIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+      TMCCInterface::EngineSetTenderMarkerLight(engineID, TMCC_OFF);
+
+    };
+
+    Tooltip("Tender Marker Off");
+
+    ImGui::SameLine();
+    if (ImGui::ImageButton((void*)(intptr_t)extstartUpIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+      TMCCInterface::EngineStartupSequence1(engineID);
+      TMCCInterface::EngineStartupSequence2(engineID);
+    };
+    Tooltip("Start Up Sequence 1 (Delayed Prime Mover)");
+
+    ImGui::SameLine();
+    if (ImGui::ImageButton((void*)(intptr_t)rule17offIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+      TMCCInterface::EngineSetRule17(engineID, TMCC_OFF);
+
+    };
+
+    Tooltip("Rule 17 Lighing Off");
+
+
+    if (ImGui::ImageButton((void*)(intptr_t)leftArrowIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+      m_enginedefs[m_selected_engine].keyPadPage--;
+      if (m_enginedefs[m_selected_engine].keyPadPage < 0)
+        m_enginedefs[m_selected_engine].keyPadPage = 2;
+    };
+    ImGui::SameLine();
+    if (ImGui::ImageButton((void*)(intptr_t)extshutDownIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+      TMCCInterface::EngineShutdownSequence1(engineID);
+      TMCCInterface::EngineDialogCommand(engineID, DialogCommandParams::DC_TOWER_SHUT_DOWN);
+      TMCCInterface::EngineShutdownSequence2(engineID);
+    };
+    Tooltip("Shut Down Sequence 1 (Delayed)");
+    ImGui::SameLine();
+    if (ImGui::ImageButton((void*)(intptr_t)rightArrowIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+      m_enginedefs[m_selected_engine].keyPadPage++;
+      if (m_enginedefs[m_selected_engine].keyPadPage > 2)
+        m_enginedefs[m_selected_engine].keyPadPage = 0;
+    };
+
+  }
+
+  /// <summary>
+  /// PAGE 2
+  /// </summary>
+  else if (m_enginedefs[m_selected_engine].keyPadPage == 1)
+  {
+    if (ImGui::ImageButton((void*)(intptr_t)volUpIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+      TMCCInterface::EngineSetMasterVolume(engineID, TMCC_ON);
+
+    };
+    Tooltip("Volume Up");
+
+    ImGui::SameLine();
+
+    ImGui::ImageButton((void*)(intptr_t)coalIcon->GetGLHandle(), ImVec2(70, 70));
+    if (ImGui::IsItemHovered() && ImGui::IsMouseDown(0))
+    {
+      printf("Coal refuel\n");
+      TMCCInterface::EngineLocoRefuelSound(engineID);
+    };
+
+    Tooltip("Coal refuel");
+
+    ImGui::SameLine();
+    ImGui::PushButtonRepeat(true);
+    if (ImGui::Button("Enable\nCylinder\Cocks", ImVec2(78, 76)))
+    {
+      TMCCInterface::EngineToggleCylinderCock(engineID, TMCC_ON);
+    };
+    ImGui::PopButtonRepeat();
+    Tooltip("Enable\nCylinder\Cocks");
+
+
+    if (ImGui::ImageButton((void*)(intptr_t)volDownIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+      TMCCInterface::EngineSetMasterVolume(engineID, TMCC_OFF);
+
+    };
+
+    Tooltip("Volume Down");
+
+    ImGui::SameLine();
+    if (ImGui::ImageButton((void*)(intptr_t)blankIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+      TMCCInterface::EngineNumericCommand2(engineID, 5);
+
+    };
+
+    Tooltip("Shut Down");
+
+    ImGui::SameLine();
+
+    ImGui::PushButtonRepeat(true);
+    if (ImGui::Button("Disable\nCylinder\Cocks", ImVec2(78, 76)))
+    {
+      TMCCInterface::EngineToggleCylinderCock(engineID, TMCC_OFF);
+    };
+    ImGui::PopButtonRepeat();
+    Tooltip("Disable\nCylinder\Cocks");
+
+
+    if (ImGui::ImageButton((void*)(intptr_t)blankIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+      TMCCInterface::EngineNumericCommand2(engineID, 7);
+
+    };
+
+
+    ImGui::SameLine();
+    if (ImGui::ImageButton((void*)(intptr_t)blankIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+
+    };
+
+
+    ImGui::SameLine();
+    if (ImGui::ImageButton((void*)(intptr_t)blankIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+
+    };
+
+    if (ImGui::ImageButton((void*)(intptr_t)blankIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+    };
+
+    ImGui::SameLine();
+
+    ImGui::ImageButton((void*)(intptr_t)resetIcon->GetGLHandle(), ImVec2(70, 70));
+    if (ImGui::IsItemHovered() && ImGui::IsMouseDown(0))
+    {
+      printf("Reset\n");
+      TMCCInterface::EngineNumericCommand2(engineID, 0);
+    };
+    Tooltip("Reset (0 key)");
+
+    ImGui::SameLine();
+    if (ImGui::ImageButton((void*)(intptr_t)blankIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+
+    };
+
+
+    if (ImGui::ImageButton((void*)(intptr_t)blankIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+
+    };
+
+
+    ImGui::SameLine();
+    if (ImGui::ImageButton((void*)(intptr_t)extstartUpIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+      TMCCInterface::EngineStartupSequence2(engineID);
+    };
+    Tooltip("Immediate Start Up");
+
+
+    ImGui::SameLine();
+    if (ImGui::ImageButton((void*)(intptr_t)blankIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+
+    };
+
+
+
+    if (ImGui::ImageButton((void*)(intptr_t)leftArrowIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+      m_enginedefs[m_selected_engine].keyPadPage--;
+      if (m_enginedefs[m_selected_engine].keyPadPage < 0)
+        m_enginedefs[m_selected_engine].keyPadPage = 2;
+    };
+    ImGui::SameLine();
+    if (ImGui::ImageButton((void*)(intptr_t)extshutDownIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+      TMCCInterface::EngineShutdownSequence2(engineID);
+
+    };
+    Tooltip("Immediate Shut Down");
+
+    ImGui::SameLine();
+    if (ImGui::ImageButton((void*)(intptr_t)rightArrowIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+      m_enginedefs[m_selected_engine].keyPadPage++;
+      if (m_enginedefs[m_selected_engine].keyPadPage > 2)
+        m_enginedefs[m_selected_engine].keyPadPage = 0;
+    };
+  }
   else
   {
     DrawCAB1Keypad();
@@ -2727,7 +3048,7 @@ void ThrottleMenu::DrawKeypadType(int currentKeypadType, bool isLegacy, int engi
       break;
     
     case EngineTypeLegacy::ENGINE_TYPE_DIESEL:
-      DrawCAB2SteamKeypad();
+      DrawCAB2DieselKeypad();
       break;
 
     case EngineTypeLegacy::ENGINE_TYPE_ELECTRIC:
