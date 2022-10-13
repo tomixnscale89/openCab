@@ -200,6 +200,9 @@ private:
   std::shared_ptr<Image> railClatterOnIcon;
   std::shared_ptr<Image> railClatterOffIcon;
 
+  std::shared_ptr<Image> rpmUPIcon;
+  std::shared_ptr<Image> rpmDownIcon;
+
   std::shared_ptr<Image> curveGrindOffIcon;
   std::shared_ptr<Image> curveGrindOnIcon;
   std::shared_ptr<Image> lightOnIcon;
