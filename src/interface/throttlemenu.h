@@ -46,8 +46,9 @@ struct EngineDef
     bool legacyEngine = false;
     std::string engineName;
     // add temp engine speed
-    int legacy_speed = 0;
-    int tmcc_speed = 0;
+    float legacy_speed = 0;
+    float temp_legacy_speed = 0;
+    float tmcc_speed = 0;
     int steam_labour_intensity = 0;
     int diesel_electric_rev_lvl = 0;
     int smoke_state_legacy = 0;
@@ -63,30 +64,33 @@ struct EngineDef
 
     float legacy_speed_multiplier = 1.0f;
 
-    inline int GetFinalSpeed()
+    inline int GetFinalSpeed(bool tmcc2)
     {
-      printf("speed: %d, multipler: %d, new Speed: %d\n", legacy_speed, legacy_speed_multiplier,(int)(legacy_speed * legacy_speed_multiplier * 200.0f));
+      if (tmcc2) return legacy_speed;
       return (int)(legacy_speed * legacy_speed_multiplier * 200.0f);
     }
 
-    void EngineDef::SetSpeed(float value)
+    void EngineDef::SetSpeed(float value, bool tmcc2)
     {
       // don't send a command if the speed hasn't changed
       if (value != legacy_speed)
       {
         legacy_speed = value;
-        TMCCInterface::EngineSetAbsoluteSpeed2(engineID, GetFinalSpeed());
+        TMCCInterface::EngineSetAbsoluteSpeed2(engineID, GetFinalSpeed(tmcc2));
+        printf("speed: %d, new Speed: %d\n", legacy_speed, legacy_speed_multiplier, GetFinalSpeed(tmcc2));
+
       }
     }
 
-    void EngineDef::SetSpeedMultiplier(float value)
+    void EngineDef::SetSpeedMultiplier(float value, bool tmcc2)
     {
       // don't send a command if the speed hasn't changed
       if (value != legacy_speed_multiplier)
       {
-        printf("legacy_speed_multiplier:%f\n", value);
+        //printf("legacy_speed_multiplier:%f\n", value);
         legacy_speed_multiplier = value;
-        TMCCInterface::EngineSetAbsoluteSpeed2(engineID, GetFinalSpeed());
+        TMCCInterface::EngineSetAbsoluteSpeed(engineID, GetFinalSpeed(tmcc2));
+        printf("speed: %d, multipler: %f, new Speed: %d\n", legacy_speed, legacy_speed_multiplier, GetFinalSpeed(tmcc2));
       }
     }
   };
