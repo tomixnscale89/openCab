@@ -66,18 +66,18 @@ struct EngineDef
 
     inline int GetFinalSpeed(bool tmcc2)
     {
-      if (tmcc2) return legacy_speed;
-      return (int)(legacy_speed * legacy_speed_multiplier * 200.0f);
+      if (tmcc2) return temp_legacy_speed;
+      return (int)(temp_legacy_speed * legacy_speed_multiplier * 200.0f);
     }
 
     void EngineDef::SetSpeed(float value, bool tmcc2)
     {
       // don't send a command if the speed hasn't changed
-      if (value != legacy_speed)
+      if (value != temp_legacy_speed)
       {
-        legacy_speed = value;
+        temp_legacy_speed = value;
         TMCCInterface::EngineSetAbsoluteSpeed2(engineID, GetFinalSpeed(tmcc2));
-        printf("speed: %d, new Speed: %d\n", legacy_speed, legacy_speed_multiplier, GetFinalSpeed(tmcc2));
+        printf("speed: %f, new Speed: %f\n", temp_legacy_speed, legacy_speed_multiplier, GetFinalSpeed(tmcc2));
 
       }
     }
@@ -90,7 +90,7 @@ struct EngineDef
         //printf("legacy_speed_multiplier:%f\n", value);
         legacy_speed_multiplier = value;
         TMCCInterface::EngineSetAbsoluteSpeed(engineID, GetFinalSpeed(tmcc2));
-        printf("speed: %d, multipler: %f, new Speed: %d\n", legacy_speed, legacy_speed_multiplier, GetFinalSpeed(tmcc2));
+        printf("speed: %f, multipler: %f, new Speed: %d\n", temp_legacy_speed, legacy_speed_multiplier, GetFinalSpeed(tmcc2));
       }
     }
   };
@@ -103,7 +103,7 @@ public:
   ThrottleMenu(const std::string& appDir);
   void LoadRosterLaunch(const std::string& appDir);
   ~ThrottleMenu();
-  void Draw(const std::string& appDir);
+  void Draw(const std::string& appDir, SDL_GameController* gGameController);
   std::vector<EngineDef> m_enginedefs;
 
 private:
@@ -217,6 +217,8 @@ private:
   std::shared_ptr<Image> acelaDepartIcon;
 
 
+  int gameControllerSelectedEngine = 0;
+  float lastTime = 0.0f;
 
   int currentKeypadStyle = 0;
   // 0 - CAB1
@@ -284,6 +286,8 @@ private:
   void ShowDinerVoiceWindow(bool* p_open);
   void AddEngineWindow(bool* p_open, const std::string& appDir);
   void ThrottleWindow(bool* p_open, float curTime);
+  void HandleGameControllerEvents(SDL_GameController* gGameController, float curTime, const std::string& dir);
+  void SetUpEngineFromRoster(int engineID, bool legacyEnabled, const std::string& dir);
 
 
   char newEngineNameChar[64] = " ";

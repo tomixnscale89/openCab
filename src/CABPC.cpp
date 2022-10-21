@@ -12,6 +12,8 @@
 #include "EngineManagement.h"
 //#include "surface/DeviceListener.h"
 
+
+
 int main(int argc, char* argv[])
 {
   // Setup SDL
@@ -26,7 +28,9 @@ int main(int argc, char* argv[])
   int currentSpeed = 0;
 
   //TMCCInterface::Init();
+  
 
+  
 
   // GL 3.0 + GLSL 130
   const char* glsl_version = "#version 130";
@@ -97,6 +101,36 @@ int main(int argc, char* argv[])
   //bool ret = LoadTextureFromFile("/graphics/legacy_blowdown.png", &my_image_texture, &my_image_width, &my_image_height);
   //IM_ASSERT(ret);
 
+  //Analog joystick dead zone
+  const int JOYSTICK_DEAD_ZONE = 8000;
+  //Game Controller 1 handler
+  SDL_GameController* gGameController = NULL;
+
+  //Check for joysticks
+  if (SDL_NumJoysticks() < 1)
+  {
+    printf("Warning: No joysticks connected!\n");
+  }
+  else
+  {
+    //Load joystick
+    gGameController = SDL_GameControllerOpen(0);
+    if (gGameController == NULL)
+    {
+      printf("Warning: Unable to open game controller! SDL Error: %s\n", SDL_GetError());
+    }
+    else
+    {
+      char* mapping;
+      printf("Index \'%i\' is a compatible controller, named \'%s\'", 0, SDL_GameControllerNameForIndex(0));
+      mapping = SDL_GameControllerMapping(gGameController);
+      printf("Controller %i is mapped as \"%s\".", 0, mapping);
+      printf("\n\n\n");
+      SDL_free(mapping);
+    }
+  }
+
+
   ThrottleMenu menu(argv[0]);
   EngineManagement::ReadEngineRoster(menu.m_enginedefs, argv[0]);
   menu.LoadRosterLaunch(argv[0]);
@@ -113,6 +147,16 @@ int main(int argc, char* argv[])
     SDL_Event event;
     while (SDL_PollEvent(&event))
     {
+      //if (event.type == SDL_CONTROLLERBUTTONDOWN)
+      //{
+      //  // handle joystick event here
+      //  
+      //  //printf("Button pressed\n");
+      //  //SDL_JoystickGetButton(gGameController,)
+      //  // don't let imgui process the event
+      //  continue;
+      //}
+
       ImGui_ImplSDL2_ProcessEvent(&event);
       if (event.type == SDL_QUIT)
         done = true;
@@ -145,7 +189,7 @@ int main(int argc, char* argv[])
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-    menu.Draw(argv[0]);
+    menu.Draw(argv[0], gGameController);
 
         // Rendering
     ImGui::Render();
@@ -160,6 +204,10 @@ int main(int argc, char* argv[])
 
 
   // Cleanup
+
+   //Close game controller
+  SDL_GameControllerClose(gGameController);
+  gGameController = NULL;
 
   //TMCCInterface::Shutdown();
 

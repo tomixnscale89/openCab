@@ -259,10 +259,12 @@ void ThrottleMenu::LoadRosterLaunch(const std::string& appDir)
   }
 }
 
-void ThrottleMenu::Draw(const std::string& appDir)
+void ThrottleMenu::Draw(const std::string& appDir, SDL_GameController* gGameController)
 {
 
   float curTime = (float)clock() / CLOCKS_PER_SEC;
+
+  HandleGameControllerEvents(gGameController, curTime,appDir);
 
   if (soundMenuVisible)              ShowSoundWindow(&soundMenuVisible);
   if (voiceClipMenuVisible)              ShowVoiceWindow(&voiceClipMenuVisible);
@@ -337,7 +339,8 @@ void ThrottleMenu::Draw(const std::string& appDir)
         {
           // combobox item has been clicked, set the new selected engine
           m_selected_engine = i;
-          engineID = m_enginedefs[m_selected_engine].engineID;
+          SetUpEngineFromRoster(engineID, legacyEnabled, dir);
+          /*engineID = m_enginedefs[m_selected_engine].engineID;
           legacyEnabled = m_enginedefs[m_selected_engine].legacyEngine;
           Image o;
           if(o.Load(dir + "/engine_picture/" + m_enginedefs[m_selected_engine].engineName + ".png"))
@@ -349,8 +352,8 @@ void ThrottleMenu::Draw(const std::string& appDir)
           {
             m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default" + ".png");
 
-          }
-          printf("Engine ID to use: %d\n", engineID);
+          }*/
+          //printf("Engine ID to use: %d\n", engineID);
 
         }
       }
@@ -3164,5 +3167,93 @@ void ThrottleMenu::DrawKeypadType(int currentKeypadType, bool isLegacy, int engi
     }
   }
 }
+
+void ThrottleMenu::SetUpEngineFromRoster(int engineID,bool legacyEnabled, const std::string& dir)
+{
+  engineID = m_enginedefs[m_selected_engine].engineID;
+  legacyEnabled = m_enginedefs[m_selected_engine].legacyEngine;
+  Image o;
+  if (o.Load(dir + "/engine_picture/" + m_enginedefs[m_selected_engine].engineName + ".png"))
+  {
+    m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + m_enginedefs[m_selected_engine].engineName + ".png");
+    m_enginedefs[m_selected_engine].engineHasCustomIcon = true;
+  }
+  else
+  {
+    m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default" + ".png");
+
+  }
+  printf("Engine ID to use: %d\n", engineID);
+}
+
+void ThrottleMenu::HandleGameControllerEvents(SDL_GameController* gGameController, float curTime, const std::string& dir)
+{
+  if (gGameController)
+  {
+    float interval = 0.2f;
+    if (curTime - ThrottleMenu::lastTime >= interval)
+    {
+      ThrottleMenu::lastTime = curTime;
+
+      if (SDL_GameControllerGetAxis(gGameController, SDL_CONTROLLER_AXIS_TRIGGERRIGHT))
+      {
+        printf("Right Trigger value: %d\n", SDL_GameControllerGetAxis(gGameController, SDL_CONTROLLER_AXIS_TRIGGERRIGHT));
+      }
+
+      if (SDL_GameControllerGetButton(gGameController, SDL_CONTROLLER_BUTTON_A))
+      {
+
+      }
+      if (SDL_GameControllerGetButton(gGameController, SDL_CONTROLLER_BUTTON_B))
+      {
+
+      }
+      if (SDL_GameControllerGetButton(gGameController, SDL_CONTROLLER_BUTTON_X))
+      {
+
+      }
+      if (SDL_GameControllerGetButton(gGameController, SDL_CONTROLLER_BUTTON_Y))
+      {
+
+      }
+
+      if (SDL_GameControllerGetButton(gGameController, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER))
+      {
+        gameControllerSelectedEngine++;
+        printf("gameControllerEng :%d\n", gameControllerSelectedEngine);
+        if (gameControllerSelectedEngine < m_enginedefs.size())
+          m_selected_engine = gameControllerSelectedEngine;
+        else
+        {
+          gameControllerSelectedEngine = 0;
+          m_selected_engine = 0;
+        }
+        SetUpEngineFromRoster(engineID, legacyEnabled, dir);
+
+
+      }
+
+
+      if (SDL_GameControllerGetButton(gGameController, SDL_CONTROLLER_BUTTON_LEFTSHOULDER))
+      {
+        gameControllerSelectedEngine--;
+        printf("gameControllerEng :%d\n", gameControllerSelectedEngine);
+        if (gameControllerSelectedEngine < 0)
+        {
+          gameControllerSelectedEngine = m_enginedefs.size() - 1;
+          m_selected_engine = m_enginedefs.size() - 1;
+        }
+
+        else
+        {
+          m_selected_engine = gameControllerSelectedEngine;
+        }
+        SetUpEngineFromRoster(engineID, legacyEnabled, dir);
+      }
+    }
+    
+    
+  }
+};
 
 
