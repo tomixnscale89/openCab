@@ -103,7 +103,7 @@ public:
   ThrottleMenu(const std::string& appDir);
   void LoadRosterLaunch(const std::string& appDir);
   ~ThrottleMenu();
-  void Draw(const std::string& appDir, SDL_GameController* gGameController);
+  void Draw(const std::string& appDir, SDL_GameController* gGameController, int leftStickXDeadZone, int leftStickYDeadZone, int rightStickXDeadZone, int rightStickYDeadZone);
   std::vector<EngineDef> m_enginedefs;
 
 private:
@@ -286,7 +286,7 @@ private:
   void ShowDinerVoiceWindow(bool* p_open);
   void AddEngineWindow(bool* p_open, const std::string& appDir);
   void ThrottleWindow(bool* p_open, float curTime);
-  void HandleGameControllerEvents(SDL_GameController* gGameController, float curTime, const std::string& dir);
+  void HandleGameControllerEvents(SDL_GameController* gGameController, float curTime, const std::string& dir, int leftStickXDeadZone, int leftStickYDeadZone, int rightStickXDeadZone, int rightStickYDeadZone);
   void SetUpEngineFromRoster(int engineID, bool legacyEnabled, const std::string& dir);
 
 

@@ -259,12 +259,12 @@ void ThrottleMenu::LoadRosterLaunch(const std::string& appDir)
   }
 }
 
-void ThrottleMenu::Draw(const std::string& appDir, SDL_GameController* gGameController)
+void ThrottleMenu::Draw(const std::string& appDir, SDL_GameController* gGameController, int leftStickXDeadZone, int leftStickYDeadZone, int rightStickXDeadZone, int rightStickYDeadZone)
 {
 
   float curTime = (float)clock() / CLOCKS_PER_SEC;
 
-  HandleGameControllerEvents(gGameController, curTime,appDir);
+  HandleGameControllerEvents(gGameController, curTime,appDir, leftStickXDeadZone,leftStickYDeadZone,rightStickXDeadZone, rightStickYDeadZone);
 
   if (soundMenuVisible)              ShowSoundWindow(&soundMenuVisible);
   if (voiceClipMenuVisible)              ShowVoiceWindow(&voiceClipMenuVisible);
@@ -339,8 +339,8 @@ void ThrottleMenu::Draw(const std::string& appDir, SDL_GameController* gGameCont
         {
           // combobox item has been clicked, set the new selected engine
           m_selected_engine = i;
-          SetUpEngineFromRoster(engineID, legacyEnabled, dir);
-          /*engineID = m_enginedefs[m_selected_engine].engineID;
+          //SetUpEngineFromRoster(engineID, legacyEnabled, dir);
+          engineID = m_enginedefs[m_selected_engine].engineID;
           legacyEnabled = m_enginedefs[m_selected_engine].legacyEngine;
           Image o;
           if(o.Load(dir + "/engine_picture/" + m_enginedefs[m_selected_engine].engineName + ".png"))
@@ -352,8 +352,8 @@ void ThrottleMenu::Draw(const std::string& appDir, SDL_GameController* gGameCont
           {
             m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default" + ".png");
 
-          }*/
-          //printf("Engine ID to use: %d\n", engineID);
+          }
+          printf("Engine ID to use: %d\n", engineID);
 
         }
       }
@@ -3186,23 +3186,72 @@ void ThrottleMenu::SetUpEngineFromRoster(int engineID,bool legacyEnabled, const 
   printf("Engine ID to use: %d\n", engineID);
 }
 
-void ThrottleMenu::HandleGameControllerEvents(SDL_GameController* gGameController, float curTime, const std::string& dir)
+void ThrottleMenu::HandleGameControllerEvents(SDL_GameController* gGameController, float curTime, const std::string& dir, int leftStickXDeadZone, int leftStickYDeadZone, int rightStickXDeadZone, int rightStickYDeadZone)
 {
   if (gGameController)
   {
-    float interval = 0.2f;
+    float interval = 0.1f;
     if (curTime - ThrottleMenu::lastTime >= interval)
     {
       ThrottleMenu::lastTime = curTime;
-
-      if (SDL_GameControllerGetAxis(gGameController, SDL_CONTROLLER_AXIS_TRIGGERRIGHT))
+      if (SDL_GameControllerGetAxis(gGameController, SDL_CONTROLLER_AXIS_RIGHTY))
       {
-        printf("Right Trigger value: %d\n", SDL_GameControllerGetAxis(gGameController, SDL_CONTROLLER_AXIS_TRIGGERRIGHT));
+        float value = (float)SDL_GameControllerGetAxis(gGameController, SDL_CONTROLLER_AXIS_RIGHTY);
+        if (value > rightStickYDeadZone + 10000)
+        {
+          //printf("Down Right Stick Y: %d\n", (int)value);
+          m_enginedefs[m_selected_engine].legacy_speed--;
+          if (m_enginedefs[m_selected_engine].legacy_speed < 0)
+            m_enginedefs[m_selected_engine].legacy_speed = 0;
+          m_enginedefs[m_selected_engine].SetSpeed(m_enginedefs[m_selected_engine].legacy_speed, m_enginedefs[m_selected_engine].legacyEngine);
+        }
+        else if (value < rightStickYDeadZone - 10000)
+        {
+          //printf("UP Right Stick Y: %d\n", (int)value);
+          m_enginedefs[m_selected_engine].legacy_speed++;
+          if (m_enginedefs[m_selected_engine].legacy_speed > 200)
+            m_enginedefs[m_selected_engine].legacy_speed = 200;
+          m_enginedefs[m_selected_engine].SetSpeed(m_enginedefs[m_selected_engine].legacy_speed, m_enginedefs[m_selected_engine].legacyEngine);
+        }
+      }
+      if (SDL_GameControllerGetAxis(gGameController, SDL_CONTROLLER_AXIS_LEFTY))
+      {
+        float value = (float)SDL_GameControllerGetAxis(gGameController, SDL_CONTROLLER_AXIS_LEFTY);
+        if (value < leftStickYDeadZone - 10000)
+        {
+          
+        }
+        else if (value > leftStickYDeadZone + 10000)
+        {
+          //printf("Left Stick Y: %d\n", (int)value);
+          printf("Controller Brake\n");
+          TMCCInterface::EngineBrakeSpeed(engineID);
+        }
       }
 
+      if (SDL_GameControllerGetButton(gGameController, SDL_CONTROLLER_BUTTON_RIGHTSTICK))
+      {
+        m_enginedefs[m_selected_engine].legacy_speed = 0;
+        m_enginedefs[m_selected_engine].SetSpeed(m_enginedefs[m_selected_engine].legacy_speed, m_enginedefs[m_selected_engine].legacyEngine);
+
+      }
       if (SDL_GameControllerGetButton(gGameController, SDL_CONTROLLER_BUTTON_A))
       {
-
+        printf("Game controller Bell\n");
+        if (!m_enginedefs[m_selected_engine].oneShotBellEnabled)
+        {
+          printf("Bell Toggle\n");
+          m_enginedefs[m_selected_engine].bellOn = !m_enginedefs[m_selected_engine].bellOn;
+          if (m_enginedefs[m_selected_engine].bellOn)
+            TMCCInterface::EngineSetBell(engineID, TMCC_ON);
+          else
+            TMCCInterface::EngineSetBell(engineID, TMCC_OFF);
+        }
+        else
+        {
+          printf("One Shot Bell Ding: %d\n", m_enginedefs[m_selected_engine].bellDingCount);
+          TMCCInterface::EngineBellOneShotDing(engineID, m_enginedefs[m_selected_engine].bellDingCount);
+        }
       }
       if (SDL_GameControllerGetButton(gGameController, SDL_CONTROLLER_BUTTON_B))
       {
@@ -3210,7 +3259,9 @@ void ThrottleMenu::HandleGameControllerEvents(SDL_GameController* gGameControlle
       }
       if (SDL_GameControllerGetButton(gGameController, SDL_CONTROLLER_BUTTON_X))
       {
-
+        
+        m_enginedefs[m_selected_engine].oneShotBellEnabled = !m_enginedefs[m_selected_engine].oneShotBellEnabled;
+        printf("Controller: One Shot bell: %d\n", m_enginedefs[m_selected_engine].oneShotBellEnabled);
       }
       if (SDL_GameControllerGetButton(gGameController, SDL_CONTROLLER_BUTTON_Y))
       {
@@ -3228,9 +3279,20 @@ void ThrottleMenu::HandleGameControllerEvents(SDL_GameController* gGameControlle
           gameControllerSelectedEngine = 0;
           m_selected_engine = 0;
         }
-        SetUpEngineFromRoster(engineID, legacyEnabled, dir);
+        //SetUpEngineFromRoster(engineID, legacyEnabled, dir);
+        engineID = m_enginedefs[m_selected_engine].engineID;
+        legacyEnabled = m_enginedefs[m_selected_engine].legacyEngine;
+        Image o;
+        if (o.Load(dir + "/engine_picture/" + m_enginedefs[m_selected_engine].engineName + ".png"))
+        {
+          m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + m_enginedefs[m_selected_engine].engineName + ".png");
+          m_enginedefs[m_selected_engine].engineHasCustomIcon = true;
+        }
+        else
+        {
+          m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default" + ".png");
 
-
+        }
       }
 
 
@@ -3248,10 +3310,37 @@ void ThrottleMenu::HandleGameControllerEvents(SDL_GameController* gGameControlle
         {
           m_selected_engine = gameControllerSelectedEngine;
         }
-        SetUpEngineFromRoster(engineID, legacyEnabled, dir);
+
+        engineID = m_enginedefs[m_selected_engine].engineID;
+        legacyEnabled = m_enginedefs[m_selected_engine].legacyEngine;
+        Image o;
+        if (o.Load(dir + "/engine_picture/" + m_enginedefs[m_selected_engine].engineName + ".png"))
+        {
+          m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + m_enginedefs[m_selected_engine].engineName + ".png");
+          m_enginedefs[m_selected_engine].engineHasCustomIcon = true;
+        }
+        else
+        {
+          m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default" + ".png");
+
+        }
+        //SetUpEngineFromRoster(engineID, legacyEnabled, dir);
       }
     }
-    
+    else
+    {
+      if (SDL_GameControllerGetAxis(gGameController, SDL_CONTROLLER_AXIS_TRIGGERRIGHT))
+      {
+        float value = (float)SDL_GameControllerGetAxis(gGameController, SDL_CONTROLLER_AXIS_TRIGGERRIGHT);
+        value = (value / 32767) * 15.0f;
+
+        printf("Game controller Quilling: %d\n", (int)value);
+        TMCCInterface::EngineSetQuillingHornIntensity(engineID, (int)value);
+        //printf("Right Trigger value: %d\n", SDL_GameControllerGetAxis(gGameController, SDL_CONTROLLER_AXIS_TRIGGERRIGHT));
+      }
+
+      
+    }
     
   }
 };

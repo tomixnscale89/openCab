@@ -105,6 +105,10 @@ int main(int argc, char* argv[])
   const int JOYSTICK_DEAD_ZONE = 8000;
   //Game Controller 1 handler
   SDL_GameController* gGameController = NULL;
+  int rightStickXDeadZone;
+  int rightStickYDeadZone;
+  int leftStickXDeadZone;
+  int leftStickYDeadZone;
 
   //Check for joysticks
   if (SDL_NumJoysticks() < 1)
@@ -124,6 +128,7 @@ int main(int argc, char* argv[])
       char* mapping;
       printf("Index \'%i\' is a compatible controller, named \'%s\'", 0, SDL_GameControllerNameForIndex(0));
       mapping = SDL_GameControllerMapping(gGameController);
+      
       printf("Controller %i is mapped as \"%s\".", 0, mapping);
       printf("\n\n\n");
       SDL_free(mapping);
@@ -134,6 +139,27 @@ int main(int argc, char* argv[])
   ThrottleMenu menu(argv[0]);
   EngineManagement::ReadEngineRoster(menu.m_enginedefs, argv[0]);
   menu.LoadRosterLaunch(argv[0]);
+
+  if (gGameController) // if we have a controller, poll the joystick axis to know the dead zone. 
+  {
+    bool donePollController = false;
+    while (!donePollController)
+    {
+      SDL_Event event;
+      while (SDL_PollEvent(&event))
+      {
+        leftStickXDeadZone = SDL_GameControllerGetAxis(gGameController, SDL_CONTROLLER_AXIS_LEFTX);
+        leftStickYDeadZone = SDL_GameControllerGetAxis(gGameController, SDL_CONTROLLER_AXIS_LEFTY);
+
+        rightStickXDeadZone = SDL_GameControllerGetAxis(gGameController, SDL_CONTROLLER_AXIS_RIGHTX);
+        rightStickYDeadZone = SDL_GameControllerGetAxis(gGameController, SDL_CONTROLLER_AXIS_RIGHTY);
+        printf("leftStickXDead:%d RightStickXDead:%d \nleftStickYDead:%d RightStickYDead:%d\n", leftStickXDeadZone, rightStickXDeadZone, leftStickYDeadZone, rightStickYDeadZone);
+        donePollController = true;
+        ImGui_ImplSDL2_ProcessEvent(&event);
+      }
+    }
+  }
+  
 
   // Main loop
   bool done = false;
@@ -156,6 +182,8 @@ int main(int argc, char* argv[])
       //  // don't let imgui process the event
       //  continue;
       //}
+
+
 
       ImGui_ImplSDL2_ProcessEvent(&event);
       if (event.type == SDL_QUIT)
@@ -189,7 +217,7 @@ int main(int argc, char* argv[])
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-    menu.Draw(argv[0], gGameController);
+    menu.Draw(argv[0], gGameController,leftStickXDeadZone,leftStickYDeadZone,rightStickXDeadZone,rightStickYDeadZone);
 
         // Rendering
     ImGui::Render();
