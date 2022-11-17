@@ -100,7 +100,7 @@ struct EngineDef
 class ThrottleMenu
 {
 public:
-  ThrottleMenu(const std::string& appDir);
+  ThrottleMenu(const std::string& appDir, SDL_GameController* gGameController, std::string gGameControllerName);
   void LoadRosterLaunch(const std::string& appDir);
   ~ThrottleMenu();
   void Draw(const std::string& appDir, SDL_GameController* gGameController, int leftStickXDeadZone, int leftStickYDeadZone, int rightStickXDeadZone, int rightStickYDeadZone);
@@ -108,6 +108,8 @@ public:
 
 private:
 
+  bool guitarController = false;
+  std::string controllerName;
   std::string dir;
 
   std::string m_device;

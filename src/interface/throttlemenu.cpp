@@ -131,12 +131,14 @@ static dialog_entry diner_dialog_map[]{
 };
 
 
-ThrottleMenu::ThrottleMenu(const std::string& appDir)
+ThrottleMenu::ThrottleMenu(const std::string& appDir, SDL_GameController* gGameController, std::string gGameControllerName)
 {
   speed = 0;
   currentTrainBrake = 0;
   currentQuill = 0;
   engineID = 1;
+
+  
 
   dir = appDir.substr(0, appDir.find_last_of("/\\"));
 
@@ -227,7 +229,13 @@ ThrottleMenu::ThrottleMenu(const std::string& appDir)
   acelaArriveIcon = std::make_shared<Image>(dir + "/graphics/arriving_acela.png");
   acelaDepartIcon = std::make_shared<Image>(dir + "/graphics/departing_acela.png");
 
+  // Controller stuff
 
+  if (gGameControllerName == "Guitar (Xbox 360 Wireless Receiver for Windows)" && SDL_GameControllerGetType(gGameController) == SDL_CONTROLLER_TYPE_XBOXONE || SDL_GameControllerGetType(gGameController) == SDL_CONTROLLER_TYPE_XBOX360)
+  {
+    // we have a guitar controller
+    guitarController = true;
+  }
 }
 
 
@@ -607,8 +615,8 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
       if (ImGuiKnobs::Knob("Throttle", &m_enginedefs[m_selected_engine].legacy_speed, 0.0, 200.0, 1, "%f MPH", ImGuiKnobVariant_Wiper, 256)) {
         // value was changed
         
-        m_enginedefs[m_selected_engine].SetSpeed(m_enginedefs[m_selected_engine].legacy_speed, m_enginedefs[m_selected_engine].legacyEngine);
-        //TMCCInterface::EngineSetAbsoluteSpeed2(engineID, m_enginedefs[m_selected_engine].legacy_speed);
+        //m_enginedefs[m_selected_engine].SetSpeed(m_enginedefs[m_selected_engine].legacy_speed, m_enginedefs[m_selected_engine].legacyEngine);
+        TMCCInterface::EngineSetAbsoluteSpeed2(engineID, m_enginedefs[m_selected_engine].legacy_speed);
       }
     }
     else if(!m_enginedefs[m_selected_engine].legacyEngine && m_enginedefs[m_selected_engine].engineType == EngineTypeTMCC::ENGINE_TYPE_TMCC_CRANE)
@@ -620,8 +628,8 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
       // TMCC Version
       if (ImGuiKnobs::Knob("Throttle", &m_enginedefs[m_selected_engine].tmcc_speed, 0.0, 32.0, 1, "%f MPH", ImGuiKnobVariant_Wiper, 256)) {
         // value was changed
-        m_enginedefs[m_selected_engine].SetSpeedMultiplier(m_enginedefs[m_selected_engine].tmcc_speed, m_enginedefs[m_selected_engine].legacyEngine);
-        //TMCCInterface::EngineSetAbsoluteSpeed(engineID, m_enginedefs[m_selected_engine].tmcc_speed);
+        //m_enginedefs[m_selected_engine].SetSpeedMultiplier(m_enginedefs[m_selected_engine].tmcc_speed, m_enginedefs[m_selected_engine].legacyEngine);
+        TMCCInterface::EngineSetAbsoluteSpeed(engineID, m_enginedefs[m_selected_engine].tmcc_speed);
       }
     }
 
@@ -3203,7 +3211,8 @@ void ThrottleMenu::HandleGameControllerEvents(SDL_GameController* gGameControlle
           m_enginedefs[m_selected_engine].legacy_speed--;
           if (m_enginedefs[m_selected_engine].legacy_speed < 0)
             m_enginedefs[m_selected_engine].legacy_speed = 0;
-          m_enginedefs[m_selected_engine].SetSpeed(m_enginedefs[m_selected_engine].legacy_speed, m_enginedefs[m_selected_engine].legacyEngine);
+          //m_enginedefs[m_selected_engine].SetSpeed(m_enginedefs[m_selected_engine].legacy_speed, m_enginedefs[m_selected_engine].legacyEngine);
+          TMCCInterface::EngineSetAbsoluteSpeed2(engineID, m_enginedefs[m_selected_engine].legacy_speed);
         }
         else if (value < rightStickYDeadZone - 10000)
         {
@@ -3211,7 +3220,8 @@ void ThrottleMenu::HandleGameControllerEvents(SDL_GameController* gGameControlle
           m_enginedefs[m_selected_engine].legacy_speed++;
           if (m_enginedefs[m_selected_engine].legacy_speed > 200)
             m_enginedefs[m_selected_engine].legacy_speed = 200;
-          m_enginedefs[m_selected_engine].SetSpeed(m_enginedefs[m_selected_engine].legacy_speed, m_enginedefs[m_selected_engine].legacyEngine);
+          //m_enginedefs[m_selected_engine].SetSpeed(m_enginedefs[m_selected_engine].legacy_speed, m_enginedefs[m_selected_engine].legacyEngine);
+          TMCCInterface::EngineSetAbsoluteSpeed2(engineID, m_enginedefs[m_selected_engine].legacy_speed);
         }
       }
       if (SDL_GameControllerGetAxis(gGameController, SDL_CONTROLLER_AXIS_LEFTY))
@@ -3229,18 +3239,18 @@ void ThrottleMenu::HandleGameControllerEvents(SDL_GameController* gGameControlle
         }
       }
 
-      if (SDL_GameControllerGetButton(gGameController, SDL_CONTROLLER_BUTTON_RIGHTSTICK))
-      {
-        m_enginedefs[m_selected_engine].legacy_speed = 0;
-        m_enginedefs[m_selected_engine].SetSpeed(m_enginedefs[m_selected_engine].legacy_speed, m_enginedefs[m_selected_engine].legacyEngine);
+      //if (SDL_GameControllerGetButton(gGameController, SDL_CONTROLLER_BUTTON_RIGHTSTICK))
+      //{
+       // m_enginedefs[m_selected_engine].legacy_speed = 0;
+       // m_enginedefs[m_selected_engine].SetSpeed(m_enginedefs[m_selected_engine].legacy_speed, m_enginedefs[m_selected_engine].legacyEngine);
 
-      }
+     // }
       if (SDL_GameControllerGetButton(gGameController, SDL_CONTROLLER_BUTTON_A))
       {
         printf("Game controller Bell\n");
         if (!m_enginedefs[m_selected_engine].oneShotBellEnabled)
         {
-          printf("Bell Toggle\n");
+          //printf("Bell Toggle\n");
           m_enginedefs[m_selected_engine].bellOn = !m_enginedefs[m_selected_engine].bellOn;
           if (m_enginedefs[m_selected_engine].bellOn)
             TMCCInterface::EngineSetBell(engineID, TMCC_ON);
@@ -3249,13 +3259,14 @@ void ThrottleMenu::HandleGameControllerEvents(SDL_GameController* gGameControlle
         }
         else
         {
-          printf("One Shot Bell Ding: %d\n", m_enginedefs[m_selected_engine].bellDingCount);
+          printf("Controller One Shot Bell Ding: %d\n", m_enginedefs[m_selected_engine].bellDingCount);
           TMCCInterface::EngineBellOneShotDing(engineID, m_enginedefs[m_selected_engine].bellDingCount);
         }
       }
       if (SDL_GameControllerGetButton(gGameController, SDL_CONTROLLER_BUTTON_B))
       {
-
+        printf("Change Direction\n");
+        TMCCInterface::EngineToggleDirection(engineID);
       }
       if (SDL_GameControllerGetButton(gGameController, SDL_CONTROLLER_BUTTON_X))
       {
@@ -3266,6 +3277,68 @@ void ThrottleMenu::HandleGameControllerEvents(SDL_GameController* gGameControlle
       if (SDL_GameControllerGetButton(gGameController, SDL_CONTROLLER_BUTTON_Y))
       {
 
+      }
+
+      if (SDL_GameControllerGetButton(gGameController, SDL_CONTROLLER_BUTTON_START))
+      {
+        printf("Controller Numerical 3\n");
+        TMCCInterface::EngineNumericCommand(engineID, 3);
+      }
+
+      if (SDL_GameControllerGetButton(gGameController, SDL_CONTROLLER_BUTTON_TOUCHPAD))
+      {
+        printf("Controller Numerical 6\n");
+        TMCCInterface::EngineNumericCommand(engineID,6);
+      }
+
+      if (SDL_GameControllerGetButton(gGameController, SDL_CONTROLLER_BUTTON_GUIDE))
+      {
+        printf("Controller Extended Start Up\n");
+        TMCCInterface::EngineStartupSequence1(engineID);
+        TMCCInterface::EngineStartupSequence2(engineID);
+      }
+
+      if (SDL_GameControllerGetButton(gGameController, SDL_CONTROLLER_BUTTON_BACK))
+      {
+        printf("Controller Extended Shut Down\n");
+        TMCCInterface::EngineShutdownSequence1(engineID);
+        TMCCInterface::EngineShutdownSequence2(engineID);
+      }
+
+      if (SDL_GameControllerGetButton(gGameController, SDL_CONTROLLER_BUTTON_DPAD_UP))
+      {
+        printf("Controller Crewtalk\n");
+        TMCCInterface::EngineNumericCommand(engineID, 2);
+      }
+
+      if (SDL_GameControllerGetButton(gGameController, SDL_CONTROLLER_BUTTON_DPAD_DOWN))
+      {
+        printf("Controller Aux 3\n");
+        TMCCInterface::EngineAux3Trigger(engineID);
+      }
+      
+      if (SDL_GameControllerGetButton(gGameController, SDL_CONTROLLER_BUTTON_DPAD_LEFT))
+      {
+        printf("Controller TowerCom\n");
+        TMCCInterface::EngineNumericCommand(engineID,7);
+      }
+
+      if (SDL_GameControllerGetButton(gGameController, SDL_CONTROLLER_BUTTON_DPAD_RIGHT))
+      {
+        printf("Controller Aux 1\n");
+        TMCCInterface::EngineAux1Option1(engineID);
+      }
+
+      if (SDL_GameControllerGetButton(gGameController, SDL_CONTROLLER_BUTTON_LEFTSTICK))
+      {
+        printf("Controller Rear Coupler\n");
+        TMCCInterface::EngineOpenRearCoupler(engineID);
+      }
+
+      if (SDL_GameControllerGetButton(gGameController, SDL_CONTROLLER_BUTTON_RIGHTSTICK))
+      {
+        printf("Controller Front Coupler\n");
+        TMCCInterface::EngineOpenFrontCoupler(engineID);
       }
 
       if (SDL_GameControllerGetButton(gGameController, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER))
@@ -3329,7 +3402,11 @@ void ThrottleMenu::HandleGameControllerEvents(SDL_GameController* gGameControlle
     }
     else
     {
-      if (SDL_GameControllerGetAxis(gGameController, SDL_CONTROLLER_AXIS_TRIGGERRIGHT))
+    if (guitarController)
+    {
+
+    }
+      else if (SDL_GameControllerGetAxis(gGameController, SDL_CONTROLLER_AXIS_TRIGGERRIGHT))
       {
         float value = (float)SDL_GameControllerGetAxis(gGameController, SDL_CONTROLLER_AXIS_TRIGGERRIGHT);
         value = (value / 32767) * 15.0f;

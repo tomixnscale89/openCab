@@ -105,10 +105,10 @@ int main(int argc, char* argv[])
   const int JOYSTICK_DEAD_ZONE = 8000;
   //Game Controller 1 handler
   SDL_GameController* gGameController = NULL;
-  int rightStickXDeadZone;
-  int rightStickYDeadZone;
-  int leftStickXDeadZone;
-  int leftStickYDeadZone;
+  int rightStickXDeadZone = 0;
+  int rightStickYDeadZone = 0;
+  int leftStickXDeadZone = 0;
+  int leftStickYDeadZone = 0;
 
   //Check for joysticks
   if (SDL_NumJoysticks() < 1)
@@ -129,14 +129,15 @@ int main(int argc, char* argv[])
       printf("Index \'%i\' is a compatible controller, named \'%s\'", 0, SDL_GameControllerNameForIndex(0));
       mapping = SDL_GameControllerMapping(gGameController);
       
-      printf("Controller %i is mapped as \"%s\".", 0, mapping);
-      printf("\n\n\n");
+      printf("Controller %i is mapped as \"%s\".\n", 0, mapping);
+      printf("Controller Vendor:%d, Product:%d, Mapping:%d\n\n", SDL_GameControllerGetVendor(gGameController), SDL_GameControllerGetProduct(gGameController), SDL_GameControllerGetType(gGameController));
       SDL_free(mapping);
     }
   }
 
+  std::string controllerName = SDL_GameControllerName(gGameController);
 
-  ThrottleMenu menu(argv[0]);
+  ThrottleMenu menu(argv[0],gGameController, controllerName);
   EngineManagement::ReadEngineRoster(menu.m_enginedefs, argv[0]);
   menu.LoadRosterLaunch(argv[0]);
 
