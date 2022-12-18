@@ -134,15 +134,11 @@ int main(int argc, char* argv[])
       SDL_free(mapping);
     }
   }
-
-  std::string controllerName = SDL_GameControllerName(gGameController);
-
-  ThrottleMenu menu(argv[0],gGameController, controllerName);
-  EngineManagement::ReadEngineRoster(menu.m_enginedefs, argv[0]);
-  menu.LoadRosterLaunch(argv[0]);
-
+  std::string controllerName;
   if (gGameController) // if we have a controller, poll the joystick axis to know the dead zone. 
   {
+    controllerName = SDL_GameControllerName(gGameController);
+
     bool donePollController = false;
     while (!donePollController)
     {
@@ -160,6 +156,13 @@ int main(int argc, char* argv[])
       }
     }
   }
+
+
+  ThrottleMenu menu(argv[0],gGameController, controllerName);
+  EngineManagement::ReadEngineRoster(menu.m_enginedefs, argv[0]);
+  menu.LoadRosterLaunch(argv[0]);
+
+  
   
 
   // Main loop

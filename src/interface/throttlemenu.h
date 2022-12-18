@@ -9,6 +9,7 @@
 #include "../imgui-knobs.h"
 #include "types.h"
 #include "../Image.h"
+#include "KeypadTypes.h"
 
 #pragma once
 
@@ -278,6 +279,7 @@ private:
   void DrawCAB2DieselKeypad();
   void DrawCAB2ElectricKeypad();
   void DrawStationDinerKeypad();
+  void DrawFreightCarKeypad();
   void DrawTMCCSteamKeypad();
   void DrawTMCCAcelaKeypad();
   void DrawKeypadType(int currentKeypadType, bool isLegacy, int engineType);
