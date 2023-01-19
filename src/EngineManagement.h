@@ -11,17 +11,12 @@ using json = nlohmann::json;
 class EngineManagement
 {
 public:
-  static void AddEngineToJson(json& j, int engineID, int currentEngineType, bool isLegacy, const std::string& appDir);
   static void ReadEngineRoster(json& engineRoster, const std::string& appDir);
-  static void ReadEngineRoster(std::vector<EngineDef>& enginedefs, const std::string& appDir);
-  static int ReadEngineIDFromJson(json& engineRoster, int engineID);
-  static int ReadEngineTypeFromJson(json& engineRoster, int engineID);
-  static bool ReadEngineLegacyConditionFromJson(json& engineRoster, int engineID);
-  static void WriteEngineTypeToJson(json& engineRoster, int engineID, int engineType, const std::string& appDir);
-  static void WriteEngineLegacyConditionToJson(json& engineRoster, int engineID, bool legacyState, const std::string& appDir);
-  static bool EngineExistsInJson(json& engineRoster, int engineID);
+  static void ReadEngineRoster(json& engineRoster, std::vector<EngineDef>& enginedefs, std::vector<SwitchDef>& switchdefs, std::vector<AccessoryDef>& accessorydefs, const std::string& appDir);
   static void WriteEngineRoster(json& engineRoster, const std::string& appDir);
   static void AddEngineDataToJson(json& engineRoster, std::vector<EngineDef> enginedefs, const std::string& appDir);
+  static void AddSwitchDataToJson(json& engineRoster, std::vector<SwitchDef> switchdefs, const std::string& appDir);
+  static void AddAccessoryDataToJson(json& engineRoster, std::vector<AccessoryDef> accdefs, const std::string& appDir);
 
 ;
 };

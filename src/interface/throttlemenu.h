@@ -41,60 +41,89 @@ enum EngineTypeTMCC : uint8
 
 
 struct EngineDef
- {
-    int engineID;
-    int engineType;
-    bool legacyEngine = false;
-    std::string engineName;
-    // add temp engine speed
-    float legacy_speed = 0;
-    float temp_legacy_speed = 0;
-    float tmcc_speed = 0;
-    int steam_labour_intensity = 0;
-    int diesel_electric_rev_lvl = 0;
-    int smoke_state_legacy = 0;
-    int keyPadPage = 0;
-    bool useHorn2 = false;
-    bool oneShotBellEnabled = false;
-    int bellDingCount = 3;
-    bool bellOn = false;
-    float currentTrainBrake;
+{
+  int engineID;
+  int engineType;
+  bool legacyEngine = false;
+  std::string engineName;
+  // add temp engine speed
+  float legacy_speed = 0;
+  float temp_legacy_speed = 0;
+  float tmcc_speed = 0;
+  int steam_labour_intensity = 0;
+  int diesel_electric_rev_lvl = 0;
+  int smoke_state_legacy = 0;
+  int keyPadPage = 0;
+  bool useHorn2 = false;
+  bool oneShotBellEnabled = false;
+  int bellDingCount = 3;
+  bool bellOn = false;
+  float currentTrainBrake;
+  float currentQuill = 0;
 
-    std::shared_ptr<Image> locoIcon;
-    bool engineHasCustomIcon = false;
 
-    float legacy_speed_multiplier = 1.0f;
+  std::shared_ptr<Image> locoIcon;
+  bool engineHasCustomIcon = false;
 
-    inline int GetFinalSpeed(bool tmcc2)
+  float legacy_speed_multiplier = 1.0f;
+
+  inline int GetFinalSpeed(bool tmcc2)
+  {
+    if (tmcc2) return temp_legacy_speed;
+    return (int)(temp_legacy_speed * legacy_speed_multiplier * 200.0f);
+  }
+
+  void EngineDef::SetSpeed(float value, bool tmcc2)
+  {
+    // don't send a command if the speed hasn't changed
+    if (value != temp_legacy_speed)
     {
-      if (tmcc2) return temp_legacy_speed;
-      return (int)(temp_legacy_speed * legacy_speed_multiplier * 200.0f);
-    }
+      temp_legacy_speed = value;
+      TMCCInterface::EngineSetAbsoluteSpeed2(engineID, GetFinalSpeed(tmcc2));
+      printf("speed: %f, new Speed: %f\n", temp_legacy_speed, legacy_speed_multiplier, GetFinalSpeed(tmcc2));
 
-    void EngineDef::SetSpeed(float value, bool tmcc2)
+    }
+  }
+
+  void EngineDef::SetSpeedMultiplier(float value, bool tmcc2)
+  {
+    // don't send a command if the speed hasn't changed
+    if (value != legacy_speed_multiplier)
     {
-      // don't send a command if the speed hasn't changed
-      if (value != temp_legacy_speed)
-      {
-        temp_legacy_speed = value;
-        TMCCInterface::EngineSetAbsoluteSpeed2(engineID, GetFinalSpeed(tmcc2));
-        printf("speed: %f, new Speed: %f\n", temp_legacy_speed, legacy_speed_multiplier, GetFinalSpeed(tmcc2));
-
-      }
+      //printf("legacy_speed_multiplier:%f\n", value);
+      legacy_speed_multiplier = value;
+      TMCCInterface::EngineSetAbsoluteSpeed(engineID, GetFinalSpeed(tmcc2));
+      printf("speed: %f, multipler: %f, new Speed: %d\n", temp_legacy_speed, legacy_speed_multiplier, GetFinalSpeed(tmcc2));
     }
+  }
+};
 
-    void EngineDef::SetSpeedMultiplier(float value, bool tmcc2)
-    {
-      // don't send a command if the speed hasn't changed
-      if (value != legacy_speed_multiplier)
-      {
-        //printf("legacy_speed_multiplier:%f\n", value);
-        legacy_speed_multiplier = value;
-        TMCCInterface::EngineSetAbsoluteSpeed(engineID, GetFinalSpeed(tmcc2));
-        printf("speed: %f, multipler: %f, new Speed: %d\n", temp_legacy_speed, legacy_speed_multiplier, GetFinalSpeed(tmcc2));
-      }
-    }
-  };
+struct SwitchDef
+{
+  int switchID;
+  std::string switchName;
+};
+
+struct AccessoryDef
+{
+  int accessoryID;
+  std::string accessoryName;
+  bool isSensorTrack;
+};
+
+struct RouteDef
+{
+  int routeID;
+  std::string routeName;
+  int switchIDs[];
+};
+
+struct GroupDef
+{
+  int groupID;
+  std::string groupName;
+  int accessoryIDs[];
+};
 
 
 
@@ -106,9 +135,12 @@ public:
   ~ThrottleMenu();
   void Draw(const std::string& appDir, SDL_GameController* gGameController, int leftStickXDeadZone, int leftStickYDeadZone, int rightStickXDeadZone, int rightStickYDeadZone);
   std::vector<EngineDef> m_enginedefs;
+  std::vector<SwitchDef> m_switchdefs;
+  std::vector<AccessoryDef> m_accessorydefs;
+
 
 private:
-
+  float curTime;
   bool guitarController = false;
   std::string controllerName;
   std::string dir;
@@ -118,6 +150,7 @@ private:
   bool whistleEnabled = false;
   int speed = 0; // current speed
   int engineID = 0;
+  int engineID_secondary = 0;
   int engineID_sound_menu = 0;
   int engineID_voice_menu = 0;
   int engineID_diner_voice_menu = 0;
@@ -129,6 +162,8 @@ private:
 
 
   int m_selected_engine = 0;
+  int m_selected_engine_secondary_window = 0;
+
   int m_selected_engine_sound_menu = 0;
   int m_selected_engine_voice_menu = 0;
   int m_selected_engine_diner_voice_menu = 0;
@@ -243,6 +278,9 @@ private:
   bool voiceClipMenuVisible = false;
   bool dinerVoiceClipMenuVisible = false;
   bool addEngineMenuVisible = false;
+  bool addSwitchMenuVisible = false;
+  bool secondaryEngineWindow = false;
+
 
   bool surfaceDialEnabled = false;
 
@@ -274,32 +312,37 @@ private:
   int m_dialog_index = 0;
 
 
-  void DrawCAB1Keypad();
-  void DrawCAB2SteamKeypad();
-  void DrawCAB2DieselKeypad();
-  void DrawCAB2ElectricKeypad();
-  void DrawStationDinerKeypad();
-  void DrawFreightCarKeypad();
-  void DrawTMCCSteamKeypad();
-  void DrawTMCCAcelaKeypad();
-  void DrawKeypadType(int currentKeypadType, bool isLegacy, int engineType);
+  void DrawCAB1Keypad(int m_selected_engine);
+  void DrawCAB2SteamKeypad(int m_selected_engine);
+  void DrawCAB2DieselKeypad(int m_selected_engine);
+  void DrawCAB2ElectricKeypad(int m_selected_engine);
+  void DrawStationDinerKeypad(int m_selected_engine);
+  void DrawFreightCarKeypad(int m_selected_engine);
+  void DrawTMCCSteamKeypad(int m_selected_engine);
+  void DrawTMCCAcelaKeypad(int m_selected_engine);
+  void DrawKeypadType(int currentKeypadType, bool isLegacy, int engineType,int m_selected_engine);
   void PlayWhistle(bool enabled, float curTime, float currentQuill, int engineID);
   void PlayWhistleTMCC(bool enabled, float curTime, float currentQuill, int engineID, bool horn2Enabled);
+  void ShowSecondaryEngineWindow(bool* p_open, const std::string& appDir);
   void ShowSoundWindow(bool* p_open);
   void ShowVoiceWindow(bool* p_open);
   void ShowDinerVoiceWindow(bool* p_open);
   void AddEngineWindow(bool* p_open, const std::string& appDir);
+  void AddSwitchWindow(bool* p_open, const std::string& appDir);
   void ThrottleWindow(bool* p_open, float curTime);
   void HandleGameControllerEvents(SDL_GameController* gGameController, float curTime, const std::string& dir, int leftStickXDeadZone, int leftStickYDeadZone, int rightStickXDeadZone, int rightStickYDeadZone);
   void SetUpEngineFromRoster(int engineID, bool legacyEnabled, const std::string& dir);
 
 
-  char newEngineNameChar[64] = " ";
   std::string newEngineIDStr = "0";
   int newEngineID = 0;
   std::string newEngineName  = "0";
   int newEngineType = 0;
   bool newEngineisLegacy = false;
+
+  std::string newSwitchName = "0";
+  std::string newSwitchIDStr = "0";
+  int newSwitchID = 0;
 
   int type_index = 0;
 

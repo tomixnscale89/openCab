@@ -271,7 +271,7 @@ void ThrottleMenu::LoadRosterLaunch(const std::string& appDir)
 void ThrottleMenu::Draw(const std::string& appDir, SDL_GameController* gGameController, int leftStickXDeadZone, int leftStickYDeadZone, int rightStickXDeadZone, int rightStickYDeadZone)
 {
 
-  float curTime = (float)clock() / CLOCKS_PER_SEC;
+  curTime = (float)clock() / CLOCKS_PER_SEC;
 
   HandleGameControllerEvents(gGameController, curTime,appDir, leftStickXDeadZone,leftStickYDeadZone,rightStickXDeadZone, rightStickYDeadZone);
 
@@ -279,6 +279,8 @@ void ThrottleMenu::Draw(const std::string& appDir, SDL_GameController* gGameCont
   if (voiceClipMenuVisible)              ShowVoiceWindow(&voiceClipMenuVisible);
   if (dinerVoiceClipMenuVisible)              ShowDinerVoiceWindow(&dinerVoiceClipMenuVisible);
   if (addEngineMenuVisible)              AddEngineWindow(&addEngineMenuVisible, appDir);
+  if (addSwitchMenuVisible)              AddSwitchWindow(&addSwitchMenuVisible, appDir);
+  if (secondaryEngineWindow)              ShowSecondaryEngineWindow(&secondaryEngineWindow, appDir);
 
   if (surfaceDialEnabled)
   {
@@ -294,14 +296,18 @@ void ThrottleMenu::Draw(const std::string& appDir, SDL_GameController* gGameCont
     if (ImGui::BeginMenu("Engine Management"))
     {
       ImGui::MenuItem("Add Engine", NULL, &addEngineMenuVisible);
-      ImGui::MenuItem("View Engine Roster", NULL, &test);
-      ImGui::MenuItem("Delete Engine", NULL, &test);
+      ImGui::MenuItem("Add Switch", NULL, &addSwitchMenuVisible);
+      ImGui::MenuItem("Add Accessory", NULL, &test);
+      ImGui::MenuItem("Consist Builder", NULL, &test);
+      //ImGui::MenuItem("View Engine Roster", NULL, &test);
+      //ImGui::MenuItem("Delete Engine", NULL, &test);
 
       ImGui::EndMenu();
     }
     //if (ImGui::MenuItem("MenuItem")) {} // You can also use MenuItem() inside a menu bar!
     if (ImGui::BeginMenu("Feature Windows"))
     {
+      ImGui::MenuItem("Launch Sound Car Helper", NULL, &secondaryEngineWindow);
       ImGui::MenuItem("Sound Menu", NULL, &soundMenuVisible);
       ImGui::MenuItem("CrewTalk/TowerCom Announcements", NULL, &voiceClipMenuVisible);
       ImGui::MenuItem("StationSounds Diner Announcements", NULL, &dinerVoiceClipMenuVisible);
@@ -334,7 +340,7 @@ void ThrottleMenu::Draw(const std::string& appDir, SDL_GameController* gGameCont
     ImGui::EndCombo();
   }
 
-    std::string engineHint = "No Engines Found.";
+    std::string engineHint = "No Engines Found. Please add some engines.";
     if (m_enginedefs.size())
       engineHint = m_enginedefs[m_selected_engine].engineName;
     // second argument is the text hint for the current item
@@ -362,7 +368,7 @@ void ThrottleMenu::Draw(const std::string& appDir, SDL_GameController* gGameCont
             m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default" + ".png");
 
           }
-          printf("Engine ID to use: %d\n", engineID);
+          printf("Engine ID to use: %d\n", m_enginedefs[m_selected_engine].engineID);
 
         }
       }
@@ -392,7 +398,10 @@ void ThrottleMenu::Draw(const std::string& appDir, SDL_GameController* gGameCont
     //ImGui::Text("counter = %d", counter);
     //ImGui::ProgressBar(speed/200, ImVec2(0.0f, 0.0f));
 
-    ThrottleWindow(&test, curTime);
+    if (m_enginedefs.size())
+    {
+      ThrottleWindow(&test, curTime);
+    }
 
 
 
@@ -485,11 +494,50 @@ void ThrottleMenu::AddEngineWindow(bool* p_open, const std::string& appDir)
   }
 };
 
+void ThrottleMenu::AddSwitchWindow(bool* p_open, const std::string& appDir)
+{
+  ImGui::SetNextWindowSize(ImVec2(455, 300), ImGuiCond_FirstUseEver);
+  if (ImGui::Begin("Add New Switch", p_open, ImGuiWindowFlags_MenuBar))
+  {
+
+    ImGui::Text("Switch Name: ");
+    ImGui::SameLine();
+    if (ImGui::InputText("##NewSwitchName", &newSwitchName, 64))
+    {
+      //printf("New Engine NAME: %s\n", newEngineName.c_str());
+    }
+    ImGui::Text("Switch ID: ");
+    ImGui::SameLine();
+    if (ImGui::InputText("##NewSwitchID", &newSwitchIDStr, 64))
+    {
+      newSwitchID = std::atoi(newSwitchIDStr.c_str());
+      //printf("New Engine ID: %d\n", (int)newEngineID);
+    }
+
+    if (ImGui::Button("Add Switch", ImVec2(80, 60)))
+    {
+      SwitchDef switch_ = SwitchDef();
+      switch_.switchID = newSwitchID;
+      switch_.switchName = newSwitchName.c_str();
+      m_switchdefs.push_back(switch_);
+      printf("Switch ID: %d, EngineName: %s\n", newSwitchID, newSwitchName.c_str());
+      printf("%s\n", appDir.c_str());
+      //EngineManagement::AddEngineToJson(test, newEngineID, newEngineType, newEngineisLegacy, appDir.c_str());
+      json j;
+
+      EngineManagement::AddSwitchDataToJson(j, m_switchdefs, appDir.c_str());
+    }
+
+
+    ImGui::End();
+
+  }
+};
 
 
 void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
 {
-  const auto& engine = m_enginedefs[m_selected_engine];
+  //const auto& engine = m_enginedefs[m_selected_engine];
 
   if (ImGui::BeginTable("split", 4))
   {
@@ -608,7 +656,7 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
 
     }
 
-    DrawKeypadType(currentKeypadStyle, m_enginedefs[m_selected_engine].legacyEngine, m_enginedefs[m_selected_engine].engineType);
+    DrawKeypadType(currentKeypadStyle, m_enginedefs[m_selected_engine].legacyEngine, m_enginedefs[m_selected_engine].engineType, m_enginedefs[m_selected_engine].engineID);
 
     // IF STATIONSOUND DINER OR STOCK CAR, DON'T SHOW THESE
     if (m_enginedefs[m_selected_engine].engineType != EngineType::ENGINE_STATIONSOUND_CAR && m_enginedefs[m_selected_engine].engineType != EngineType::ENGINE_STOCK_CAR)
@@ -872,6 +920,146 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
     ImGui::EndTable();
   }
 };
+void ThrottleMenu::ShowSecondaryEngineWindow(bool* p_open, const std::string& appDir)
+{
+  ImGui::SetNextWindowSize(ImVec2(480, 574), ImGuiCond_FirstUseEver);
+  if (ImGui::Begin("Secondary Engine Window", p_open, ImGuiWindowFlags_MenuBar))
+  {
+    dir = appDir.substr(0, appDir.find_last_of("/\\"));
+
+    std::string engineHint = "No Engines Found.";
+    if (m_enginedefs.size())
+      engineHint = m_enginedefs[m_selected_engine_secondary_window].engineName;
+    // second argument is the text hint for the current item
+    if (ImGui::BeginCombo("Secondary Engine", engineHint.c_str()))
+    {
+      // combobox has been clicked, list the options
+      for (int i = 0; i < m_enginedefs.size(); i++)
+      {
+        // first argument is the option name, second argument is whether to display this item as selected
+        if (ImGui::Selectable(m_enginedefs[i].engineName.c_str(), m_selected_engine_secondary_window == i))
+        {
+          // combobox item has been clicked, set the new selected engine
+          m_selected_engine_secondary_window = i;
+          //SetUpEngineFromRoster(engineID, legacyEnabled, dir);
+          engineID_secondary = m_enginedefs[m_selected_engine_secondary_window].engineID;
+          Image p;
+          if (p.Load(dir + "/engine_picture/" + m_enginedefs[m_selected_engine_secondary_window].engineName + ".png"))
+          {
+            m_enginedefs[m_selected_engine_secondary_window].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + m_enginedefs[m_selected_engine_secondary_window].engineName + ".png");
+            m_enginedefs[m_selected_engine_secondary_window].engineHasCustomIcon = true;
+          }
+          else
+          {
+            m_enginedefs[m_selected_engine_secondary_window].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default" + ".png");
+
+          }
+          printf("Secondary Engine ID to use: %d\n", engineID_secondary);
+
+        }
+      }
+      ImGui::EndCombo();
+    }
+
+    if (m_enginedefs[m_selected_engine_secondary_window].engineHasCustomIcon)
+    {
+      // 250 98
+      ImGui::Image((void*)(intptr_t)m_enginedefs[m_selected_engine_secondary_window].locoIcon->GetGLHandle(), ImVec2(250, 98));
+
+    }
+    if (ImGui::BeginTable("split", 2))
+    {
+      ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, 250.0f);
+      ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, 80.0f);
+      ImGui::TableNextColumn();
+      DrawKeypadType(currentKeypadStyle, m_enginedefs[m_selected_engine_secondary_window].legacyEngine, m_enginedefs[m_selected_engine_secondary_window].engineType,m_enginedefs[m_selected_engine_secondary_window].engineID);
+      ImGui::TableNextColumn();
+
+      if (m_enginedefs[m_selected_engine_secondary_window].legacyEngine)
+      {
+        if (ImGui::VSliderFloat("##intLegacyHorn2", ImVec2(80, 250), &m_enginedefs[m_selected_engine_secondary_window].currentQuill, 1.0f, 0.0f, "Whistle"))
+        {
+          if (m_enginedefs[m_selected_engine_secondary_window].currentQuill > 0)
+          {
+            whistleEnabled = true;
+          }
+          else
+          {
+            whistleEnabled = false;
+          }
+        };
+        PlayWhistle(whistleEnabled, curTime, m_enginedefs[m_selected_engine_secondary_window].currentQuill, engineID_secondary);
+      }
+      else
+      {
+        if (ImGui::VSliderFloat("##intTMCCHorn2", ImVec2(80, 250), &m_enginedefs[m_selected_engine_secondary_window].currentQuill, 1.0f, 0.0f, "Whistle"))
+        {
+          if (m_enginedefs[m_selected_engine_secondary_window].currentQuill > 0.2f)
+          {
+            whistleEnabled = true;
+          }
+          else
+          {
+            whistleEnabled = false;
+          }
+
+        };
+        PlayWhistleTMCC(whistleEnabled, curTime, m_enginedefs[m_selected_engine_secondary_window].currentQuill, engineID_secondary, m_enginedefs[m_selected_engine_secondary_window].useHorn2);
+
+        //ImGui::Text("Horn 2 Disabled:");
+        //ImGui::SameLine();
+        //ImGui::Checkbox("##TMCC2Horn2Enabler", &m_enginedefs[m_selected_engine].useHorn2);
+        //Tooltip("Horn 1 is the normal TMCC horn. Horn 2 is the same sound, but will not enable ditch lights on diesel locos when blown.");
+
+      }
+
+      //ImGui::Text("Aux 1");
+      ImGui::ImageButton((void*)(intptr_t)aux1arrowIcon->GetGLHandle(), ImVec2(70, 70));
+      if (ImGui::IsItemHovered() && ImGui::IsMouseDown(0))
+      {
+        printf("Aux 1: Pressed\n");
+        TMCCInterface::EngineAux1Option1(engineID_secondary);
+      };
+
+      //ImGui::Text("Aux 2");
+      ImGui::ImageButton((void*)(intptr_t)aux2arrowIcon->GetGLHandle(), ImVec2(70, 70));
+      if (ImGui::IsItemHovered() && ImGui::IsMouseDown(0))
+      {
+        printf("Aux 2: Pressed\n");
+        TMCCInterface::EngineAux2Option1(engineID_secondary);
+      };
+
+      // Aux 3 and TMCC Let off
+      if (m_enginedefs[m_selected_engine_secondary_window].legacyEngine)
+      {
+        ImGui::ImageButton((void*)(intptr_t)aux3arrowIcon->GetGLHandle(), ImVec2(70, 70));
+        if (ImGui::IsItemHovered() && ImGui::IsMouseDown(0))
+        {
+          printf("Aux 3: Pressed\n");
+          TMCCInterface::EngineAux3Trigger(engineID_secondary);
+        };
+      }
+      else
+      {
+        ImGui::PushButtonRepeat(true);
+        if (ImGui::Button("Let Off", ImVec2(78, 76)))
+        {
+          printf("TMCC Let off Pressed\n");
+          TMCCInterface::EngineLetOffSound(engineID_secondary);
+        };
+        ImGui::PopButtonRepeat();
+      }
+
+      ImGui::EndTable();
+    }
+
+
+
+
+
+    ImGui::End();
+  }
+}
 
 void ThrottleMenu::ShowSoundWindow(bool* p_open)
 {
@@ -1329,7 +1517,7 @@ void ThrottleMenu::PlayWhistleTMCC(bool enabled, float curTime, float currentQui
 
 
 
-void ThrottleMenu::DrawKeypadType(int currentKeypadType, bool isLegacy, int engineType)
+void ThrottleMenu::DrawKeypadType(int currentKeypadType, bool isLegacy, int engineType, int m_selected_engine)
 {
   if (isLegacy) // Legacy Locos
   {
@@ -1337,24 +1525,24 @@ void ThrottleMenu::DrawKeypadType(int currentKeypadType, bool isLegacy, int engi
     {
     case EngineTypeLegacy::ENGINE_TYPE_STEAM:
     default:
-      DrawCAB2SteamKeypad();
+      DrawCAB2SteamKeypad(m_selected_engine);
       break;
     
     case EngineTypeLegacy::ENGINE_TYPE_DIESEL:
-      DrawCAB2DieselKeypad();
+      DrawCAB2DieselKeypad(m_selected_engine);
       break;
 
     case EngineTypeLegacy::ENGINE_TYPE_ELECTRIC:
-      DrawCAB2ElectricKeypad();
+      DrawCAB2ElectricKeypad(m_selected_engine);
       break;
     case EngineTypeLegacy::ENGINE_TYPE_STATIONSOUND_CAR:
-      DrawStationDinerKeypad();
+      DrawStationDinerKeypad(m_selected_engine);
       break;
     case EngineTypeLegacy::ENGINE_TYPE_STOCK_CAR:
-      DrawFreightCarKeypad();
+      DrawFreightCarKeypad(m_selected_engine);
       break;
     case EngineTypeLegacy::ENGINE_TYPE_SUBWAY:
-      DrawCAB2SteamKeypad();
+      DrawCAB2SteamKeypad(m_selected_engine);
       break;
     }
     
@@ -1365,13 +1553,13 @@ void ThrottleMenu::DrawKeypadType(int currentKeypadType, bool isLegacy, int engi
     switch (engineType)
     {
     case EngineTypeTMCC::ENGINE_TYPE_TMCC_STEAM:
-      DrawTMCCSteamKeypad();
+      DrawTMCCSteamKeypad(m_selected_engine);
       break;
     case EngineTypeTMCC::ENGINE_TYPE_TMCC_ACELA:
-      DrawTMCCAcelaKeypad();
+      DrawTMCCAcelaKeypad(m_selected_engine);
       break;
     default:
-      DrawCAB1Keypad();
+      DrawCAB1Keypad(m_selected_engine);
       break;
     }
   }

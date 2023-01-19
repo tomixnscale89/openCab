@@ -157,9 +157,10 @@ int main(int argc, char* argv[])
     }
   }
 
+  json engineRoster;
 
   ThrottleMenu menu(argv[0],gGameController, controllerName);
-  EngineManagement::ReadEngineRoster(menu.m_enginedefs, argv[0]);
+  EngineManagement::ReadEngineRoster(engineRoster, menu.m_enginedefs, menu.m_switchdefs, menu.m_accessorydefs, argv[0]);
   menu.LoadRosterLaunch(argv[0]);
 
   

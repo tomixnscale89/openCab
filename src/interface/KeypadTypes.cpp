@@ -13,7 +13,7 @@
 #include "../EngineManagement.h"
 #include <fstream>
 
-void ThrottleMenu::DrawCAB1Keypad()
+void ThrottleMenu::DrawCAB1Keypad(int engineID)
 {
   ImGui::ImageButton((void*)(intptr_t)num1Icon->GetGLHandle(), ImVec2(70, 70));
   if (ImGui::IsItemHovered() && ImGui::IsMouseDown(0))
@@ -102,7 +102,7 @@ void ThrottleMenu::DrawCAB1Keypad()
 
 }
 
-void ThrottleMenu::DrawCAB2SteamKeypad()
+void ThrottleMenu::DrawCAB2SteamKeypad(int engineID)
 {
   if (m_enginedefs[m_selected_engine].keyPadPage == 0)
   {
@@ -417,12 +417,12 @@ void ThrottleMenu::DrawCAB2SteamKeypad()
     }
   else
   {
-    DrawCAB1Keypad();
+    DrawCAB1Keypad(engineID);
   }
 }
 // DIESEL
 
-void ThrottleMenu::DrawCAB2DieselKeypad()
+void ThrottleMenu::DrawCAB2DieselKeypad(int engineID)
 {
   if (m_enginedefs[m_selected_engine].keyPadPage == 0)
   {
@@ -765,14 +765,16 @@ void ThrottleMenu::DrawCAB2DieselKeypad()
   }
   else
   {
-    DrawCAB1Keypad();
+    DrawCAB1Keypad(engineID);
   }
 }
 
 // ELECTRIC
 
-void ThrottleMenu::DrawCAB2ElectricKeypad()
+void ThrottleMenu::DrawCAB2ElectricKeypad(int engineID)
 {
+  if(m_enginedefs[m_selected_engine].keyPadPage == 0)
+  {
   ImGui::PushButtonRepeat(true);
   if (ImGui::ImageButton((void*)(intptr_t)volUpIcon->GetGLHandle(), ImVec2(70, 70)))
   {
@@ -791,14 +793,14 @@ void ThrottleMenu::DrawCAB2ElectricKeypad()
 
   ImGui::SameLine();
 
-  if(ImGui::ImageButton((void*)(intptr_t)rpmUPIcon->GetGLHandle(), ImVec2(70, 70)))
-    {
-      m_enginedefs[m_selected_engine].diesel_electric_rev_lvl++;
-      if (m_enginedefs[m_selected_engine].diesel_electric_rev_lvl > 8)
-        m_enginedefs[m_selected_engine].diesel_electric_rev_lvl = 8;
-      printf("RPM UP, value at:%d\n", m_enginedefs[m_selected_engine].diesel_electric_rev_lvl);
-      TMCCInterface::EngineSetDieselRunLevel(engineID, m_enginedefs[m_selected_engine].diesel_electric_rev_lvl);
-    };
+  if (ImGui::ImageButton((void*)(intptr_t)rpmUPIcon->GetGLHandle(), ImVec2(70, 70)))
+  {
+    m_enginedefs[m_selected_engine].diesel_electric_rev_lvl++;
+    if (m_enginedefs[m_selected_engine].diesel_electric_rev_lvl > 8)
+      m_enginedefs[m_selected_engine].diesel_electric_rev_lvl = 8;
+    printf("RPM UP, value at:%d\n", m_enginedefs[m_selected_engine].diesel_electric_rev_lvl);
+    TMCCInterface::EngineSetDieselRunLevel(engineID, m_enginedefs[m_selected_engine].diesel_electric_rev_lvl);
+  };
 
 
   if (ImGui::ImageButton((void*)(intptr_t)volDownIcon->GetGLHandle(), ImVec2(70, 70)))
@@ -814,16 +816,16 @@ void ThrottleMenu::DrawCAB2ElectricKeypad()
   };
   ImGui::SameLine();
 
-  if(ImGui::ImageButton((void*)(intptr_t)rpmDownIcon->GetGLHandle(), ImVec2(70, 70)))
-    {
-      m_enginedefs[m_selected_engine].diesel_electric_rev_lvl--;
-      if (m_enginedefs[m_selected_engine].diesel_electric_rev_lvl < 0)
-        m_enginedefs[m_selected_engine].diesel_electric_rev_lvl = 0;
-      printf("RPM Down, value at:%d\n", m_enginedefs[m_selected_engine].diesel_electric_rev_lvl);
-      TMCCInterface::EngineSetDieselRunLevel(engineID, m_enginedefs[m_selected_engine].diesel_electric_rev_lvl);
-    };
+  if (ImGui::ImageButton((void*)(intptr_t)rpmDownIcon->GetGLHandle(), ImVec2(70, 70)))
+  {
+    m_enginedefs[m_selected_engine].diesel_electric_rev_lvl--;
+    if (m_enginedefs[m_selected_engine].diesel_electric_rev_lvl < 0)
+      m_enginedefs[m_selected_engine].diesel_electric_rev_lvl = 0;
+    printf("RPM Down, value at:%d\n", m_enginedefs[m_selected_engine].diesel_electric_rev_lvl);
+    TMCCInterface::EngineSetDieselRunLevel(engineID, m_enginedefs[m_selected_engine].diesel_electric_rev_lvl);
+  };
 
-    Tooltip("RPM Down");
+  Tooltip("RPM Down");
 
   if (ImGui::ImageButton((void*)(intptr_t)towerComIcon->GetGLHandle(), ImVec2(70, 70)))
   {
@@ -891,9 +893,9 @@ void ThrottleMenu::DrawCAB2ElectricKeypad()
 
   if (ImGui::ImageButton((void*)(intptr_t)leftArrowIcon->GetGLHandle(), ImVec2(70, 70)))
   {
-    currentKeypadStyle--;
-    if (currentKeypadStyle < 0)
-      currentKeypadStyle = 7;
+    m_enginedefs[m_selected_engine].keyPadPage--;
+    if (m_enginedefs[m_selected_engine].keyPadPage < 0)
+      m_enginedefs[m_selected_engine].keyPadPage = 2;
   };
   ImGui::SameLine();
   if (ImGui::ImageButton((void*)(intptr_t)extshutDownIcon->GetGLHandle(), ImVec2(70, 70)))
@@ -904,16 +906,184 @@ void ThrottleMenu::DrawCAB2ElectricKeypad()
   ImGui::SameLine();
   if (ImGui::ImageButton((void*)(intptr_t)rightArrowIcon->GetGLHandle(), ImVec2(70, 70)))
   {
-    currentKeypadStyle++;
-    if (currentKeypadStyle > 7)
-      currentKeypadStyle = 0;
+    m_enginedefs[m_selected_engine].keyPadPage++;
+    if (m_enginedefs[m_selected_engine].keyPadPage > 2)
+      m_enginedefs[m_selected_engine].keyPadPage = 0;
   };
+}
+
+  else if (m_enginedefs[m_selected_engine].keyPadPage == 1)
+  {
+    if (ImGui::ImageButton((void*)(intptr_t)volUpIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+      TMCCInterface::EngineSetMasterVolume(engineID, TMCC_ON);
+
+    };
+    Tooltip("Volume Up");
+
+    ImGui::SameLine();
+
+    if (ImGui::ImageButton((void*)(intptr_t)marsonIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+      printf("Mars on\n");
+      TMCCInterface::EngineSetMarsLight(engineID, TMCC_ON);
+
+    };
+
+    Tooltip("Mars Light On");
+
+    ImGui::SameLine();
+    if (ImGui::ImageButton((void*)(intptr_t)doglightonIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+      printf("Strobe light on\n");
+      TMCCInterface::EngineSetStrobeLight(engineID, TMCC_ON);
+
+    };
+
+    Tooltip("Strobe Light On");
+
+
+    if (ImGui::ImageButton((void*)(intptr_t)volDownIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+      TMCCInterface::EngineSetMasterVolume(engineID, TMCC_OFF);
+
+    };
+
+    Tooltip("Volume Down");
+
+    ImGui::SameLine();
+    if (ImGui::ImageButton((void*)(intptr_t)marsoffIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+      printf("Mars off\n");
+      TMCCInterface::EngineSetMarsLight(engineID, TMCC_OFF);
+
+    };
+
+    Tooltip("Mars Light Off");
+
+    ImGui::SameLine();
+
+    if (ImGui::ImageButton((void*)(intptr_t)doglightoffIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+      printf("Strobe light off\n");
+      TMCCInterface::EngineSetStrobeLight(engineID, TMCC_OFF);
+
+    };
+    if (ImGui::ImageButton((void*)(intptr_t)ditchlightonIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+      printf("Hazard Lights on\n");
+      TMCCInterface::EngineSetHazardLight(engineID, TMCC_ON);
+    };
+
+    Tooltip("Hazard Lights on");
+
+
+    ImGui::SameLine();
+    if (ImGui::ImageButton((void*)(intptr_t)ditchlightoffIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+      printf("Hazard Lights off\n");
+      TMCCInterface::EngineSetHazardLight(engineID, TMCC_OFF);
+    };
+
+    Tooltip("Hazard Lights off");
+
+
+    ImGui::SameLine();
+    if (ImGui::ImageButton((void*)(intptr_t)groundlightonIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+      printf("Ground light on\n");
+      TMCCInterface::EngineSetGroundLights(engineID, TMCC_ON);
+    };
+    Tooltip("Ground lights on");
+
+    if (ImGui::ImageButton((void*)(intptr_t)ditchlightonIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+      printf("Ditch Lights on, Pulse w/ Horn off\n");
+      TMCCInterface::EngineSetDitchLights(engineID, TMCC_ON, (TMCCActiveState)LightingCommandParams::LT_DITCH_LIGHTS_ON);
+    };
+
+    Tooltip("Ditch Lights entirely on");
+
+
+    ImGui::SameLine();
+
+    ImGui::ImageButton((void*)(intptr_t)resetIcon->GetGLHandle(), ImVec2(70, 70));
+    if (ImGui::IsItemHovered() && ImGui::IsMouseDown(0))
+    {
+      printf("Reset\n");
+      TMCCInterface::EngineNumericCommand2(engineID, 0);
+    };
+    Tooltip("Reset (0 key)");
+
+    ImGui::SameLine();
+    if (ImGui::ImageButton((void*)(intptr_t)groundlightoffIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+      printf("Ground light off\n");
+      TMCCInterface::EngineSetGroundLights(engineID, TMCC_OFF);
+    };
+    Tooltip("Ground lights off");
+
+
+    if (ImGui::ImageButton((void*)(intptr_t)ditchlightoffIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+      printf("Ditch Lights off, Pulse w/ Horn off\n");
+      TMCCInterface::EngineSetDitchLights(engineID, TMCC_OFF, (TMCCActiveState)LightingCommandParams::LT_DITCH_LIGHTS_OFF);
+    };
+
+    Tooltip("Ditch Lights entirely off");
+
+
+    ImGui::SameLine();
+    if (ImGui::ImageButton((void*)(intptr_t)extstartUpIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+      TMCCInterface::EngineStartupSequence2(engineID);
+    };
+    Tooltip("Immediate Start Up");
+
+
+    ImGui::SameLine();
+    if (ImGui::ImageButton((void*)(intptr_t)groundlightoffIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+      printf("Ground light auto\n");
+      TMCCInterface::EngineSetGroundLightsAuto(engineID);
+    };
+    Tooltip("Ground lights auto");
+
+
+
+    if (ImGui::ImageButton((void*)(intptr_t)leftArrowIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+      m_enginedefs[m_selected_engine].keyPadPage--;
+      if (m_enginedefs[m_selected_engine].keyPadPage < 0)
+        m_enginedefs[m_selected_engine].keyPadPage = 2;
+    };
+    ImGui::SameLine();
+    if (ImGui::ImageButton((void*)(intptr_t)extshutDownIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+      TMCCInterface::EngineShutdownSequence2(engineID);
+
+    };
+    Tooltip("Immediate Shut Down");
+
+    ImGui::SameLine();
+    if (ImGui::ImageButton((void*)(intptr_t)rightArrowIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+      m_enginedefs[m_selected_engine].keyPadPage++;
+      if (m_enginedefs[m_selected_engine].keyPadPage > 2)
+        m_enginedefs[m_selected_engine].keyPadPage = 0;
+    };
+  }
+
+  else
+  {
+    DrawCAB1Keypad(engineID);
+  }
 }
 
 
 // DINER
 
-void ThrottleMenu::DrawStationDinerKeypad(void)
+void ThrottleMenu::DrawStationDinerKeypad(int engineID)
 {
   if (m_enginedefs[m_selected_engine].keyPadPage == 0)
   {
@@ -1220,11 +1390,11 @@ void ThrottleMenu::DrawStationDinerKeypad(void)
   }
   else
   {
-    DrawCAB1Keypad();
+    DrawCAB1Keypad(engineID);
   }
 };
 
-void ThrottleMenu::DrawFreightCarKeypad(void)
+void ThrottleMenu::DrawFreightCarKeypad(int engineID)
 {
   if (m_enginedefs[m_selected_engine].keyPadPage == 0)
   {
@@ -1523,11 +1693,11 @@ void ThrottleMenu::DrawFreightCarKeypad(void)
   }
   else
   {
-    DrawCAB1Keypad();
+    DrawCAB1Keypad(engineID);
   }
 };
 
-void ThrottleMenu::DrawTMCCSteamKeypad()
+void ThrottleMenu::DrawTMCCSteamKeypad(int engineID)
 {
   if (m_enginedefs[m_selected_engine].keyPadPage == 0)
   {
@@ -1683,11 +1853,11 @@ void ThrottleMenu::DrawTMCCSteamKeypad()
 
   else
   {
-    DrawCAB1Keypad();
+    DrawCAB1Keypad(engineID);
   }
 }
 
-void ThrottleMenu::DrawTMCCAcelaKeypad(void)
+void ThrottleMenu::DrawTMCCAcelaKeypad(int engineID)
 {
   if (m_enginedefs[m_selected_engine].keyPadPage == 0)
   {
@@ -1971,6 +2141,6 @@ void ThrottleMenu::DrawTMCCAcelaKeypad(void)
   }
   else
   {
-    DrawCAB1Keypad();
+    DrawCAB1Keypad(engineID);
   }
 }

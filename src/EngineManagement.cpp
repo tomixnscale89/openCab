@@ -31,28 +31,54 @@ void EngineManagement::ReadEngineRoster(json& engineRoster, const std::string& a
 
 // OpenCAB ReadEngineRoster
 
-void EngineManagement::ReadEngineRoster(std::vector<EngineDef>& enginedefs, const std::string& appDir)
+void EngineManagement::ReadEngineRoster(json & engineRoster, std::vector<EngineDef>& enginedefs, std::vector<SwitchDef>& switchdefs, std::vector<AccessoryDef>& accessorydefs, const std::string& appDir)
 {
-  json engineRoster;
   std::string dir = appDir.substr(0, appDir.find_last_of("/\\"));
   std::ifstream i(dir + "/engineRoster.json");
   if (i.fail()) // if we fail, the file doesn't exist, so create our own later
   {
-    printf("No roster found. Please add some engines.\n");
-    return;
+    printf("No roster found. Please add some engines, switches, or accessories.\n");
+    EngineManagement::WriteEngineRoster(engineRoster, appDir);
   }
 
-  printf("Roster found. Reading...\n");
-  i >> engineRoster;
-
-  for (const auto& engine : engineRoster["engines"])
+  else
   {
-    EngineDef enginedef = EngineDef();
-    enginedef.engineID = engine["engineID"].get<int>();
-    enginedef.engineType = engine["engineType"].get<int>();
-    enginedef.engineName = engine["engineName"];
-    enginedef.legacyEngine = engine["isLegacy"].get<bool>();
-    enginedefs.push_back(enginedef);
+    printf("Roster found. Reading...");
+    i >> engineRoster;
+
+    for (const auto& engine : engineRoster["engines"])
+    {
+      EngineDef enginedef = EngineDef();
+      enginedef.engineID = engine["engineID"].get<int>();
+      enginedef.engineType = engine["engineType"].get<int>();
+      enginedef.engineName = engine["engineName"];
+      enginedef.legacyEngine = engine["isLegacy"].get<bool>();
+      enginedefs.push_back(enginedef);
+
+    }
+    printf("Engines done...");
+
+    for (const auto& switch_ : engineRoster["switches"])
+    {
+      SwitchDef data = SwitchDef();
+      data.switchID = switch_["switchID"].get<int>();
+      data.switchName = switch_["switchName"];
+      switchdefs.push_back(data);
+    }
+    printf("Switches done...");
+
+    for (const auto& accessory : engineRoster["accessories"])
+    {
+      AccessoryDef data = AccessoryDef();
+      data.accessoryID = accessory["accessoryID"].get<int>();
+      data.accessoryName = accessory["accessoryName"];
+      data.isSensorTrack = accessory["isSensorTrack"].get<bool>();
+      accessorydefs.push_back(data);
+    }
+    printf("Accessories done...");
+
+
+    printf("\n");
   }
 }
 
@@ -82,106 +108,35 @@ void EngineManagement::AddEngineDataToJson(json& engineRoster, std::vector<Engin
 
 }
 
-void EngineManagement::AddEngineToJson(json& engineRoster, int engineID, int currentEngineType, bool isLegacy, const std::string& appDir)
+void EngineManagement::AddSwitchDataToJson(json& engineRoster, std::vector<SwitchDef> switchdefs, const std::string& appDir)
 {
-  //if (engineRoster)
-  //{
-    if(0 <= engineID <= 99)
-    {
-      engineRoster[std::string("engine") + std::to_string(engineID)] = {
-      {"engineID", engineID},
-      {"engineType", currentEngineType},
-      {"isLegacy", isLegacy} };
-      //}
-      WriteEngineRoster(engineRoster, appDir);
-    }
-    }
-
-
-int EngineManagement::ReadEngineIDFromJson(json& engineRoster, int engineID)
-{
-  std::string temp = std::string("engine") + std::to_string(engineID);
-
-  if (engineRoster.contains(temp)) // if the json has a key for engineType
+  std::vector<json> switches;
+  for (const auto& switchT : switchdefs)
   {
-    printf("Contains Engine:%d, engine ID is: %d\n", engineID, (int)engineRoster[temp][std::string("engineID")]);
-    if (!engineRoster[temp][std::string("engineType")].is_null()) // if the engine ID is not null
-    {
-      if (0 <= (int)engineRoster[temp][std::string("engineID")] <= 99) // check if engine id is within range, not sure if this could be better
-      {
-        int engineIDFound = (int)engineRoster[temp][std::string("engineID")];
-        printf("Setting engine ID to:%d\n", engineIDFound);
-        return engineIDFound;
-      }
-    }
+    json data;
+    data["switchID"] = switchT.switchID;
+    data["switchName"] = switchT.switchName;
+    switches.push_back(data);
   }
+  engineRoster["switches"] = switches;
+  //engineRoster["engines"] = engines;
+  EngineManagement::WriteEngineRoster(engineRoster, appDir);
+
 }
 
-int EngineManagement::ReadEngineTypeFromJson(json& engineRoster, int engineID)
+void EngineManagement::AddAccessoryDataToJson(json& engineRoster, std::vector<AccessoryDef> accdefs, const std::string& appDir)
 {
-  std::string temp = std::string("engine") + std::to_string(engineID);
-
-  if (engineRoster.contains(temp)) // if the json has a key for engineType
+  std::vector<json> accessories;
+  for (const auto& accessory : accdefs)
   {
-    printf("Contains Engine:%d, engine type is: %d\n", engineID, (int)engineRoster[temp][std::string("engineType")]);
-    if (!engineRoster[temp][std::string("engineType")].is_null()) // if the engine Type is not null
-    {
-      if (0 <= (int)engineRoster[temp][std::string("engineType")] <= 12)
-      {
-        int engineTypeFound = (int)engineRoster[temp][std::string("engineType")];
-        printf("Setting engine type:%d\n", engineTypeFound);
-        return engineTypeFound;
-      }
-    }
+    json data;
+    data["accessoryID"] = accessory.accessoryID;
+    data["accessoryName"] = accessory.accessoryName;
+    data["isSensorTrack"] = accessory.isSensorTrack;
+    accessories.push_back(data);
   }
-}
+  engineRoster["accessories"] = accessories;
+  //engineRoster["engines"] = engines;
+  EngineManagement::WriteEngineRoster(engineRoster, appDir);
 
-bool EngineManagement::ReadEngineLegacyConditionFromJson(json& engineRoster, int engineID)
-{
-  std::string temp = std::string("engine") + std::to_string(engineID);
-
-  if (engineRoster.contains(temp)) // if the json has a key for engineType
-  {
-    printf("Contains Engine:%d, Is a Legacy loco: %d\n", engineID, (bool)engineRoster[temp][std::string("isLegacy")]);
-    if (!engineRoster[temp][std::string("isLegacy")].is_null()) // if the engine Type is not null
-    {
-        bool engineLegacyType = (bool)engineRoster[temp][std::string("isLegacy")];
-        printf("Setting Legacy:%d\n", engineLegacyType);
-        return engineLegacyType;
-    }
-  }
-}
-
-void EngineManagement::WriteEngineTypeToJson(json& engineRoster, int engineID, int engineType, const std::string& appDir)
-{
-  std::string temp = std::string("engine") + std::to_string(engineID);
-  if (engineRoster.contains(temp)) // if the json has loco
-  {
-    engineRoster[temp][std::string("engineType")] = engineType;
-    WriteEngineRoster(engineRoster, appDir);
-    //printf("wrote legacy state\n");
-  }
-}
-
-void EngineManagement::WriteEngineLegacyConditionToJson(json& engineRoster, int engineID,bool legacyState, const std::string& appDir)
-{
-  std::string temp = std::string("engine") + std::to_string(engineID);
-  if (engineRoster.contains(temp)) // if the json has loco
-  {
-    engineRoster[temp][std::string("isLegacy")] = legacyState;
-    WriteEngineRoster(engineRoster, appDir);
-    //printf("wrote legacy state\n");
-  }
-}
-
-bool EngineManagement::EngineExistsInJson(json& engineRoster, int engineID)
-{
-  std::string temp = std::string("engine") + std::to_string(engineID);
-
-  if (engineRoster.contains(temp)) // if the json has a key for engineType
-  {
-    return true;
-  }
-  else
-    return false;
 }
