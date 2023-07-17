@@ -140,6 +140,9 @@ public:
 
 
 private:
+  std::byte objectIDByte;
+  std::byte currentCommandTypeByte;
+
   float curTime;
   bool guitarController = false;
   std::string controllerName;
@@ -280,6 +283,15 @@ private:
   bool addEngineMenuVisible = false;
   bool addSwitchMenuVisible = false;
   bool secondaryEngineWindow = false;
+  bool serialDeviceWindow = false;
+  bool cab1Menu = false;
+
+  // DEBUG WINDOWS
+  bool soundMaskWindowVisible = false;
+  bool lightingWindowVisible = false;
+  bool serialTermainalVisible = false;
+  bool bellDebugWindowVisible = false;
+  bool whistleDebugWindowVisible = false;
 
 
   bool surfaceDialEnabled = false;
@@ -319,17 +331,22 @@ private:
   void DrawStationDinerKeypad(int m_selected_engine);
   void DrawFreightCarKeypad(int m_selected_engine);
   void DrawTMCCSteamKeypad(int m_selected_engine);
+  void DrawTMCCDieselKeypad(int m_selected_engine);
   void DrawTMCCAcelaKeypad(int m_selected_engine);
   void DrawKeypadType(int currentKeypadType, bool isLegacy, int engineType,int m_selected_engine);
   void PlayWhistle(bool enabled, float curTime, float currentQuill, int engineID);
   void PlayWhistleTMCC(bool enabled, float curTime, float currentQuill, int engineID, bool horn2Enabled);
+  void SerialDeviceWindow(bool* p_open, const std::string& appDir);
   void ShowSecondaryEngineWindow(bool* p_open, const std::string& appDir);
   void ShowSoundWindow(bool* p_open);
   void ShowVoiceWindow(bool* p_open);
+  void DebugBellWindow(bool* p_open);
+  void SoundMaskWindow(bool* p_open);
   void ShowDinerVoiceWindow(bool* p_open);
   void AddEngineWindow(bool* p_open, const std::string& appDir);
   void AddSwitchWindow(bool* p_open, const std::string& appDir);
   void ThrottleWindow(bool* p_open, float curTime);
+  void CAB1Window(bool* p_open, float curTime);
   void HandleGameControllerEvents(SDL_GameController* gGameController, float curTime, const std::string& dir, int leftStickXDeadZone, int leftStickYDeadZone, int rightStickXDeadZone, int rightStickYDeadZone);
   void SetUpEngineFromRoster(int engineID, bool legacyEnabled, const std::string& dir);
 
@@ -352,6 +369,15 @@ private:
   {
     if (ImGui::IsItemHovered())
       ImGui::SetTooltip(text);
+  }
+
+  void ThrottleMenu::PlayDialogCommandAfterSeconds(float curTime, float delay, EngineHandle id , DialogCommandParams x)
+  {
+    float delayTime = curTime + delay;
+    if((float)clock() / CLOCKS_PER_SEC > delayTime)
+    {
+      // do something
+    }
   }
   
 };

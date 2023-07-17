@@ -54,7 +54,9 @@ set(CABPC_SOURCES
     src/imgui-knobs.cpp
     src/imgui-knobs.h
     src/interface/throttlemenu.cpp
-    src/interface/throttlemenu.h    
+    src/interface/throttlemenu.h
+    src/interface/cab1menu.cpp
+    src/interface/cab1menu.h    
     src/interface/KeypadTypes.cpp
     src/interface/KeypadTypes.h
     src/surface/DeviceListener.cpp
