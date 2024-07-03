@@ -7,6 +7,7 @@
 #include <SDL_opengl.h>
 #include <stdio.h>
 #include "TMCCInterface.h"
+#include "PDIInterface.h"
 #include "../json.hpp"
 #include "../imgui-knobs.h"
 #include "../EngineManagement.h"
@@ -175,7 +176,11 @@ ThrottleMenu::ThrottleMenu(const std::string& appDir, SDL_GameController* gGameC
   currentQuill = 0;
   engineID = 1;
 
-  
+  //ImVec4* colors = ImGui::GetStyle().Colors;
+  //colors[ImGuiCol_WindowBg] = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
+  //colors[ImGuiCol_Button] = ImVec4(0.35f, 0.40f, 0.61f, 0.00f);
+
+  //ImGui::GetBackgroundDrawList()->AddImage();
 
   dir = appDir.substr(0, appDir.find_last_of("/\\"));
 
@@ -263,8 +268,22 @@ ThrottleMenu::ThrottleMenu(const std::string& appDir, SDL_GameController* gGameC
   lightOnIcon = std::make_shared<Image>(dir + "/graphics/light_on.png");
   lightOffIcon = std::make_shared<Image>(dir + "/graphics/light_off.png");
 
+  craneBoomIcon = std::make_shared<Image>(dir + "/graphics/boom.png");
+  craneHookDownIcon = std::make_shared<Image>(dir + "/graphics/lower_hook.png");
+  craneHookUpIcon = std::make_shared<Image>(dir + "/graphics/raise_hook.png");
+  craneBigHookIcon = std::make_shared<Image>(dir + "/graphics/large_hook.png");
+  craneSmallHookIcon = std::make_shared<Image>(dir + "/graphics/small_hook.png");
+  craneAutoRigsIcon = std::make_shared<Image>(dir + "/graphics/autoriggers.png");
+
+  frontLightIcon = std::make_shared<Image>(dir + "/graphics/front_lights.png");
+  rearLightIcon = std::make_shared<Image>(dir + "/graphics/rear_lights.png");
+  soundOnIcon = std::make_shared<Image>(dir + "/graphics/sound_on.png");
+  soundOffIcon = std::make_shared<Image>(dir + "/graphics/sound_off.png");
+
   acelaArriveIcon = std::make_shared<Image>(dir + "/graphics/arriving_acela.png");
   acelaDepartIcon = std::make_shared<Image>(dir + "/graphics/departing_acela.png");
+
+  //ImGui::GetBackgroundDrawList()->AddImage((void*)(intptr_t)num2Icon->GetGLHandle(), ImVec2(70, 70), ImVec2(70, 70));
 
   // Controller stuff
 
@@ -297,8 +316,48 @@ void ThrottleMenu::LoadRosterLaunch(const std::string& appDir)
     }
     else
     {
-      m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default" + ".png");
+      printf("Using default image\n");
 
+      switch (m_enginedefs[m_selected_engine].engineType)
+      {
+      case EngineTypeLegacy::ENGINE_TYPE_STEAM:
+      case EngineTypeTMCC::ENGINE_TYPE_TMCC_STEAM:
+        m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "steam" + ".png");
+        break;
+
+      case EngineTypeLegacy::ENGINE_TYPE_DIESEL:
+      case EngineTypeTMCC::ENGINE_TYPE_TMCC_DIESEL:
+        m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "diesel" + ".png");
+        break;
+
+      case EngineTypeLegacy::ENGINE_TYPE_ELECTRIC:
+      case EngineTypeTMCC::ENGINE_TYPE_TMCC_ELECTRIC:
+        m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "electric" + ".png");
+        break;
+
+      case EngineTypeTMCC::ENGINE_TYPE_TMCC_ACELA:
+        m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "acela" + ".png");
+        break;
+
+      case EngineTypeLegacy::ENGINE_TYPE_STATIONSOUND_CAR:
+        m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "station_sound_diner" + ".png");
+        break;
+
+      case EngineTypeLegacy::ENGINE_TYPE_STOCK_CAR:
+        m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "stock_car" + ".png");
+        break;
+
+      case EngineTypeLegacy::ENGINE_TYPE_SUBWAY:
+        m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "subway" + ".png");
+        break;
+
+      case EngineTypeLegacy::ENGINE_TYPE_CRANE_CAR:
+      case EngineTypeTMCC::ENGINE_TYPE_TMCC_CRANE:
+        m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "default_crane" + ".png");
+        break;
+
+      }
+      m_enginedefs[m_selected_engine].engineHasCustomIcon = true;
     }
     printf("Engine ID to use: %d\n", engineID);
   }
@@ -316,9 +375,15 @@ void ThrottleMenu::Draw(const std::string& appDir, SDL_GameController* gGameCont
   if (dinerVoiceClipMenuVisible)              ShowDinerVoiceWindow(&dinerVoiceClipMenuVisible);
   if (addEngineMenuVisible)              AddEngineWindow(&addEngineMenuVisible, appDir);
   if (addSwitchMenuVisible)              AddSwitchWindow(&addSwitchMenuVisible, appDir);
+  if (addAccessoryMenuVisible)              AddAccessoryWindow(&addAccessoryMenuVisible, appDir);
   if (secondaryEngineWindow)              ShowSecondaryEngineWindow(&secondaryEngineWindow, appDir);
   if (cab1Menu)              CAB1Window(&cab1Menu,curTime);
   if (serialDeviceWindow)              SerialDeviceWindow(&serialDeviceWindow, appDir);
+  if (engineAddressUpdateWindowVisible)              UpdateEngineAddressWindow(&engineAddressUpdateWindowVisible, appDir);
+  if (consistBuilderVisible)              ConsistBuilderWindow(&consistBuilderVisible);
+
+  if (accessoryMenuVisible)              AccessoryWindow(&accessoryMenuVisible);
+  if (switchMenuVisible)              SwitchWindow(&switchMenuVisible);
 
 
   // Debug Windows
@@ -327,10 +392,11 @@ void ThrottleMenu::Draw(const std::string& appDir, SDL_GameController* gGameCont
   if (serialTermainalVisible)              ShowSoundWindow(&serialTermainalVisible);
   if (bellDebugWindowVisible)              DebugBellWindow(&bellDebugWindowVisible);
   if (whistleDebugWindowVisible)              ShowSoundWindow(&whistleDebugWindowVisible);
-
+  if (pdiTestingWindowVisible)                 DebugPDIWindow(&pdiTestingWindowVisible);
   if (surfaceDialEnabled)
   {
   }
+  
   // Menu Bar
   if (ImGui::BeginMenuBar())
   {
@@ -344,8 +410,9 @@ void ThrottleMenu::Draw(const std::string& appDir, SDL_GameController* gGameCont
     {
       ImGui::MenuItem("Add Engine", NULL, &addEngineMenuVisible);
       ImGui::MenuItem("Add Switch", NULL, &addSwitchMenuVisible);
-      ImGui::MenuItem("Add Accessory", NULL, &test);
-      ImGui::MenuItem("Consist Builder", NULL, &test);
+      ImGui::MenuItem("Add Accessory", NULL, &addAccessoryMenuVisible);
+      ImGui::MenuItem("Consist Builder", NULL, &consistBuilderVisible);
+      ImGui::MenuItem("Update Engine ID", NULL, &engineAddressUpdateWindowVisible);
       //ImGui::MenuItem("View Engine Roster", NULL, &test);
       //ImGui::MenuItem("Delete Engine", NULL, &test);
 
@@ -353,8 +420,8 @@ void ThrottleMenu::Draw(const std::string& appDir, SDL_GameController* gGameCont
     }
     if (ImGui::BeginMenu("Switches/Accessories"))
     {
-      ImGui::MenuItem("Switch Menu", NULL, &test);
-      ImGui::MenuItem("Accessory Menu", NULL, &test);
+      ImGui::MenuItem("Switch Menu", NULL, &switchMenuVisible);
+      ImGui::MenuItem("Accessory Menu", NULL, &accessoryMenuVisible);
       ImGui::MenuItem("Route Menu", NULL, &test);
       ImGui::MenuItem("Group Menu", NULL, &test);
       ImGui::EndMenu();
@@ -373,17 +440,20 @@ void ThrottleMenu::Draw(const std::string& appDir, SDL_GameController* gGameCont
 
     if (ImGui::BeginMenu("Other"))
     {
-      ImGui::MenuItem("CAB1 Menu", NULL, &cab1Menu);
+      //ImGui::MenuItem("CAB1 Menu", NULL, &cab1Menu);
+      if(&m_enginedefs[m_selected_engine])
+        ImGui::MenuItem("Enable Brake Sound for Current Locomotive", NULL, &m_enginedefs[m_selected_engine].brakeSoundEnabled);
       ImGui::EndMenu();
     }
 
     if (ImGui::BeginMenu("Debug"))
     {
       ImGui::MenuItem("Sound Mask Menu", NULL, &soundMaskWindowVisible);
-      ImGui::MenuItem("Lighting Menu", NULL, &lightingWindowVisible);
+      //ImGui::MenuItem("Lighting Menu", NULL, &lightingWindowVisible);
       ImGui::MenuItem("Bell Menu", NULL, &bellDebugWindowVisible);
       ImGui::MenuItem("Whistle/Horn Menu", NULL, &whistleDebugWindowVisible);      
-      ImGui::MenuItem("Terminal Window", NULL, &serialTermainalVisible);
+      //ImGui::MenuItem("Terminal Window", NULL, &serialTermainalVisible);
+      //ImGui::MenuItem("PDI Window", NULL, &pdiTestingWindowVisible);
       ImGui::EndMenu();
     }
     ImGui::EndMenuBar();
@@ -414,8 +484,48 @@ void ThrottleMenu::Draw(const std::string& appDir, SDL_GameController* gGameCont
           }
           else
           {
-            m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default" + ".png");
+            printf("Using default image\n");
 
+            switch (m_enginedefs[m_selected_engine].engineType)
+            {
+              case EngineTypeLegacy::ENGINE_TYPE_STEAM:
+              case EngineTypeTMCC::ENGINE_TYPE_TMCC_STEAM:
+                m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "steam"+ ".png");
+                break;
+
+              case EngineTypeLegacy::ENGINE_TYPE_DIESEL:
+              case EngineTypeTMCC::ENGINE_TYPE_TMCC_DIESEL:
+                m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "diesel" + ".png");
+                break;
+
+              case EngineTypeLegacy::ENGINE_TYPE_ELECTRIC:
+              case EngineTypeTMCC::ENGINE_TYPE_TMCC_ELECTRIC:
+                m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "electric" + ".png");
+                break;
+
+              case EngineTypeTMCC::ENGINE_TYPE_TMCC_ACELA:
+                m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "acela" + ".png");
+                break;
+                
+              case EngineTypeLegacy::ENGINE_TYPE_STATIONSOUND_CAR:
+                m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "station_sound_diner" + ".png");
+                break;
+                
+              case EngineTypeLegacy::ENGINE_TYPE_STOCK_CAR:
+                m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "stock_car" + ".png");
+                break;
+
+              case EngineTypeLegacy::ENGINE_TYPE_SUBWAY:
+                m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "subway" + ".png");
+                break;
+
+              case EngineTypeLegacy::ENGINE_TYPE_CRANE_CAR:
+              case EngineTypeTMCC::ENGINE_TYPE_TMCC_CRANE:
+                m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "default_crane" + ".png");
+                break;
+
+            }
+            m_enginedefs[m_selected_engine].engineHasCustomIcon = true;
           }
           printf("Engine ID to use: %d\n", m_enginedefs[m_selected_engine].engineID);
 
@@ -427,7 +537,7 @@ void ThrottleMenu::Draw(const std::string& appDir, SDL_GameController* gGameCont
     //static int value = 0;
     static float f = 0.0f;
     static int counter = 0;
-    bool show_demo_window = false;
+    bool show_demo_window = true;
     if (show_demo_window)
       ImGui::ShowDemoWindow(&show_demo_window);
 
@@ -463,6 +573,81 @@ void ThrottleMenu::Draw(const std::string& appDir, SDL_GameController* gGameCont
 
 
     ImGui::End();
+
+    SDL_Delay(40);
+  };
+
+  void ThrottleMenu::DebugPDIWindow(bool* p_open)
+  {
+    ImGui::SetNextWindowSize(ImVec2(455, 300), ImGuiCond_FirstUseEver);
+    if (ImGui::Begin("Debug PDI Window", p_open, ImGuiWindowFlags_MenuBar))
+    {
+      if (ImGui::BeginCombo("PDI Devices", m_pdi_device.c_str()))
+      {
+        DeviceInfo* devices;
+        
+        int numDevices = PDIInterface::EnumerateDevicesPDI(&devices);
+        for (int i = 0; i < numDevices; i++)
+        {
+          DeviceInfo* device = &devices[i];
+          std::string deviceName = device->GetFriendlyName();
+          bool is_selected = (deviceName == m_pdi_device);
+          if (ImGui::Selectable(deviceName.c_str(), is_selected))
+          {
+            m_pdi_device = deviceName;
+            PDIInterface::InitPDI(i);
+          }
+
+          // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+          if (is_selected)
+            ImGui::SetItemDefaultFocus();
+        }
+        ImGui::EndCombo();
+      }
+
+      if(ImGui::Button("Test", ImVec2(76, 76)))
+      {
+        PDIInterface::EngineBlowHorn1(20);
+      }
+
+      ImGui::End();
+
+    }
+  };
+
+  void ThrottleMenu::ConsistBuilderWindow(bool* p_open)
+  {
+    ImGui::SetNextWindowSize(ImVec2(455, 300), ImGuiCond_FirstUseEver);
+    if (ImGui::Begin("Consist Builder Window", p_open, ImGuiWindowFlags_MenuBar))
+    {
+
+      const char* engineLocationitems[] = { "SINGLE", "FRONT", "MIDDLE", "REAR"};
+      static int item_current_idx = 0; // Here we store our selection data as an index.
+      const char* combo_preview_value = engineLocationitems[item_current_idx];  // Pass in the preview value visible before opening the combo (it could be anything)
+      if (ImGui::BeginCombo("Engine Location", combo_preview_value, 0))
+      {
+        for (int n = 0; n < IM_ARRAYSIZE(engineLocationitems); n++)
+        {
+          const bool is_selected = (item_current_idx == n);
+          if (ImGui::Selectable(engineLocationitems[n], is_selected))
+            item_current_idx = n;
+
+          // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+          if (is_selected)
+            ImGui::SetItemDefaultFocus();
+        }
+        ImGui::EndCombo();
+      }
+
+      if (ImGui::Button("Configure Consist", ImVec2(76, 76)))
+      {
+        printf("TMCC1 BELL\n");
+        TMCCInterface::EngineRingBell(engineID);
+      };
+
+      ImGui::End();
+
+    }
   };
 
   void ThrottleMenu::DebugBellWindow(bool* p_open)
@@ -470,6 +655,7 @@ void ThrottleMenu::Draw(const std::string& appDir, SDL_GameController* gGameCont
     ImGui::SetNextWindowSize(ImVec2(455, 300), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Debug Bell Window", p_open, ImGuiWindowFlags_MenuBar))
     {
+      ImGui::BulletText("Bell Slider Position is for Swinging Bell Locos.");
 
       if (ImGui::Button("TMCC1 BELL", ImVec2(76, 76)))
       {
@@ -557,13 +743,50 @@ void ThrottleMenu::Draw(const std::string& appDir, SDL_GameController* gGameCont
         printf("DIALOG_PLAY_NEVER, SIGNAL_PLAY_NEVER\n");
         TMCCInterface::EngineSoundMaskControl(engineID, DIALOG_PLAY_NEVER, SIGNAL_PLAY_NEVER);
       };
-
-
+      ImGui::SameLine();
       if (ImGui::Button("Dialog:Default\nSignal:Default", ImVec2(125, 76)))
       {
         printf("DIALOG_DEFAULT, SIGNAL_DEFAULT\n");
         TMCCInterface::EngineSoundMaskControl(engineID, DIALOG_DEFAULT, SIGNAL_DEFAULT);
       };
+
+      //
+      
+      if (ImGui::Button("Dialog:Never\nSignal:Always", ImVec2(125, 76)))
+      {
+        printf("DIALOG_PLAY_NEVER, SIGNAL_PLAY_ALWAYS\n");
+        TMCCInterface::EngineSoundMaskControl(engineID, DIALOG_PLAY_NEVER, SIGNAL_PLAY_ALWAYS);
+      };
+
+      ImGui::SameLine();
+      if (ImGui::Button("Dialog:Default\nSignal:Always", ImVec2(125, 76)))
+      {
+        printf("DIALOG_DEFAULT, SIGNAL_PLAY_ALWAYS\n");
+        TMCCInterface::EngineSoundMaskControl(engineID, DIALOG_DEFAULT, SIGNAL_PLAY_ALWAYS);
+      };
+
+      ImGui::SameLine();
+      if (ImGui::Button("Dialog:Default\nSignal:Never", ImVec2(125, 76)))
+      {
+        printf("DIALOG_DEFAULT, SIGNAL_PLAY_NEVER\n");
+        TMCCInterface::EngineSoundMaskControl(engineID, DIALOG_DEFAULT, SIGNAL_PLAY_NEVER);
+      };
+
+      //
+
+      if (ImGui::Button("Dialog:Never\nSignal:Default", ImVec2(125, 76)))
+      {
+        printf("DIALOG_PLAY_NEVER, SIGNAL_PLAY_ALWAYS\n");
+        TMCCInterface::EngineSoundMaskControl(engineID, DIALOG_PLAY_NEVER, SIGNAL_DEFAULT);
+      };
+
+      ImGui::SameLine();
+      if (ImGui::Button("Dialog:Always\nSignal:Default", ImVec2(125, 76)))
+      {
+        printf("DIALOG_DEFAULT, SIGNAL_PLAY_ALWAYS\n");
+        TMCCInterface::EngineSoundMaskControl(engineID, DIALOG_PLAY_ALWAYS, SIGNAL_DEFAULT);
+      };
+
       ImGui::SameLine();
       if (ImGui::Button("Dialog:Always\nSignal:Never", ImVec2(125, 76)))
       {
@@ -579,6 +802,135 @@ void ThrottleMenu::Draw(const std::string& appDir, SDL_GameController* gGameCont
       ImGui::BulletText("SIGNAL_PLAY_ALWAYS = 0x1, // always play horn");
       ImGui::BulletText("SIGNAL_PLAY_NEVER = 0x2, // never play horn");
       ImGui::BulletText("SIGNAL_DEFAULT = 0x3,");
+
+      if (ImGui::InputText("##soundDialogMasking", &soundDialogMaskStr, 1))
+      {
+        soundDialogMask = std::atoi(soundDialogMaskStr.c_str());
+      }
+      ImGui::SameLine();
+      if (ImGui::InputText("##soundSignalMasking", &soundSignalMaskStr, 1))
+      {
+        soundSignalMask = std::atoi(soundSignalMaskStr.c_str());
+      }
+      if ((soundSignalMask < 0 || soundSignalMask >> 3) || (soundDialogMask < 0 || soundDialogMask >> 3))
+      {
+        ImGui::Text("Please enter a valid Sound or Dialog bit.");
+
+      }
+      else
+      {
+        if (ImGui::Button("Send CMD", ImVec2(80, 60)))
+        {
+          printf("SoundMaskControl: DIALOG:%d SIGNAL %d\n",soundDialogMask,soundSignalMask);
+          TMCCInterface::EngineSoundMaskControl(engineID, (SoundMaskingControl)soundDialogMask, (SoundMaskingControl)soundSignalMask);
+        }
+      }
+        
+
+      ImGui::End();
+
+    }
+  };
+
+  void ThrottleMenu::UpdateEngineAddressWindow(bool* p_open, const std::string& appDir)
+  {
+    ImGui::SetNextWindowSize(ImVec2(455, 300), ImGuiCond_FirstUseEver);
+    if (ImGui::Begin("Update Engine TMCC Address", p_open, ImGuiWindowFlags_MenuBar))
+    {
+      
+      ImGui::Text("Update Engine in CABPC Database? :");
+      ImGui::SameLine();
+      ImGui::Checkbox("##UpdateEngineInCABPCDataBase", &updateInCABPCDB);
+
+      if (updateInCABPCDB) // Update a loco in our local CABPC Database
+      {
+        std::string engineHint = "No Engines Found.";
+        if (m_enginedefs.size())
+          engineHint = m_enginedefs[m_selected_engine_cabpc_programming_menu].engineName;
+        // second argument is the text hint for the current item
+        if (ImGui::BeginCombo("Engine", engineHint.c_str()))
+        {
+          // combobox has been clicked, list the options
+          for (int i = 0; i < m_enginedefs.size(); i++)
+          {
+            // first argument is the option name, second argument is whether to display this item as selected
+            if (ImGui::Selectable(m_enginedefs[i].engineName.c_str(), m_selected_engine_cabpc_programming_menu == i))
+            {
+              // combobox item has been clicked, set the new selected engine
+              m_selected_engine_cabpc_programming_menu = i;
+              engineID_cabpc_programming_menu = m_enginedefs[m_selected_engine_cabpc_programming_menu].engineID;
+              printf("Engine ID to use for TMCC Address Programming: %d\n", engineID_cabpc_programming_menu);
+            }
+          }
+          ImGui::EndCombo();
+        }
+
+        ImGui::Text("Set Program Switch to PGM.");
+        ImGui::Text("Enter a new TMCC Address from 1-99: ");
+        if (ImGui::InputText("##newEngineTMCCAddress", &newEngineTMCCAddressStr, 64))
+        {
+          //printf("New Engine NAME: %s\n", newEngineName.c_str());
+          newEngineTMCCAddress = std::atoi(newEngineTMCCAddressStr.c_str());
+        }
+        if (newEngineTMCCAddress < 1 || newEngineTMCCAddress > 99)
+        {
+          ImGui::Text("Please enter a valid TMCC Address from 1-99.");
+        }
+        else
+        {
+          if (ImGui::Button("Set Engine Address", ImVec2(80, 60)))
+          {
+            TMCCInterface::EngineSetEngineAddress(newEngineTMCCAddress);
+            printf("Set a Engine TMCC ID of: %d", newEngineTMCCAddress);
+
+            EngineDef engine = EngineDef();
+            engine.engineID = newEngineTMCCAddress;
+            engine.engineName = m_enginedefs[m_selected_engine_cabpc_programming_menu].engineName;
+            engine.engineType = m_enginedefs[m_selected_engine_cabpc_programming_menu].engineType;
+            engine.legacyEngine = m_enginedefs[m_selected_engine_cabpc_programming_menu].legacyEngine;
+            m_enginedefs.push_back(engine);
+            printf("Engine ID: %d, EngineName: %s, engineType: %d, Legacy: %d\n", newEngineID, newEngineName.c_str(), newEngineType, newEngineisLegacy);
+            printf("%s\n", appDir.c_str());
+            //EngineManagement::AddEngineToJson(test, newEngineID, newEngineType, newEngineisLegacy, appDir.c_str());
+            json j;
+
+            EngineManagement::AddEngineDataToJson(j, m_enginedefs, appDir.c_str());
+          }
+          ImGui::Text("After clicking the button,\nchange the Program Switch back to RUN.");
+        }
+
+
+
+        
+
+
+
+      }
+      else
+      {
+        ImGui::Text("Set Program Switch to PGM.");
+        ImGui::Text("Enter a new TMCC Address from 1-99: ");
+        if (ImGui::InputText("##newEngineTMCCAddress", &newEngineTMCCAddressStr, 64))
+        {
+          //printf("New Engine NAME: %s\n", newEngineName.c_str());
+          newEngineTMCCAddress = std::atoi(newEngineTMCCAddressStr.c_str());
+        }
+        if (newEngineTMCCAddress < 1 || newEngineTMCCAddress > 99)
+        {
+            ImGui::Text("Please enter a valid TMCC Address from 1-99.");
+        }
+        else
+        {
+          if (ImGui::Button("Set Engine Address", ImVec2(80, 60)))
+          {
+            TMCCInterface::EngineSetEngineAddress(newEngineTMCCAddress);
+            printf("Set a Engine TMCC ID of: %d", newEngineTMCCAddress);
+
+          }
+          ImGui::Text("After clicking the button,\nchange the Program Switch back to RUN.");
+        }
+      
+      }
 
       ImGui::End();
 
@@ -721,12 +1073,52 @@ void ThrottleMenu::AddSwitchWindow(bool* p_open, const std::string& appDir)
       switch_.switchID = newSwitchID;
       switch_.switchName = newSwitchName.c_str();
       m_switchdefs.push_back(switch_);
-      printf("Switch ID: %d, EngineName: %s\n", newSwitchID, newSwitchName.c_str());
+      printf("Switch ID: %d, SwitchName: %s\n", newSwitchID, newSwitchName.c_str());
       printf("%s\n", appDir.c_str());
       //EngineManagement::AddEngineToJson(test, newEngineID, newEngineType, newEngineisLegacy, appDir.c_str());
       json j;
 
       EngineManagement::AddSwitchDataToJson(j, m_switchdefs, appDir.c_str());
+    }
+
+
+    ImGui::End();
+
+  }
+};
+
+void ThrottleMenu::AddAccessoryWindow(bool* p_open, const std::string& appDir)
+{
+  ImGui::SetNextWindowSize(ImVec2(455, 300), ImGuiCond_FirstUseEver);
+  if (ImGui::Begin("Add New Accessory", p_open, ImGuiWindowFlags_MenuBar))
+  {
+
+    ImGui::Text("Accessory Name: ");
+    ImGui::SameLine();
+    if (ImGui::InputText("##NewAccessoryName", &newAccessoryName, 64))
+    {
+      //printf("New Engine NAME: %s\n", newEngineName.c_str());
+    }
+    ImGui::Text("Accessory ID: ");
+    ImGui::SameLine();
+    if (ImGui::InputText("##NewAccessoryID", &newAccessoryIDStr, 64))
+    {
+      newAccessoryID = std::atoi(newAccessoryIDStr.c_str());
+      //printf("New Engine ID: %d\n", (int)newEngineID);
+    }
+
+    if (ImGui::Button("Add Accessory", ImVec2(80, 60)))
+    {
+      AccessoryDef accessory_ = AccessoryDef();
+      accessory_.accessoryID = newAccessoryID;
+      accessory_.accessoryName = newAccessoryName.c_str();
+      m_accessorydefs.push_back(accessory_);
+      printf("Accessory ID: %d, AccessoryName: %s\n", newAccessoryID, newAccessoryName.c_str());
+      printf("%s\n", appDir.c_str());
+      //EngineManagement::AddEngineToJson(test, newEngineID, newEngineType, newEngineisLegacy, appDir.c_str());
+      json j;
+
+      EngineManagement::AddAccessoryDataToJson(j, m_accessorydefs, appDir.c_str());
     }
 
 
@@ -750,30 +1142,9 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
     ImGui::TableNextColumn();
     
     // brakeslidervalue from 0.0f to 1.0f
-    if (ImGui::VSliderFloat("##int", ImVec2(80, 250), &m_enginedefs[m_selected_engine].currentTrainBrake, 1.0f, 0.0f, "Train\nBrake"))
+    if (ImGui::VSliderFloat("##int", ImVec2(80, 250), &m_enginedefs[m_selected_engine].currentTrainBrake, 1.0f, 0.0f, "Train\nBrake", ImGuiSliderFlags_AlwaysClamp))
     {
-      int brakevalue = (int)(m_enginedefs[m_selected_engine].currentTrainBrake * 8.0f); // or, if you want a tolerance, (int)(engine.currentTrainBrake * 8.0f + 0.5f)
-      printf("brake value: %d\n", brakevalue);
-      if (m_enginedefs[m_selected_engine].legacyEngine)
-      {
-        m_enginedefs[m_selected_engine].SetSpeed(1.0 - m_enginedefs[m_selected_engine].currentTrainBrake, m_enginedefs[m_selected_engine].legacyEngine);
-        TMCCInterface::EngineSetTrainBrake2(engineID, brakevalue);
-        if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_STEAM)
-        {
-          int labourvalue = (int)(m_enginedefs[m_selected_engine].currentTrainBrake * 32.0f);
-          TMCCInterface::EngineSetLabor(engineID, labourvalue);
-        }
-        else
-        {
-          int dieselRun = (int)(m_enginedefs[m_selected_engine].currentTrainBrake * 8.0f);
-          TMCCInterface::EngineSetDieselRunLevel(engineID, dieselRun);
-        }
-      }
-      else
-      {
-        // tmcc brake
-        m_enginedefs[m_selected_engine].SetSpeedMultiplier(1.0 - m_enginedefs[m_selected_engine].currentTrainBrake, m_enginedefs[m_selected_engine].legacyEngine);
-      }
+        m_enginedefs[m_selected_engine].SetSpeedMultiplier(1.0 - m_enginedefs[m_selected_engine].currentTrainBrake, m_enginedefs[m_selected_engine].legacyEngine, true);
     }
 
 
@@ -823,261 +1194,300 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
 
     DrawKeypadType(currentKeypadStyle, m_enginedefs[m_selected_engine].legacyEngine, m_enginedefs[m_selected_engine].engineType, m_enginedefs[m_selected_engine].engineID);
 
-    ImGui::TableNextColumn();
-        ImGui::SetNextItemWidth(50);
 
-        //////////////////////////////////////////////////////
+        // if we have the stationsound diner or the stock car, don't show the throttle column.
+        if ((m_enginedefs[m_selected_engine].engineType != EngineTypeLegacy::ENGINE_TYPE_STOCK_CAR && m_enginedefs[m_selected_engine].engineType != EngineTypeLegacy::ENGINE_TYPE_STATIONSOUND_CAR))
+        {
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(50);
+          //////////////////////////////////////////////////////
         // DIESEL RUN GAUGE AND STEAM LABOUR GAUGE
         // IF STATIONSOUND DINER OR STOCK CAR, DON'T SHOW THESE
         //////////////////////////////////////////////////////
-        if (m_enginedefs[m_selected_engine].engineType != EngineType::ENGINE_STATIONSOUND_CAR && m_enginedefs[m_selected_engine].engineType != EngineType::ENGINE_STOCK_CAR)
-        {
           if (m_enginedefs[m_selected_engine].legacyEngine)
-          {
-            // value was changed
-                // if steam, use labour
-                // else, use diesel run level
-            if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_STEAM)
             {
-              if (ImGuiKnobs::KnobInt("Labour", &m_enginedefs[m_selected_engine].steam_labour_intensity, 0, 31, 1, "%f Labour", ImGuiKnobVariant_WiperOnly, 100, ImGuiKnobFlags_NoInput)) {
+              // value was changed
+                  // if steam, use labour
+                  // else, use diesel run level
+              if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_STEAM)
+              {
+                if (ImGui::VSliderInt("##Labour", ImVec2(113, 160), &m_enginedefs[m_selected_engine].steam_labour_intensity, 0, 31, "%f", ImGuiSliderFlags_AlwaysClamp)) {
 
-                TMCCInterface::EngineSetLabor(engineID, m_enginedefs[m_selected_engine].steam_labour_intensity);
-              };
-            }
-            else
-            {
-              if (ImGuiKnobs::KnobInt("Diesel Run Lvl.", &m_enginedefs[m_selected_engine].diesel_electric_rev_lvl, 0, 8, 1, "%f RPM Level", ImGuiKnobVariant_WiperOnly, 100, ImGuiKnobFlags_NoInput)) {
+                  TMCCInterface::EngineSetLabor(engineID, m_enginedefs[m_selected_engine].steam_labour_intensity);
+                };
+                Tooltip("Labour Level");
+              }
+              else
+              {
+                if (ImGui::VSliderInt("##Diesel Run Lvl.", ImVec2(113, 160), &m_enginedefs[m_selected_engine].diesel_electric_rev_lvl, 0, 8, "%f", ImGuiSliderFlags_AlwaysClamp)) {
 
-                if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_DIESEL)
-                  TMCCInterface::EngineSetDieselRunLevel(engineID, m_enginedefs[m_selected_engine].diesel_electric_rev_lvl);
-                else if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_ELECTRIC)
-                  TMCCInterface::EngineSetDieselRunLevel(engineID, m_enginedefs[m_selected_engine].diesel_electric_rev_lvl);
-                else if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_SUBWAY)
-                  TMCCInterface::EngineSetDieselRunLevel(engineID, m_enginedefs[m_selected_engine].diesel_electric_rev_lvl);
-              };
-            }
+                  if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_DIESEL)
+                    TMCCInterface::EngineSetDieselRunLevel(engineID, m_enginedefs[m_selected_engine].diesel_electric_rev_lvl);
+                  else if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_ELECTRIC)
+                    TMCCInterface::EngineSetDieselRunLevel(engineID, m_enginedefs[m_selected_engine].diesel_electric_rev_lvl);
+                  else if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_SUBWAY)
+                    TMCCInterface::EngineSetDieselRunLevel(engineID, m_enginedefs[m_selected_engine].diesel_electric_rev_lvl);
+                };
+                Tooltip("Diesel Run Lvl.");
+              }
 
-            //////////////////////////////////////////////////////
-            // FUEL LEVEL GAUGES
-            // WILL REQUIRE PDI COMMANDS FROM SENSOR TRACK
-            //////////////////////////////////////////////////////
-            ImGui::SameLine();
-
-            if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_STEAM)
-            {
-              if (ImGuiKnobs::KnobInt("Coal Level", &m_enginedefs[m_selected_engine].steam_labour_intensity, 0, 31, 1, "%f Coal Level", ImGuiKnobVariant_WiperOnly, 100, ImGuiKnobFlags_NoInput)) {
-
-                // todo
-              };
+              //////////////////////////////////////////////////////
+              // FUEL LEVEL GAUGES
+              // WILL REQUIRE PDI COMMANDS FROM SENSOR TRACK
+              //////////////////////////////////////////////////////
               ImGui::SameLine();
-              if (ImGuiKnobs::KnobInt("Water Level", &m_enginedefs[m_selected_engine].steam_labour_intensity, 0, 31, 1, "%f Water Level", ImGuiKnobVariant_WiperOnly, 100, ImGuiKnobFlags_NoInput)) {
 
-                // todo
-              };
-            }
-            else
-            {
-              if (ImGuiKnobs::KnobInt("Diesel Fuel", &m_enginedefs[m_selected_engine].diesel_electric_rev_lvl, 0, 8, 1, "%f Fuel Level", ImGuiKnobVariant_WiperOnly, 100, ImGuiKnobFlags_NoInput)) {
-                // todo
-              };
-            }
-
-            ImGui::PushButtonRepeat(true);
-            if (ImGui::Button("-", ImVec2(52, 28)))
-            {
               if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_STEAM)
               {
-                m_enginedefs[m_selected_engine].steam_labour_intensity--;
-                if (m_enginedefs[m_selected_engine].steam_labour_intensity < 0)
-                  m_enginedefs[m_selected_engine].steam_labour_intensity = 0;
+                if (ImGui::VSliderInt("##Coal Level", ImVec2(62, 160), &m_enginedefs[m_selected_engine].currentCoalLevel, 0, 31, "%f")) {
 
-                TMCCInterface::EngineSetLabor(engineID, m_enginedefs[m_selected_engine].steam_labour_intensity);
+                  // todo
+                };
+                Tooltip("Coal Level");
+
+                ImGui::SameLine();
+                if (ImGui::VSliderInt("##Water Level", ImVec2(62, 160), &m_enginedefs[m_selected_engine].currentWaterLevel, 0, 31, "%f")) {
+
+                  // todo
+                };
+                Tooltip("Water Level");
+              }
+              else
+              {
+                if (ImGui::VSliderInt("##Diesel Fuel", ImVec2(113, 160), &m_enginedefs[m_selected_engine].currentDieselFuel, 0, 8, "%f")) {
+                  // todo
+                };
+                Tooltip("Diesel Fuel Level");
+              }
+
+              ImGui::PushButtonRepeat(true);
+              if (ImGui::Button("-", ImVec2(52, 28)))
+              {
+                if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_STEAM)
+                {
+                  m_enginedefs[m_selected_engine].steam_labour_intensity--;
+                  if (m_enginedefs[m_selected_engine].steam_labour_intensity < 0)
+                    m_enginedefs[m_selected_engine].steam_labour_intensity = 0;
+
+                  TMCCInterface::EngineSetLabor(engineID, m_enginedefs[m_selected_engine].steam_labour_intensity);
+                }
+
+                else
+                {
+                  m_enginedefs[m_selected_engine].diesel_electric_rev_lvl--;
+                  if (m_enginedefs[m_selected_engine].diesel_electric_rev_lvl < 0)
+                    m_enginedefs[m_selected_engine].diesel_electric_rev_lvl = 0;
+
+                  if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_DIESEL)
+                    TMCCInterface::EngineSetDieselRunLevel(engineID, m_enginedefs[m_selected_engine].diesel_electric_rev_lvl);
+                  else if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_ELECTRIC)
+                    TMCCInterface::EngineSetDieselRunLevel(engineID, m_enginedefs[m_selected_engine].diesel_electric_rev_lvl);
+                  else if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_SUBWAY)
+                    TMCCInterface::EngineSetDieselRunLevel(engineID, m_enginedefs[m_selected_engine].diesel_electric_rev_lvl);
+                }
+
+              };
+              ImGui::PopButtonRepeat();
+
+              ImGui::SameLine();
+
+              ImGui::PushButtonRepeat(true);
+              if (ImGui::Button("+", ImVec2(52, 28)))
+              {
+                if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_STEAM)
+                {
+                  m_enginedefs[m_selected_engine].steam_labour_intensity++;
+                  if (m_enginedefs[m_selected_engine].steam_labour_intensity > 31)
+                    m_enginedefs[m_selected_engine].steam_labour_intensity = 31;
+
+                  TMCCInterface::EngineSetLabor(engineID, m_enginedefs[m_selected_engine].steam_labour_intensity);
+
+
+                }
+
+                else
+                {
+                  m_enginedefs[m_selected_engine].diesel_electric_rev_lvl++;
+                  if (m_enginedefs[m_selected_engine].diesel_electric_rev_lvl > 8)
+                    m_enginedefs[m_selected_engine].diesel_electric_rev_lvl = 8;
+
+                  if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_DIESEL)
+                    TMCCInterface::EngineSetDieselRunLevel(engineID, m_enginedefs[m_selected_engine].diesel_electric_rev_lvl);
+                  else if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_ELECTRIC)
+                    TMCCInterface::EngineSetDieselRunLevel(engineID, m_enginedefs[m_selected_engine].diesel_electric_rev_lvl);
+                  else if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_SUBWAY)
+                    TMCCInterface::EngineSetDieselRunLevel(engineID, m_enginedefs[m_selected_engine].diesel_electric_rev_lvl);
+                }
+              };
+              ImGui::PopButtonRepeat();
+
+              if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_STEAM)
+              {
+                ImGui::SameLine();
+                ImGui::Image((void*)(intptr_t)coalIcon->GetGLHandle(), ImVec2(25, 25), uv_min, uv_max, tint_col, border_col);
+                ImGui::SameLine();
+                ImGui::Image((void*)(intptr_t)waterIcon->GetGLHandle(), ImVec2(25, 25), uv_min, uv_max, tint_col, border_col);
               }
 
               else
               {
-                m_enginedefs[m_selected_engine].diesel_electric_rev_lvl--;
-                if (m_enginedefs[m_selected_engine].diesel_electric_rev_lvl < 0)
-                  m_enginedefs[m_selected_engine].diesel_electric_rev_lvl = 0;
-
-                if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_DIESEL)
-                  TMCCInterface::EngineSetDieselRunLevel(engineID, m_enginedefs[m_selected_engine].diesel_electric_rev_lvl);
-                else if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_ELECTRIC)
-                  TMCCInterface::EngineSetDieselRunLevel(engineID, m_enginedefs[m_selected_engine].diesel_electric_rev_lvl);
-                else if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_SUBWAY)
-                  TMCCInterface::EngineSetDieselRunLevel(engineID, m_enginedefs[m_selected_engine].diesel_electric_rev_lvl);
+                ImGui::SameLine();
+                ImGui::Image((void*)(intptr_t)waterIcon->GetGLHandle(), ImVec2(25, 25), uv_min, uv_max, tint_col, border_col);
               }
 
-            };
-            ImGui::PopButtonRepeat();
 
-            ImGui::SameLine();
+            }
 
-            ImGui::PushButtonRepeat(true);
-            if (ImGui::Button("+", ImVec2(52, 28)))
-            {
-              if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_STEAM)
-              {
-                m_enginedefs[m_selected_engine].steam_labour_intensity++;
-                if (m_enginedefs[m_selected_engine].steam_labour_intensity > 31)
-                  m_enginedefs[m_selected_engine].steam_labour_intensity = 31;
-
-                TMCCInterface::EngineSetLabor(engineID, m_enginedefs[m_selected_engine].steam_labour_intensity);
-
-              }
-
-              else
-              {
-                m_enginedefs[m_selected_engine].diesel_electric_rev_lvl++;
-                if (m_enginedefs[m_selected_engine].diesel_electric_rev_lvl > 8)
-                  m_enginedefs[m_selected_engine].diesel_electric_rev_lvl = 8;
-
-                if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_DIESEL)
-                  TMCCInterface::EngineSetDieselRunLevel(engineID, m_enginedefs[m_selected_engine].diesel_electric_rev_lvl);
-                else if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_ELECTRIC)
-                  TMCCInterface::EngineSetDieselRunLevel(engineID, m_enginedefs[m_selected_engine].diesel_electric_rev_lvl);
-                else if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_SUBWAY)
-                  TMCCInterface::EngineSetDieselRunLevel(engineID, m_enginedefs[m_selected_engine].diesel_electric_rev_lvl);
-              }
-            };
-            ImGui::PopButtonRepeat();
-          }
-        }
-
-        
-        // IF STATIONSOUND DINER OR STOCK CAR, DON'T SHOW THESE
-        if (m_enginedefs[m_selected_engine].engineType != EngineType::ENGINE_STATIONSOUND_CAR && m_enginedefs[m_selected_engine].engineType != EngineType::ENGINE_STOCK_CAR)
-        {
+          float uiSpeed = m_enginedefs[m_selected_engine].legacy_speed * m_enginedefs[m_selected_engine].legacy_speed_multiplier;
+          float uiSpeedTMCC = m_enginedefs[m_selected_engine].tmcc_speed * m_enginedefs[m_selected_engine].legacy_speed_multiplier;
+          // THROTTLE COLUMN
           if (m_enginedefs[m_selected_engine].legacyEngine)
           {
             // Legacy Version
-            if (ImGuiKnobs::Knob("Throttle", &m_enginedefs[m_selected_engine].legacy_speed, 0.0, 200.0, 0.3, "%f MPH", ImGuiKnobVariant_Stepped, 256, ImGuiKnobFlags_NoInput | ImGuiKnobFlags_ValueTooltip, 50)) {
-              // value was changed
+              if (ImGuiKnobs::Knob("Throttle", &uiSpeed, 0.0, 200.0, 0.3, "%f MPH", ImGuiKnobVariant_Stepped, 256, ImGuiKnobFlags_NoInput | ImGuiKnobFlags_ValueTooltip, 50))
+              {
+                float realSpeed = uiSpeed / std::max(m_enginedefs[m_selected_engine].legacy_speed_multiplier, 0.01f);
+                m_enginedefs[m_selected_engine].legacy_speed = std::min(std::max(realSpeed, 0.0f), 200.0f);
+                m_enginedefs[m_selected_engine].UpdateSpeed();
+                printf("UI Speed: %f, Real Speed: %f, Brake Multiplier: %f\n", uiSpeed, realSpeed, m_enginedefs[m_selected_engine].legacy_speed_multiplier);
+              }
+          }
 
-              //m_enginedefs[m_selected_engine].SetSpeed(m_enginedefs[m_selected_engine].legacy_speed, m_enginedefs[m_selected_engine].legacyEngine);
-              TMCCInterface::EngineSetAbsoluteSpeed2(engineID, m_enginedefs[m_selected_engine].legacy_speed);
-            }
-          }
-          else if (!m_enginedefs[m_selected_engine].legacyEngine && m_enginedefs[m_selected_engine].engineType == EngineTypeTMCC::ENGINE_TYPE_TMCC_CRANE)
-          {
-            // No Throttle for TMCC Crane
-          }
           else
           {
             // TMCC Version
-            if (ImGuiKnobs::Knob("Throttle", &m_enginedefs[m_selected_engine].tmcc_speed, 0.0, 32.0, 0.1, "%f MPH", ImGuiKnobVariant_Stepped, 256 , ImGuiKnobFlags_NoInput | ImGuiKnobFlags_ValueTooltip, 32)) {
-              // value was changed
-              //m_enginedefs[m_selected_engine].SetSpeedMultiplier(m_enginedefs[m_selected_engine].tmcc_speed, m_enginedefs[m_selected_engine].legacyEngine);
-              TMCCInterface::EngineSetAbsoluteSpeed(engineID, m_enginedefs[m_selected_engine].tmcc_speed);
+            if (m_enginedefs[m_selected_engine].engineType != EngineTypeTMCC::ENGINE_TYPE_TMCC_CRANE)
+            {
+              if (ImGuiKnobs::Knob("Throttle", &uiSpeedTMCC, 0.0, 32.0, 0.3, "%f MPH", ImGuiKnobVariant_Stepped, 256, ImGuiKnobFlags_NoInput | ImGuiKnobFlags_ValueTooltip, 32))
+              {
+                float realSpeed = uiSpeedTMCC / std::max(m_enginedefs[m_selected_engine].legacy_speed_multiplier, 0.01f);
+                m_enginedefs[m_selected_engine].tmcc_speed = std::min(std::max(realSpeed, 0.0f), 32.0f);
+                m_enginedefs[m_selected_engine].UpdateSpeed();
+                printf("UI Speed: %f, Real Speed: %f, Brake Multiplier: %f\n", uiSpeedTMCC, realSpeed, m_enginedefs[m_selected_engine].legacy_speed_multiplier);
+              }
+            }
+            else
+            {
+              // TMCC Version For Crane
             }
           }
-          ImGui::PushButtonRepeat(true);
-          if (ImGui::Button("MPH -", ImVec2(52, 28)))
-          {
-            printf("Speed -1\n");
-            if (m_enginedefs[m_selected_engine].legacyEngine)
+
+            ImGui::PushButtonRepeat(true);
+            if (ImGui::Button("MPH -", ImVec2(52, 28)))
             {
-              m_enginedefs[m_selected_engine].legacy_speed--;
-              if (m_enginedefs[m_selected_engine].legacy_speed < 0)
+              printf("Speed -1\n");
+              if (m_enginedefs[m_selected_engine].legacyEngine)
+              {
+                m_enginedefs[m_selected_engine].legacy_speed--;
+                if (m_enginedefs[m_selected_engine].legacy_speed < 0)
+                  m_enginedefs[m_selected_engine].legacy_speed = 0;
+
+                m_enginedefs[m_selected_engine].UpdateSpeed();
+
+              }
+
+              else
+              {
+                m_enginedefs[m_selected_engine].tmcc_speed--;
+                if (m_enginedefs[m_selected_engine].tmcc_speed < 0)
+                  m_enginedefs[m_selected_engine].tmcc_speed = 0;
+
+                m_enginedefs[m_selected_engine].UpdateSpeed();
+
+              }
+            };
+            ImGui::PopButtonRepeat();
+
+            ImGui::SameLine();
+            if (ImGui::Button("STOP", ImVec2(52, 28)))
+            {
+              printf("STOP\n");
+              if (m_enginedefs[m_selected_engine].legacyEngine)
+              {
                 m_enginedefs[m_selected_engine].legacy_speed = 0;
-
-              TMCCInterface::EngineSetAbsoluteSpeed2(engineID, m_enginedefs[m_selected_engine].legacy_speed);
-
-            }
-
-            else
-            {
-              m_enginedefs[m_selected_engine].tmcc_speed--;
-              if (m_enginedefs[m_selected_engine].tmcc_speed < 0)
+                m_enginedefs[m_selected_engine].UpdateSpeed();
+              }
+              else
+              {
                 m_enginedefs[m_selected_engine].tmcc_speed = 0;
+                m_enginedefs[m_selected_engine].UpdateSpeed();
 
-              TMCCInterface::EngineSetAbsoluteSpeed(engineID, m_enginedefs[m_selected_engine].tmcc_speed);
+              }
+            };
+            ImGui::SameLine();
 
-            }
-          };
-          ImGui::PopButtonRepeat();
+            ImGui::PushButtonRepeat(true);
+            if (ImGui::Button("MPH +", ImVec2(52, 28)))
+            {
+              printf("Speed +1\n");
+              if (m_enginedefs[m_selected_engine].legacyEngine)
+              {
+                m_enginedefs[m_selected_engine].legacy_speed++;
+                if (m_enginedefs[m_selected_engine].legacy_speed > 200)
+                  m_enginedefs[m_selected_engine].legacy_speed = 200;
+                m_enginedefs[m_selected_engine].UpdateSpeed();
 
-          ImGui::SameLine();
-          if (ImGui::Button("STOP", ImVec2(52, 28)))
-          {
-            printf("STOP\n");
+              }
+
+              else
+              {
+                m_enginedefs[m_selected_engine].tmcc_speed++;
+                if (m_enginedefs[m_selected_engine].tmcc_speed > 32)
+                  m_enginedefs[m_selected_engine].tmcc_speed = 32;
+
+                m_enginedefs[m_selected_engine].UpdateSpeed();
+
+              }
+            };
+            ImGui::PopButtonRepeat();
+          
+            // Aux 3 and TMCC Let off
             if (m_enginedefs[m_selected_engine].legacyEngine)
             {
-              m_enginedefs[m_selected_engine].legacy_speed = 0;
-              TMCCInterface::EngineSetAbsoluteSpeed2(engineID, m_enginedefs[m_selected_engine].legacy_speed);
+              ImGui::ImageButton((void*)(intptr_t)aux3arrowIcon->GetGLHandle(), ImVec2(70, 70));
+              if (ImGui::IsItemHovered() && ImGui::IsMouseDown(0))
+              {
+                printf("Aux 3: Pressed\n");
+                TMCCInterface::EngineAux3Trigger(engineID);
+              };
             }
             else
             {
-              m_enginedefs[m_selected_engine].tmcc_speed = 0;
-              TMCCInterface::EngineSetAbsoluteSpeed(engineID, m_enginedefs[m_selected_engine].tmcc_speed);
-
+              ImGui::PushButtonRepeat(true);
+              if (ImGui::Button("Let Off", ImVec2(78, 76)))
+              {
+                printf("TMCC Let off Pressed\n");
+                TMCCInterface::EngineLetOffSound(engineID);
+              };
+              ImGui::PopButtonRepeat();
             }
-          };
-          ImGui::SameLine();
-
-          ImGui::PushButtonRepeat(true);
-          if (ImGui::Button("MPH +", ImVec2(52, 28)))
-          {
-            printf("Speed +1\n");
-            if (m_enginedefs[m_selected_engine].legacyEngine)
+            ImGui::SameLine();
+            // Boost  and brake
+            ImGui::PushButtonRepeat(true);
+            if (ImGui::Button("Boost", ImVec2(78, 76)))
             {
-              m_enginedefs[m_selected_engine].legacy_speed++;
-              if (m_enginedefs[m_selected_engine].legacy_speed > 200)
-                m_enginedefs[m_selected_engine].legacy_speed = 200;
-              TMCCInterface::EngineSetAbsoluteSpeed2(engineID, m_enginedefs[m_selected_engine].legacy_speed);
-
-            }
-
-            else
+              printf("Boost\n");
+              TMCCInterface::EngineBoostSpeed(engineID);
+            };
+            ImGui::PopButtonRepeat();
+            ImGui::SameLine();
+            ImGui::PushButtonRepeat(true);
+            if (ImGui::Button("Brake", ImVec2(78, 76)))
             {
-              m_enginedefs[m_selected_engine].tmcc_speed++;
-              if (m_enginedefs[m_selected_engine].tmcc_speed > 32)
-                m_enginedefs[m_selected_engine].tmcc_speed = 32;
-
-                TMCCInterface::EngineSetAbsoluteSpeed(engineID, m_enginedefs[m_selected_engine].tmcc_speed);
-
-            }
-          };
-          ImGui::PopButtonRepeat();
+              printf("Brake\n");
+              TMCCInterface::EngineBrakeSpeed(engineID);
+            };
+            ImGui::PopButtonRepeat();
         }
 
-        // Aux 3 and TMCC Let off
-        if (m_enginedefs[m_selected_engine].legacyEngine)
-        {
-          ImGui::ImageButton((void*)(intptr_t)aux3arrowIcon->GetGLHandle(), ImVec2(70, 70));
-          if (ImGui::IsItemHovered() && ImGui::IsMouseDown(0))
-          {
-            printf("Aux 3: Pressed\n");
-            TMCCInterface::EngineAux3Trigger(engineID);
-          };
-        }
+          
+
+
         else
         {
-          ImGui::PushButtonRepeat(true);
-          if (ImGui::Button("Let Off", ImVec2(78, 76)))
-          {
-            printf("TMCC Let off Pressed\n");
-            TMCCInterface::EngineLetOffSound(engineID);
-          };
-          ImGui::PopButtonRepeat();
+          // No Throttle column for Stationsound Car or Stock Car
         }
-        ImGui::SameLine();
-        // Boost  and brake
-        ImGui::PushButtonRepeat(true);
-        if (ImGui::Button("Boost", ImVec2(78, 76)))
-        {
-          printf("Boost\n");
-          TMCCInterface::EngineBoostSpeed(engineID);
-        };
-        ImGui::PopButtonRepeat();
-        ImGui::SameLine();
-        ImGui::PushButtonRepeat(true);
-        if (ImGui::Button("Brake", ImVec2(78, 76)))
-        {
-          printf("Brake\n");
-          TMCCInterface::EngineBrakeSpeed(engineID);
-        };
-        ImGui::PopButtonRepeat();
+
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(50);
     // Whistle
@@ -1092,6 +1502,7 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
             else
             {
               whistleEnabled = false;
+              TMCCInterface::EngineSetQuillingHornIntensity(engineID, 0);
             }
           };
           PlayWhistle(whistleEnabled, curTime, currentQuill, engineID);
@@ -1174,12 +1585,21 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
 
       if (ImGui::ImageButton((void*)(intptr_t)bellIcon->GetGLHandle(), ImVec2(70, 70)))
       {
-          printf("Bell Toggle\n");
+        if (m_enginedefs[m_selected_engine].legacyEngine)
+        {
+          printf("TMCC2 Bell Toggle\n");
           m_enginedefs[m_selected_engine].bellOn = !m_enginedefs[m_selected_engine].bellOn;
           if (m_enginedefs[m_selected_engine].bellOn)
             TMCCInterface::EngineSetBell(engineID, TMCC_ON);
           else
             TMCCInterface::EngineSetBell(engineID, TMCC_OFF);
+        }
+        else
+        {
+          printf("TMCC1 Bell Toggle\n");
+          TMCCInterface::EngineRingBell(engineID);
+        }
+          
         }
     }
     
@@ -1336,6 +1756,183 @@ void ThrottleMenu::ShowSecondaryEngineWindow(bool* p_open, const std::string& ap
 
 
 
+    ImGui::End();
+  }
+}
+
+void ThrottleMenu::SwitchWindow(bool* p_open)
+{
+  ImGui::SetNextWindowSize(ImVec2(480, 574), ImGuiCond_FirstUseEver);
+  if (ImGui::Begin("Switches", p_open, ImGuiWindowFlags_MenuBar))
+  {
+    std::string hint = "No Switches Found.";
+    if (m_switchdefs.size())
+      hint = m_switchdefs[m_selected_switch].switchName;
+    // second argument is the text hint for the current item
+    if (ImGui::BeginCombo("Switch", hint.c_str()))
+    {
+      // combobox has been clicked, list the options
+      for (int i = 0; i < m_switchdefs.size(); i++)
+      {
+        // first argument is the option name, second argument is whether to display this item as selected
+        if (ImGui::Selectable(m_switchdefs[i].switchName.c_str(), m_selected_switch == i))
+        {
+          // combobox item has been clicked, set the new selected engine
+          m_selected_switch = i;
+          switchID = m_switchdefs[m_selected_switch].switchID;
+          printf("Switch ID to use: %d\n", switchID);
+
+        }
+      }
+      ImGui::EndCombo();
+    }
+
+    if (m_switchdefs.size() > 0) // if size of the accessory def array is bigger than one, show our options
+    {
+      ImGui::PushButtonRepeat(true);
+      if (ImGui::Button("Throw\nOut", ImVec2(100, 60)))
+      {
+        printf("Switch Throw Out\n");
+
+        TMCCInterface::SwitchThrowOut(switchID);
+      };
+      ImGui::PopButtonRepeat();
+
+      ImGui::SameLine();
+
+      ImGui::PushButtonRepeat(true);
+      if (ImGui::Button("Throw\Through", ImVec2(100, 60)))
+      {
+        printf("Switch Throw Through\n");
+
+        TMCCInterface::SwitchThrowThrough(switchID);
+      };
+      ImGui::PopButtonRepeat();
+
+     
+
+    }
+    ImGui::End();
+  }
+}
+
+void ThrottleMenu::AccessoryWindow(bool* p_open)
+{
+  ImGui::SetNextWindowSize(ImVec2(480, 574), ImGuiCond_FirstUseEver);
+  if (ImGui::Begin("Accessories", p_open, ImGuiWindowFlags_MenuBar))
+  {
+    std::string hint = "No Accessories Found.";
+    if (m_accessorydefs.size())
+    {
+      hint = m_accessorydefs[m_selected_accessory].accessoryName;
+      accessoryID = m_accessorydefs[m_selected_accessory].accessoryID;
+    }
+    // second argument is the text hint for the current item
+    if (ImGui::BeginCombo("Accessory", hint.c_str()))
+    {
+      // combobox has been clicked, list the options
+      for (int i = 0; i < m_accessorydefs.size(); i++)
+      {
+        // first argument is the option name, second argument is whether to display this item as selected
+        if (ImGui::Selectable(m_accessorydefs[i].accessoryName.c_str(), m_selected_accessory == i))
+        {
+          // combobox item has been clicked, set the new selected engine
+          m_selected_accessory = i;
+          accessoryID = m_accessorydefs[m_selected_accessory].accessoryID;
+          printf("Accessory ID to use: %d\n", accessoryID);
+
+        }
+      }
+      ImGui::EndCombo();
+    }
+
+    if (m_accessorydefs.size() > 0) // if size of the accessory def array is bigger than one, show our options
+    {
+      ImGui::PushButtonRepeat(true);
+      if (ImGui::Button("Aux 1 Off\n", ImVec2(100, 60)))
+      {
+        printf("Aux 1 Off\n");
+
+        TMCCInterface::AccessoryAux1Off(accessoryID);
+      };
+      ImGui::PopButtonRepeat();
+
+      ImGui::SameLine();
+
+      ImGui::PushButtonRepeat(true);
+      if (ImGui::Button("Aux 1 On\n", ImVec2(100, 60)))
+      {
+        printf("Aux 1 On\n");
+
+        TMCCInterface::AccessoryAux1On(accessoryID);
+      };
+      ImGui::PopButtonRepeat();
+
+      ImGui::SameLine();
+
+      ImGui::PushButtonRepeat(true);
+      if (ImGui::Button("Aux 1 Option 1\n", ImVec2(100, 60)))
+      {
+        printf("Aux 1 Option 1\n");
+
+        TMCCInterface::AccessoryAux1Option1(accessoryID);
+      };
+      ImGui::PopButtonRepeat();
+
+      ImGui::SameLine();
+
+      ImGui::PushButtonRepeat(true);
+      if (ImGui::Button("Aux 1 Option 2\n", ImVec2(100, 60)))
+      {
+        printf("Aux 1 Option 2\n");
+
+        TMCCInterface::AccessoryAux1Option2(accessoryID);
+      };
+      ImGui::PopButtonRepeat();
+
+      ImGui::PushButtonRepeat(true);
+      if (ImGui::Button("Aux 2 Off\n", ImVec2(100, 60)))
+      {
+        printf("Aux 2 Off\n");
+
+        TMCCInterface::AccessoryAux2Off(accessoryID);
+      };
+      ImGui::PopButtonRepeat();
+
+      ImGui::SameLine();
+
+      ImGui::PushButtonRepeat(true);
+      if (ImGui::Button("Aux 2 On\n", ImVec2(100, 60)))
+      {
+        printf("Aux 2 On\n");
+
+        TMCCInterface::AccessoryAux2On(accessoryID);
+      };
+      ImGui::PopButtonRepeat();
+
+      ImGui::SameLine();
+
+      ImGui::PushButtonRepeat(true);
+      if (ImGui::Button("Aux 2 Option 1\n", ImVec2(100, 60)))
+      {
+        printf("Aux 2 Option 1\n");
+
+        TMCCInterface::AccessoryAux2Option1(accessoryID);
+      };
+      ImGui::PopButtonRepeat();
+
+      ImGui::SameLine();
+
+      ImGui::PushButtonRepeat(true);
+      if (ImGui::Button("Aux 2 Option 2\n", ImVec2(100, 60)))
+      {
+        printf("Aux 2 Option 2\n");
+
+        TMCCInterface::AccessoryAux2Option2(accessoryID);
+      };
+      ImGui::PopButtonRepeat();
+      
+    }
     ImGui::End();
   }
 }
@@ -1776,9 +2373,13 @@ void ThrottleMenu::PlayWhistle(bool enabled , float curTime, float currentQuill,
     if (curTime - ThrottleMenu::lastQuillTime >= quillInterval)
     {
       int value = (int)(currentQuill * 15.0f);
-      ThrottleMenu::lastQuillTime = curTime;
-      printf("Quilling: %d\n", value);
-      TMCCInterface::EngineSetQuillingHornIntensity(engineID, value);
+      if (value > 0)
+      {
+        ThrottleMenu::lastQuillTime = curTime;
+        printf("Quilling: %d\n", value);
+        TMCCInterface::EngineSetQuillingHornIntensity(engineID, value);
+      }
+      
     }
   }
   
@@ -1859,6 +2460,9 @@ void ThrottleMenu::DrawKeypadType(int currentKeypadType, bool isLegacy, int engi
     case EngineTypeTMCC::ENGINE_TYPE_TMCC_ACELA:
       DrawTMCCAcelaKeypad(m_selected_engine);
       break;
+    case EngineTypeTMCC::ENGINE_TYPE_TMCC_CRANE:
+      DrawTMCCCraneKeypad(m_selected_engine);
+      break;
     default:
       DrawCAB1Keypad(m_selected_engine);
       break;
@@ -1886,6 +2490,7 @@ void ThrottleMenu::SetUpEngineFromRoster(int engineID,bool legacyEnabled, const 
 
 void ThrottleMenu::HandleGameControllerEvents(SDL_GameController* gGameController, float curTime, const std::string& dir, int leftStickXDeadZone, int leftStickYDeadZone, int rightStickXDeadZone, int rightStickYDeadZone)
 {
+  //SDL_Delay(50);
   if (gGameController)
   {
     float interval = 0.1f;
@@ -1894,15 +2499,17 @@ void ThrottleMenu::HandleGameControllerEvents(SDL_GameController* gGameControlle
       ThrottleMenu::lastTime = curTime;
       if (SDL_GameControllerGetAxis(gGameController, SDL_CONTROLLER_AXIS_RIGHTY))
       {
+        // The speed here will also update the UI Throttle. Yay!
         float value = (float)SDL_GameControllerGetAxis(gGameController, SDL_CONTROLLER_AXIS_RIGHTY);
         if (value > rightStickYDeadZone + 10000)
         {
+          
           //printf("Down Right Stick Y: %d\n", (int)value);
           m_enginedefs[m_selected_engine].legacy_speed--;
           if (m_enginedefs[m_selected_engine].legacy_speed < 0)
             m_enginedefs[m_selected_engine].legacy_speed = 0;
-          //m_enginedefs[m_selected_engine].SetSpeed(m_enginedefs[m_selected_engine].legacy_speed, m_enginedefs[m_selected_engine].legacyEngine);
-          TMCCInterface::EngineSetAbsoluteSpeed2(engineID, m_enginedefs[m_selected_engine].legacy_speed);
+        
+          m_enginedefs[m_selected_engine].UpdateSpeed();
         }
         else if (value < rightStickYDeadZone - 10000)
         {
@@ -1910,8 +2517,8 @@ void ThrottleMenu::HandleGameControllerEvents(SDL_GameController* gGameControlle
           m_enginedefs[m_selected_engine].legacy_speed++;
           if (m_enginedefs[m_selected_engine].legacy_speed > 200)
             m_enginedefs[m_selected_engine].legacy_speed = 200;
-          //m_enginedefs[m_selected_engine].SetSpeed(m_enginedefs[m_selected_engine].legacy_speed, m_enginedefs[m_selected_engine].legacyEngine);
-          TMCCInterface::EngineSetAbsoluteSpeed2(engineID, m_enginedefs[m_selected_engine].legacy_speed);
+          
+          m_enginedefs[m_selected_engine].UpdateSpeed();
         }
       }
       if (SDL_GameControllerGetAxis(gGameController, SDL_CONTROLLER_AXIS_LEFTY) && !guitarController)
@@ -1919,13 +2526,86 @@ void ThrottleMenu::HandleGameControllerEvents(SDL_GameController* gGameControlle
         float value = (float)SDL_GameControllerGetAxis(gGameController, SDL_CONTROLLER_AXIS_LEFTY);
         if (value < leftStickYDeadZone - 10000)
         {
-          
+          value = (value / 32767);
+          //value = floorf(value * 10) / 10;
+          //printf("Controller Brake %f\n", value);
+
+          if (value < -0.9)
+          {
+            if (m_enginedefs[m_selected_engine].legacyEngine)
+            {
+              // if stick is pulled down enough, decrement the gamePadTrainBrake variable
+              // and check if it's less than zero. if so, then set it min to zero.
+              // Then re run through the same code the train brake slider uses. 
+
+              m_enginedefs[m_selected_engine].gamepadTrainBrake -= 0.1f;
+
+              if (m_enginedefs[m_selected_engine].gamepadTrainBrake < 0.0f)
+                m_enginedefs[m_selected_engine].gamepadTrainBrake = 0.0f;
+
+              int brakevalue = (int)(m_enginedefs[m_selected_engine].gamepadTrainBrake * 8.0f);
+              m_enginedefs[m_selected_engine].currentTrainBrake = m_enginedefs[m_selected_engine].gamepadTrainBrake;
+              m_enginedefs[m_selected_engine].SetSpeedMultiplier(1.0 - m_enginedefs[m_selected_engine].gamepadTrainBrake, m_enginedefs[m_selected_engine].legacyEngine, true);
+              //TMCCInterface::EngineSetTrainBrake2(engineID, brakevalue);
+              //if (brakeSoundEnabledAllTypes)
+              //  TMCCInterface::EngineBrakeSquealSound(engineID);
+
+              //if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_STEAM)
+              //{
+              //  int labourvalue = (int)(m_enginedefs[m_selected_engine].gamepadTrainBrake * 32.0f);
+              //  m_enginedefs[m_selected_engine].steam_labour_intensity = labourvalue;
+              //  TMCCInterface::EngineSetLabor(engineID, labourvalue);
+              //}
+              //else
+              //{
+              //  int dieselRun = (int)(m_enginedefs[m_selected_engine].gamepadTrainBrake * 8.0f);
+              //  m_enginedefs[m_selected_engine].diesel_electric_rev_lvl = dieselRun;
+              //  TMCCInterface::EngineSetDieselRunLevel(engineID, dieselRun);
+              //}
+            }
+          }
         }
         else if (value > leftStickYDeadZone + 10000)
         {
           //printf("Left Stick Y: %d\n", (int)value);
-          printf("Controller Brake\n");
-          TMCCInterface::EngineBrakeSpeed(engineID);
+          value = (value / 32767);
+          value = floorf(value * 10) / 10;
+          //printf("Controller Brake %f\n", value);
+          
+          if (value > 0.9) 
+          {
+            if (m_enginedefs[m_selected_engine].legacyEngine)
+            {
+              // if stick is pulled down enough, increment the gamePadTrainBrake variable
+              // and check if it's over 1. if so, then set it max to one.
+              // Then re run through the same code the train brake slider uses. 
+
+              m_enginedefs[m_selected_engine].gamepadTrainBrake += 0.1f;
+
+              if (m_enginedefs[m_selected_engine].gamepadTrainBrake > 1.0f)
+                m_enginedefs[m_selected_engine].gamepadTrainBrake = 1.0f;
+
+              int brakevalue = (int)(m_enginedefs[m_selected_engine].gamepadTrainBrake * 8.0f);
+              m_enginedefs[m_selected_engine].currentTrainBrake = m_enginedefs[m_selected_engine].gamepadTrainBrake;
+              m_enginedefs[m_selected_engine].SetSpeedMultiplier(1.0 - m_enginedefs[m_selected_engine].gamepadTrainBrake, m_enginedefs[m_selected_engine].legacyEngine, true);
+              /*TMCCInterface::EngineSetTrainBrake2(engineID, brakevalue);
+              if (brakeSoundEnabledAllTypes)
+                TMCCInterface::EngineBrakeSquealSound(engineID);
+
+              if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_STEAM)
+              {
+                int labourvalue = (int)(m_enginedefs[m_selected_engine].gamepadTrainBrake * 32.0f);
+                m_enginedefs[m_selected_engine].steam_labour_intensity = labourvalue;
+                TMCCInterface::EngineSetLabor(engineID, labourvalue);
+              }
+              else
+              {
+                int dieselRun = (int)(m_enginedefs[m_selected_engine].gamepadTrainBrake * 8.0f);
+                m_enginedefs[m_selected_engine].diesel_electric_rev_lvl = dieselRun;
+                TMCCInterface::EngineSetDieselRunLevel(engineID, dieselRun);
+              }*/
+            }
+          }
         }
       }
 
@@ -1955,8 +2635,8 @@ void ThrottleMenu::HandleGameControllerEvents(SDL_GameController* gGameControlle
       }
       if (SDL_GameControllerGetButton(gGameController, SDL_CONTROLLER_BUTTON_B))
       {
-        printf("Change Direction\n");
-        TMCCInterface::EngineToggleDirection(engineID);
+        printf("Controller Front Coupler\n");
+        TMCCInterface::EngineOpenFrontCoupler(engineID);
       }
       if (SDL_GameControllerGetButton(gGameController, SDL_CONTROLLER_BUTTON_X))
       {
@@ -1966,7 +2646,8 @@ void ThrottleMenu::HandleGameControllerEvents(SDL_GameController* gGameControlle
       }
       if (SDL_GameControllerGetButton(gGameController, SDL_CONTROLLER_BUTTON_Y))
       {
-
+        printf("Controller Rear Coupler\n");
+        TMCCInterface::EngineOpenRearCoupler(engineID);
       }
 
       if (SDL_GameControllerGetButton(gGameController, SDL_CONTROLLER_BUTTON_START))
@@ -2003,7 +2684,7 @@ void ThrottleMenu::HandleGameControllerEvents(SDL_GameController* gGameControlle
           if (m_enginedefs[m_selected_engine].legacy_speed < 0)
             m_enginedefs[m_selected_engine].legacy_speed = 0;
           //m_enginedefs[m_selected_engine].SetSpeed(m_enginedefs[m_selected_engine].legacy_speed, m_enginedefs[m_selected_engine].legacyEngine);
-          TMCCInterface::EngineSetAbsoluteSpeed2(engineID, m_enginedefs[m_selected_engine].legacy_speed);
+          m_enginedefs[m_selected_engine].UpdateSpeed();
         }
         else
         {
@@ -2022,7 +2703,7 @@ void ThrottleMenu::HandleGameControllerEvents(SDL_GameController* gGameControlle
           if (m_enginedefs[m_selected_engine].legacy_speed > 200)
             m_enginedefs[m_selected_engine].legacy_speed = 200;
           //m_enginedefs[m_selected_engine].SetSpeed(m_enginedefs[m_selected_engine].legacy_speed, m_enginedefs[m_selected_engine].legacyEngine);
-          TMCCInterface::EngineSetAbsoluteSpeed2(engineID, m_enginedefs[m_selected_engine].legacy_speed);
+          m_enginedefs[m_selected_engine].UpdateSpeed();
         }
         else
         {
@@ -2045,14 +2726,15 @@ void ThrottleMenu::HandleGameControllerEvents(SDL_GameController* gGameControlle
 
       if (SDL_GameControllerGetButton(gGameController, SDL_CONTROLLER_BUTTON_LEFTSTICK))
       {
-        printf("Controller Rear Coupler\n");
-        TMCCInterface::EngineOpenRearCoupler(engineID);
+        
       }
 
       if (SDL_GameControllerGetButton(gGameController, SDL_CONTROLLER_BUTTON_RIGHTSTICK))
       {
-        printf("Controller Front Coupler\n");
-        TMCCInterface::EngineOpenFrontCoupler(engineID);
+        
+
+        printf("Change Direction\n");
+        TMCCInterface::EngineToggleDirection(engineID);
       }
 
       if (SDL_GameControllerGetButton(gGameController, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER))
@@ -2127,20 +2809,64 @@ void ThrottleMenu::HandleGameControllerEvents(SDL_GameController* gGameControlle
       {
         //printf("Left Stick Y: %d\n", (int)value);
         value = (value / 32767) * 15.0f;
-
-        printf("Game controller Quilling: %d\n", (int)value);
-        TMCCInterface::EngineSetQuillingHornIntensity(engineID, (int)value);
+        if ((int)value > 0)
+        {
+          TMCCInterface::EngineSetQuillingHornIntensity(engineID, (int)value);
+        }
+        else
+        {
+          TMCCInterface::EngineSetQuillingHornIntensity(engineID, 0);
+        }
+        printf("Guitar Game controller Quilling: %d\n", (int)value);
       }
     }
       else if (SDL_GameControllerGetAxis(gGameController, SDL_CONTROLLER_AXIS_TRIGGERRIGHT))
       {
         float value = (float)SDL_GameControllerGetAxis(gGameController, SDL_CONTROLLER_AXIS_TRIGGERRIGHT);
         value = (value / 32767) * 15.0f;
-
+        if ((int)value > 0)
+        {
+          TMCCInterface::EngineSetQuillingHornIntensity(engineID, (int)value);
+        }
+        else
+        {
+          TMCCInterface::EngineSetQuillingHornIntensity(engineID, 0);
+        }
         printf("Game controller Quilling: %d\n", (int)value);
-        TMCCInterface::EngineSetQuillingHornIntensity(engineID, (int)value);
         //printf("Right Trigger value: %d\n", SDL_GameControllerGetAxis(gGameController, SDL_CONTROLLER_AXIS_TRIGGERRIGHT));
       }
+
+    else if (SDL_GameControllerGetAxis(gGameController, SDL_CONTROLLER_AXIS_TRIGGERLEFT))
+    {
+      float value = (float)SDL_GameControllerGetAxis(gGameController, SDL_CONTROLLER_AXIS_TRIGGERLEFT);
+      value = (value / 32767);
+
+      
+      if (m_enginedefs[m_selected_engine].legacyEngine)
+      {
+        int brakevalue = (int)(value * 8.0f);
+        m_enginedefs[m_selected_engine].SetSpeedMultiplier(1.0 - value, m_enginedefs[m_selected_engine].legacyEngine, true);
+        //TMCCInterface::EngineSetTrainBrake2(engineID, brakevalue);
+        //if (brakeSoundEnabledAllTypes)
+        //  TMCCInterface::EngineBrakeSquealSound(engineID);
+
+        //if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_STEAM)
+        //{
+        //  int labourvalue = (int)(value * 32.0f);
+        //  m_enginedefs[m_selected_engine].steam_labour_intensity = labourvalue;
+        //  TMCCInterface::EngineSetLabor(engineID, labourvalue);
+        //}
+        //else
+        //{
+        //  int dieselRun = (int)(value * 8.0f);
+        //  m_enginedefs[m_selected_engine].diesel_electric_rev_lvl = dieselRun;
+        //  TMCCInterface::EngineSetDieselRunLevel(engineID, dieselRun);
+        //}
+      }
+
+      printf("Game controller braking: %f\n", value);
+      //printf("Right Trigger value: %d\n", SDL_GameControllerGetAxis(gGameController, SDL_CONTROLLER_AXIS_TRIGGERRIGHT));
+    }
 
       
     }

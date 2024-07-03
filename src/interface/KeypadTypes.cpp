@@ -13,9 +13,12 @@
 #include "../EngineManagement.h"
 #include <fstream>
 
+ImVec4 blackCol = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
+
+
 void ThrottleMenu::DrawCAB1Keypad(int engineID)
 {
-  ImGui::ImageButton((void*)(intptr_t)num1Icon->GetGLHandle(), ImVec2(70, 70));
+  ImGui::ImageButton((void*)(intptr_t)num1Icon->GetGLHandle(), ImVec2(70, 70), ImVec2(0, 0), ImVec2(1, 1), -1, blackCol);
   if (ImGui::IsItemHovered() && ImGui::IsMouseDown(0))
   {
     printf("Num 1 key\n");
@@ -314,7 +317,7 @@ void ThrottleMenu::DrawCAB2SteamKeypad(int engineID)
     if (ImGui::Button("Vision Coal\nEmpty", ImVec2(78, 76)))
     {
       TMCCInterface::EnginePlayEffectCommand(engineID, FX_VISION_COAL_FEATURE_EMPTY);
-      printf("FX_VISION_COAL_FEATURE_EMPTY\n");
+      printf("Vision Tender Coal Setting to Empty\n");
 
     };
 
@@ -334,7 +337,7 @@ void ThrottleMenu::DrawCAB2SteamKeypad(int engineID)
     if (ImGui::Button("Vision Coal\nFull", ImVec2(78, 76)))
     {
       TMCCInterface::EnginePlayEffectCommand(engineID, FX_VISION_COAL_FEATURE_FULL);
-      printf("FX_VISION_COAL_FEATURE_FULL\n");
+      printf("Vision Tender Coal Setting to Full\n");
 
     };
 
@@ -346,7 +349,7 @@ void ThrottleMenu::DrawCAB2SteamKeypad(int engineID)
     if (ImGui::Button("Fill\nVision Coal", ImVec2(78, 76)))
     {
       TMCCInterface::EnginePlayEffectCommand(engineID, FX_VISION_COAL_FEATURE_FILLING);
-      printf("FX_VISION_COAL_FEATURE_FILLING\n");
+      printf("Vision Tender Coal Filling\n");
 
     };
     ImGui::PopButtonRepeat();
@@ -358,7 +361,7 @@ void ThrottleMenu::DrawCAB2SteamKeypad(int engineID)
     if (ImGui::Button("Wheel\nSlip", ImVec2(78, 76)))
     {
       TMCCInterface::EnginePlayRailsoundsEffectTrigger(engineID, ET_WHEEL_SLIP_TRIGGER);
-      printf("ET_WHEEL_SLIP_TRIGGER\n");
+      printf("Wheel slip sound effect\n");
     };
     ImGui::PopButtonRepeat();
 
@@ -367,7 +370,7 @@ void ThrottleMenu::DrawCAB2SteamKeypad(int engineID)
     if (ImGui::Button("Empty\nVision Coal", ImVec2(78, 76)))
     {
       TMCCInterface::EnginePlayEffectCommand(engineID, FX_VISION_COAL_FEATURE_EMPTYING);
-      printf("FX_VISION_COAL_FEATURE_EMPTYING\n");
+      printf("Vision Tender Coal Emptying\n");
 
     };
     ImGui::PopButtonRepeat();
@@ -996,8 +999,8 @@ void ThrottleMenu::DrawCAB2ElectricKeypad(int engineID)
     };
     if (ImGui::ImageButton((void*)(intptr_t)ditchlightonIcon->GetGLHandle(), ImVec2(70, 70)))
     {
-      printf("Hazard Lights on\n");
-      TMCCInterface::EngineSetHazardLight(engineID, TMCC_ON);
+      printf("Ditch Lights on, Pulse OFF\n");
+      TMCCInterface::EngineSetDitchLights(engineID, TMCC_ON, TMCC_OFF);
     };
 
     Tooltip("Hazard Lights on");
@@ -1250,6 +1253,7 @@ void ThrottleMenu::DrawCAB2ElectricKeypad(int engineID)
   ImGui::SameLine();
   if (ImGui::ImageButton((void*)(intptr_t)extshutDownIcon->GetGLHandle(), ImVec2(70, 70)))
   {
+    //TMCCInterface::EngineDialogCommand(engineID, DC_TOWER_SHUT_DOWN);
     TMCCInterface::EngineShutdownSequence2(engineID);
 
   };
@@ -1449,7 +1453,7 @@ void ThrottleMenu::DrawStationDinerKeypad(int engineID)
     ImGui::Button("Tickets\nPlease", ImVec2(78, 76));
     if (ImGui::IsItemHovered() && ImGui::IsMouseDown(0))
     {
-      printf("Tickets\nPlease");
+      printf("Tickets Please\n");
       TMCCInterface::EngineDialogCommand(engineID, DialogCommandParams::DC_STATION_SOUND_CAR_CONDUCTOR_TICKETS_PLZ);
     };
 
@@ -1458,7 +1462,7 @@ void ThrottleMenu::DrawStationDinerKeypad(int engineID)
     ImGui::Button("Watch\nyour Step", ImVec2(78, 76));
     if (ImGui::IsItemHovered() && ImGui::IsMouseDown(0))
     {
-      printf("Watch youR Step");
+      printf("Watch your Step\n");
       TMCCInterface::EngineDialogCommand(engineID, DialogCommandParams::DC_STATION_SOUND_CAR_CONDUCTOR_WATCH_STEP);
     };
 
@@ -1475,7 +1479,7 @@ void ThrottleMenu::DrawStationDinerKeypad(int engineID)
     ImGui::Button("PA System:\nTrain\nArrived", ImVec2(78, 76));
     if (ImGui::IsItemHovered() && ImGui::IsMouseDown(0))
     {
-      printf("PA System:\nTrain\nArrived");
+      printf("PA System:\nTrain\nArrived\n");
       TMCCInterface::EngineDialogCommand(engineID, DialogCommandParams::DC_STATION_SOUND_CAR_PA_TRAIN_ARRIVED);
     };
 
@@ -1484,14 +1488,14 @@ void ThrottleMenu::DrawStationDinerKeypad(int engineID)
     ImGui::Button("PA System:\nTrain\nArriving", ImVec2(78, 76));
     if (ImGui::IsItemHovered() && ImGui::IsMouseDown(0))
     {
-      printf("PA System:\nTrain\nArriving");
+      printf("PA System:\nTrain\nArriving\n");
       TMCCInterface::EngineDialogCommand(engineID, DialogCommandParams::DC_STATION_SOUND_CAR_PA_TRAIN_ARRIVING);
     };
 
     ImGui::Button("PA System:\nTrain\nBoarding", ImVec2(78, 76));
     if (ImGui::IsItemHovered() && ImGui::IsMouseDown(0))
     {
-      printf("PA System:\nTrain\nBoarding");
+      printf("PA System:\nTrain\nBoarding\n");
       TMCCInterface::EngineDialogCommand(engineID, DialogCommandParams::DC_STATION_SOUND_CAR_PA_TRAIN_BOARDING);
     };
 
@@ -1499,7 +1503,7 @@ void ThrottleMenu::DrawStationDinerKeypad(int engineID)
     ImGui::Button("PA System:\nTrain\nDeparting", ImVec2(78, 76));
     if (ImGui::IsItemHovered() && ImGui::IsMouseDown(0))
     {
-      printf("PA System:\nTrain\nDeparting");
+      printf("PA System:\nTrain\nDeparting\n");
       TMCCInterface::EngineDialogCommand(engineID, DialogCommandParams::DC_STATION_SOUND_CAR_PA_TRAIN_DEPARTING);
     };
 
@@ -1507,14 +1511,14 @@ void ThrottleMenu::DrawStationDinerKeypad(int engineID)
     ImGui::Button("Steward:\nFirst\nSeating", ImVec2(78, 76));
     if (ImGui::IsItemHovered() && ImGui::IsMouseDown(0))
     {
-      printf("Steward: First Seating");
+      printf("Steward: First Seating\n");
       TMCCInterface::EngineDialogCommand(engineID, DialogCommandParams::DC_STATION_SOUND_CAR_STEWARD_FIRST_SEATING);
     };
 
     ImGui::Button("Steward:\nSecond\nSeating", ImVec2(78, 76));
     if (ImGui::IsItemHovered() && ImGui::IsMouseDown(0))
     {
-      printf("Steward:\nSecond\nSeating");
+      printf("Steward:\nSecond\nSeating\n");
       TMCCInterface::EngineDialogCommand(engineID, DialogCommandParams::DC_STATION_SOUND_CAR_STEWARD_SECOND_SEATING);
     };
 
@@ -1530,14 +1534,14 @@ void ThrottleMenu::DrawStationDinerKeypad(int engineID)
     ImGui::Button("Steward:\nLounge\nOpen", ImVec2(78, 76));
     if (ImGui::IsItemHovered() && ImGui::IsMouseDown(0))
     {
-      printf("Steward:\nLounge\nOpen");
+      printf("Steward:\nLounge\nOpen\n");
       TMCCInterface::EngineDialogCommand(engineID, DialogCommandParams::DC_STATION_SOUND_CAR_STEWARD_LOUNGE_OPEN);
     };
 
     ImGui::Button("Steward:\nWelcome", ImVec2(78, 76));
     if (ImGui::IsItemHovered() && ImGui::IsMouseDown(0))
     {
-      printf("Steward:\nWelcome");
+      printf("Steward:\nWelcome\n");
       TMCCInterface::EngineDialogCommand(engineID, DialogCommandParams::DC_STATION_SOUND_CAR_STEWARD_WELCOME);
     };
 
@@ -1551,7 +1555,7 @@ void ThrottleMenu::DrawStationDinerKeypad(int engineID)
     ImGui::SameLine();
     if (ImGui::ImageButton((void*)(intptr_t)dooropenIcon->GetGLHandle(), ImVec2(70, 70)))
     {
-      printf("Aux 3 doors");
+      printf("Aux 3 doors\n");
       TMCCInterface::EngineAux3Trigger(engineID);
 
     };
@@ -1600,7 +1604,7 @@ void ThrottleMenu::DrawFreightCarKeypad(int engineID)
     ImGui::Button("Flat Wheel", ImVec2(78, 76));
     if (ImGui::IsItemHovered() && ImGui::IsMouseDown(0))
     {
-      printf("Flat Wheel on");
+      printf("Flat Wheel on\n");
       TMCCInterface::EngineStockCarSetFlatWheel(engineID,TMCC_ON);
     };
 
@@ -1611,7 +1615,7 @@ void ThrottleMenu::DrawFreightCarKeypad(int engineID)
     ImGui::Button("Load\nSequence", ImVec2(78, 76));
     if (ImGui::IsItemHovered() && ImGui::IsMouseDown(0))
     {
-      printf("Load sequence with voice");
+      printf("Load sequence with voice\n");
       TMCCInterface::EngineDialogCommand(engineID, DC_FREIGHT_CAR_LOADING);
       //TMCCInterface::EngineNumericCommand2(engineID, 3);
     };
@@ -1897,18 +1901,18 @@ void ThrottleMenu::DrawFreightCarKeypad(int engineID)
 
   ImGui::SameLine();
 
-  if (ImGui::Button("Scene 1", ImVec2(78, 76)))
+  if (ImGui::Button("Scene 0", ImVec2(78, 76)))
   {
-    printf("FX_STOCK_CAR_SCENE_0\n");
+    printf("Stock Car Scene 0\n");
     TMCCInterface::EngineEffectCommand(engineID, FX_STOCK_CAR_SCENE_0);
   };
 
   ImGui::SameLine();
 
   
-  if (ImGui::Button("Scene 2", ImVec2(78, 76)))
+  if (ImGui::Button("Scene 1", ImVec2(78, 76)))
   {
-    printf("FX_STOCK_CAR_SCENE_1\n");
+    printf("Stock Car Scene 1\n");
     TMCCInterface::EngineEffectCommand(engineID, FX_STOCK_CAR_SCENE_1);
   };
 
@@ -1923,18 +1927,18 @@ void ThrottleMenu::DrawFreightCarKeypad(int engineID)
 
   ImGui::SameLine();
   
-  if (ImGui::Button("Scene 3", ImVec2(78, 76)))
+  if (ImGui::Button("Scene 2", ImVec2(78, 76)))
   {
-    printf("FX_STOCK_CAR_SCENE_2\n");
+    printf("Stock Car Scene 2\n");
     TMCCInterface::EngineEffectCommand(engineID, FX_STOCK_CAR_SCENE_2);
   };
 
   ImGui::SameLine();
 
   
-  if (ImGui::Button("Scene 4", ImVec2(78, 76)))
+  if (ImGui::Button("Scene 3", ImVec2(78, 76)))
   {
-    printf("FX_STOCK_CAR_SCENE_3\n");
+    printf("Stock Car Scene 3\n");
     TMCCInterface::EngineEffectCommand(engineID, FX_STOCK_CAR_SCENE_3);
   };
 
@@ -2352,6 +2356,166 @@ void ThrottleMenu::DrawTMCCDieselKeypad(int engineID)
   }
 }
 
+void ThrottleMenu::DrawTMCCCraneKeypad(int engineID)
+{
+  if (m_enginedefs[m_selected_engine].keyPadPage == 0)
+  {
+    if (ImGui::ImageButton((void*)(intptr_t)craneBoomIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+      TMCCInterface::EngineNumericCommand(engineID, 1);
+
+    };
+    Tooltip("Boom Arm Control");
+
+    ImGui::SameLine();
+
+    ImGui::ImageButton((void*)(intptr_t)craneBigHookIcon->GetGLHandle(), ImVec2(70, 70));
+    if (ImGui::IsItemHovered() && ImGui::IsMouseDown(0))
+    {
+      TMCCInterface::EngineNumericCommand(engineID, 2);
+    };
+
+    Tooltip("Big Hook Active");
+
+    ImGui::SameLine();
+
+    ImGui::ImageButton((void*)(intptr_t)craneSmallHookIcon->GetGLHandle(), ImVec2(70, 70));
+    if (ImGui::IsItemHovered() && ImGui::IsMouseDown(0))
+    {
+      TMCCInterface::EngineNumericCommand(engineID, 3);
+    };
+
+    Tooltip("Little Hook Active");
+
+
+    if (ImGui::ImageButton((void*)(intptr_t)frontLightIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+      TMCCInterface::EngineNumericCommand(engineID, 4);
+
+    };
+
+    Tooltip("Front Light Toggle");
+
+    ImGui::SameLine();
+    if (ImGui::ImageButton((void*)(intptr_t)rearLightIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+      TMCCInterface::EngineNumericCommand2(engineID, 5);
+
+    };
+
+    Tooltip("Rear Light Toggle");
+
+    ImGui::SameLine();
+
+    ImGui::ImageButton((void*)(intptr_t)craneAutoRigsIcon->GetGLHandle(), ImVec2(70, 70));
+    if (ImGui::IsItemHovered() && ImGui::IsMouseDown(0))
+    {
+      TMCCInterface::EngineNumericCommand(engineID, 6);
+    };
+
+    Tooltip("Engage Auto Rigs");
+
+
+    ImGui::ImageButton((void*)(intptr_t)towerComIcon->GetGLHandle(), ImVec2(70, 70));
+    if (ImGui::IsItemHovered() && ImGui::IsMouseDown(0))
+    {
+      printf("Tower com\n");
+      TMCCInterface::EngineNumericCommand(engineID, 7);
+    };
+
+    Tooltip("Tower Com");
+
+    ImGui::SameLine();
+    if (ImGui::ImageButton((void*)(intptr_t)soundOffIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+      TMCCInterface::EngineNumericCommand(engineID, 8);
+    };
+
+    Tooltip("Sound Off");
+
+    ImGui::SameLine();
+    if (ImGui::ImageButton((void*)(intptr_t)soundOnIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+      TMCCInterface::EngineNumericCommand(engineID, 9);
+    };
+    Tooltip("Sound On");
+
+    ImGui::PushButtonRepeat(true);
+    if (ImGui::Button("Let Off", ImVec2(78, 76)))
+    {
+      printf("TMCC Let off Pressed\n");
+      TMCCInterface::EngineLetOffSound(engineID);
+    };
+    ImGui::PopButtonRepeat();
+    Tooltip("TMCC Let off");
+
+    ImGui::SameLine();
+    if (ImGui::ImageButton((void*)(intptr_t)resetIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+      TMCCInterface::EngineNumericCommand(engineID, 0);
+
+    };
+    Tooltip("Reset (0 key)");
+
+    ImGui::SameLine();
+    if (ImGui::ImageButton((void*)(intptr_t)craneHookDownIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+            TMCCInterface::EngineBoostSpeed(engineID);
+
+    };
+    Tooltip("Lower Active Hook/Boom");
+
+    if (ImGui::ImageButton((void*)(intptr_t)blankIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+
+    };
+
+
+    ImGui::SameLine();
+    if (ImGui::Button("Toggle\nHorn 1/2", ImVec2(78, 76)))
+    {
+      printf("Toggle Horn 1 and 2\n");
+      m_enginedefs[m_selected_engine].useHorn2 = !m_enginedefs[m_selected_engine].useHorn2;
+    };
+    Tooltip("Horn 1 is the normal TMCC horn. Horn 2 is the same sound,\nbut will not enable ditch lights on diesel locos when blown.");
+
+    ImGui::SameLine();
+    if (ImGui::ImageButton((void*)(intptr_t)craneHookUpIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+      TMCCInterface::EngineBoostSpeed(engineID);
+
+    };
+    Tooltip("Raise Active Hook/Boom");
+
+
+
+    if (ImGui::ImageButton((void*)(intptr_t)leftArrowIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+      m_enginedefs[m_selected_engine].keyPadPage--;
+      if (m_enginedefs[m_selected_engine].keyPadPage < 0)
+        m_enginedefs[m_selected_engine].keyPadPage = 1;
+    };
+    ImGui::SameLine();
+    if (ImGui::ImageButton((void*)(intptr_t)blankIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+
+    };
+    ImGui::SameLine();
+    if (ImGui::ImageButton((void*)(intptr_t)rightArrowIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+      m_enginedefs[m_selected_engine].keyPadPage++;
+      if (m_enginedefs[m_selected_engine].keyPadPage > 1)
+        m_enginedefs[m_selected_engine].keyPadPage = 0;
+    };
+
+  }
+
+  else
+  {
+    DrawCAB1Keypad(engineID);
+  }
+}
+
 void ThrottleMenu::DrawTMCCAcelaKeypad(int engineID)
 {
   if (m_enginedefs[m_selected_engine].keyPadPage == 0)
@@ -2375,14 +2539,13 @@ void ThrottleMenu::DrawTMCCAcelaKeypad(int engineID)
 
     ImGui::SameLine();
 
-    ImGui::ImageButton((void*)(intptr_t)waterIcon->GetGLHandle(), ImVec2(70, 70));
+    ImGui::ImageButton((void*)(intptr_t)rpmUPIcon->GetGLHandle(), ImVec2(70, 70));
     if (ImGui::IsItemHovered() && ImGui::IsMouseDown(0))
     {
-      printf("Water injector\n");
       TMCCInterface::EngineNumericCommand(engineID, 3);
     };
 
-    Tooltip("Water Refill");
+    Tooltip("RPM Up");
 
 
     if (ImGui::ImageButton((void*)(intptr_t)volDownIcon->GetGLHandle(), ImVec2(70, 70)))
@@ -2404,14 +2567,13 @@ void ThrottleMenu::DrawTMCCAcelaKeypad(int engineID)
 
     ImGui::SameLine();
 
-    ImGui::ImageButton((void*)(intptr_t)blowdownIcon->GetGLHandle(), ImVec2(70, 70));
+    ImGui::ImageButton((void*)(intptr_t)rpmDownIcon->GetGLHandle(), ImVec2(70, 70));
     if (ImGui::IsItemHovered() && ImGui::IsMouseDown(0))
     {
-      printf("Blowdown\n");
       TMCCInterface::EngineNumericCommand(engineID, 6);
     };
 
-    Tooltip("Blowdown");
+    Tooltip("RPM Down");
 
 
     ImGui::ImageButton((void*)(intptr_t)towerComIcon->GetGLHandle(), ImVec2(70, 70));

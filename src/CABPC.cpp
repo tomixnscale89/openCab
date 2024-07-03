@@ -6,6 +6,7 @@
 #include <SDL_opengl.h>
 #include <stdio.h>
 #include <TMCCInterface.h>
+#include <PDIInterface.h>
 #include "json.hpp"
 #include "imgui-knobs.h"
 #include "interface/throttlemenu.h"
@@ -158,9 +159,12 @@ int main(int argc, char* argv[])
   }
 
   json engineRoster;
+  json switchRoster;
+  json accessoryRoster;
+  json groupRoster;
 
   ThrottleMenu menu(argv[0],gGameController, controllerName);
-  EngineManagement::ReadEngineRoster(engineRoster, menu.m_enginedefs, menu.m_switchdefs, menu.m_accessorydefs, argv[0]);
+  EngineManagement::ReadEngineRoster(engineRoster, switchRoster, accessoryRoster, groupRoster, menu.m_enginedefs, menu.m_switchdefs, menu.m_accessorydefs, argv[0]);
   menu.LoadRosterLaunch(argv[0]);
 
   
