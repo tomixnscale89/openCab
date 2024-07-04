@@ -176,9 +176,62 @@ ThrottleMenu::ThrottleMenu(const std::string& appDir, SDL_GameController* gGameC
   currentQuill = 0;
   engineID = 1;
 
-  //ImVec4* colors = ImGui::GetStyle().Colors;
-  //colors[ImGuiCol_WindowBg] = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
-  //colors[ImGuiCol_Button] = ImVec4(0.35f, 0.40f, 0.61f, 0.00f);
+  ImVec4* colors = ImGui::GetStyle().Colors;
+  colors[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
+  colors[ImGuiCol_TextDisabled] = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
+  colors[ImGuiCol_WindowBg] = ImVec4(0.06f, 0.06f, 0.06f, 0.94f);
+  colors[ImGuiCol_ChildBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+  colors[ImGuiCol_PopupBg] = ImVec4(0.08f, 0.08f, 0.08f, 0.94f);
+  colors[ImGuiCol_Border] = ImVec4(0.43f, 0.43f, 0.50f, 0.50f);
+  colors[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+  colors[ImGuiCol_FrameBg] = ImVec4(0.40f, 0.40f, 0.40f, 0.54f);
+  colors[ImGuiCol_FrameBgHovered] = ImVec4(0.71f, 0.71f, 0.71f, 0.40f);
+  colors[ImGuiCol_FrameBgActive] = ImVec4(0.51f, 0.51f, 0.51f, 0.67f);
+  colors[ImGuiCol_TitleBg] = ImVec4(0.04f, 0.04f, 0.04f, 1.00f);
+  colors[ImGuiCol_TitleBgActive] = ImVec4(0.54f, 0.09f, 0.09f, 1.00f);
+  colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.00f, 0.00f, 0.00f, 0.51f);
+  colors[ImGuiCol_MenuBarBg] = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
+  colors[ImGuiCol_ScrollbarBg] = ImVec4(0.02f, 0.02f, 0.02f, 0.53f);
+  colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.31f, 0.31f, 0.31f, 1.00f);
+  colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.41f, 0.41f, 0.41f, 1.00f);
+  colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.51f, 0.51f, 0.51f, 1.00f);
+  colors[ImGuiCol_CheckMark] = ImVec4(1.00f, 0.45f, 0.45f, 1.00f);
+  colors[ImGuiCol_SliderGrab] = ImVec4(1.00f, 1.00f, 1.00f, 0.66f);
+  colors[ImGuiCol_SliderGrabActive] = ImVec4(0.67f, 0.67f, 0.67f, 1.00f);
+  colors[ImGuiCol_Button] = ImVec4(0.66f, 0.16f, 0.16f, 1.00f);  
+  colors[ImGuiCol_ButtonHovered] = ImVec4(0.99f, 0.14f, 0.14f, 1.00f);
+  colors[ImGuiCol_ButtonActive] = ImVec4(1.00f, 0.29f, 0.29f, 1.00f);
+  colors[ImGuiCol_Header] = ImVec4(1.00f, 0.29f, 0.29f, 0.31f);
+  colors[ImGuiCol_HeaderHovered] = ImVec4(1.00f, 0.00f, 0.00f, 0.80f);
+  colors[ImGuiCol_HeaderActive] = ImVec4(0.99f, 0.24f, 0.24f, 1.00f);
+  colors[ImGuiCol_Separator] = ImVec4(0.43f, 0.43f, 0.50f, 0.50f);
+  colors[ImGuiCol_SeparatorHovered] = ImVec4(0.75f, 0.00f, 0.00f, 0.78f);
+  colors[ImGuiCol_SeparatorActive] = ImVec4(0.83f, 0.22f, 0.22f, 1.00f);
+  colors[ImGuiCol_ResizeGrip] = ImVec4(0.98f, 0.26f, 0.26f, 0.20f);
+  colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.98f, 0.26f, 0.26f, 0.67f);
+  colors[ImGuiCol_ResizeGripActive] = ImVec4(0.98f, 0.26f, 0.26f, 0.95f);
+  colors[ImGuiCol_Tab] = ImVec4(0.58f, 0.18f, 0.18f, 0.86f);
+  colors[ImGuiCol_TabHovered] = ImVec4(0.98f, 0.26f, 0.26f, 0.80f);
+  colors[ImGuiCol_TabActive] = ImVec4(0.68f, 0.20f, 0.20f, 1.00f);
+  colors[ImGuiCol_TabUnfocused] = ImVec4(0.15f, 0.07f, 0.07f, 0.97f);
+  colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.42f, 0.14f, 0.14f, 1.00f);
+  colors[ImGuiCol_PlotLines] = ImVec4(0.61f, 0.61f, 0.61f, 1.00f);
+  colors[ImGuiCol_PlotLinesHovered] = ImVec4(1.00f, 0.43f, 0.35f, 1.00f);
+  colors[ImGuiCol_PlotHistogram] = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
+  colors[ImGuiCol_PlotHistogramHovered] = ImVec4(1.00f, 0.60f, 0.00f, 1.00f);
+  colors[ImGuiCol_TableHeaderBg] = ImVec4(0.19f, 0.19f, 0.20f, 1.00f);
+  colors[ImGuiCol_TableBorderStrong] = ImVec4(0.31f, 0.31f, 0.35f, 1.00f);
+  colors[ImGuiCol_TableBorderLight] = ImVec4(0.23f, 0.23f, 0.25f, 1.00f);
+  colors[ImGuiCol_TableRowBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+  colors[ImGuiCol_TableRowBgAlt] = ImVec4(1.00f, 1.00f, 1.00f, 0.06f);
+  colors[ImGuiCol_TextSelectedBg] = ImVec4(0.98f, 0.26f, 0.26f, 0.35f);
+  colors[ImGuiCol_DragDropTarget] = ImVec4(1.00f, 1.00f, 0.00f, 0.90f);
+  colors[ImGuiCol_NavHighlight] = ImVec4(0.98f, 0.26f, 0.26f, 1.00f);
+  colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
+  colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
+  colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
+
+
 
   //ImGui::GetBackgroundDrawList()->AddImage();
 
@@ -222,6 +275,10 @@ ThrottleMenu::ThrottleMenu(const std::string& appDir, SDL_GameController* gGameC
   reverseIcon = std::make_shared<Image>(dir + "/graphics/reverse_direction.png");
   
   bellIcon = std::make_shared<Image>(dir + "/graphics/bell.png");
+  bellWideIcon = std::make_shared<Image>(dir + "/graphics/bell_wide.png");
+  bellWideOneShot_1Icon = std::make_shared<Image>(dir + "/graphics/bell_wide_oneshot_1.png");
+  bellWideOneShot_2Icon = std::make_shared<Image>(dir + "/graphics/bell_wide_oneshot_2.png");
+  bellWideOneShot_3Icon = std::make_shared<Image>(dir + "/graphics/bell_wide_oneshot_3.png");
 
   aux1arrowIcon = std::make_shared<Image>(dir + "/graphics/aux1_arrow.png");
   aux2arrowIcon = std::make_shared<Image>(dir + "/graphics/aux2_arrow.png");
@@ -239,6 +296,11 @@ ThrottleMenu::ThrottleMenu(const std::string& appDir, SDL_GameController* gGameC
   num9Icon = std::make_shared<Image>(dir + "/graphics/9.png");
   num0Icon = std::make_shared<Image>(dir + "/graphics/0.png");
 
+  minusIcon = std::make_shared<Image>(dir + "/graphics/minus_button.png");
+  plusIcon = std::make_shared<Image>(dir + "/graphics/plus_button.png");
+  minusThrottleIcon = std::make_shared<Image>(dir + "/graphics/mph_-.png");
+  plusThrottleIcon = std::make_shared<Image>(dir + "/graphics/mph_+.png");
+  stopThrottleIcon = std::make_shared<Image>(dir + "/graphics/stop_throttle.png");
 
 
 
@@ -249,11 +311,17 @@ ThrottleMenu::ThrottleMenu(const std::string& appDir, SDL_GameController* gGameC
   doglightonIcon = std::make_shared<Image>(dir + "/graphics/doghouse_on.png");
   groundlightonIcon = std::make_shared<Image>(dir + "/graphics/groundlights_on.png");
   groundlightoffIcon = std::make_shared<Image>(dir + "/graphics/groundlights_off.png");
+  groundlightAutoIcon = std::make_shared<Image>(dir + "/graphics/groundlights_auto.png");
   ditchlightoffIcon = std::make_shared<Image>(dir + "/graphics/ditch_off.png");
   ditchlightonIcon = std::make_shared<Image>(dir + "/graphics/ditch_on.png");
-  ditchlightautoIcon = std::make_shared<Image>(dir + "/graphics/0.png");
+  ditchlightautoIcon = std::make_shared<Image>(dir + "/graphics/ditch_on_auto.png");
+  ditchlightHornIcon = std::make_shared<Image>(dir + "/graphics/ditch_on_horn.png");
   locomarkeronIcon = std::make_shared<Image>(dir + "/graphics/loco_markers_on.png");
   locomarkeroffIcon = std::make_shared<Image>(dir + "/graphics/loco_markers_off.png");
+  strobeOnIcon = std::make_shared<Image>(dir + "/graphics/strobe_on.png");
+  strobeOffIcon = std::make_shared<Image>(dir + "/graphics/strobe_off.png");  
+  hazardOnIcon = std::make_shared<Image>(dir + "/graphics/hazard_on.png");
+  hazardOffIcon = std::make_shared<Image>(dir + "/graphics/hazard_off.png");
   doorcloseIcon = std::make_shared<Image>(dir + "/graphics/door_close.png");
   dooropenIcon = std::make_shared<Image>(dir + "/graphics/door_open.png");
   buttonAnnouncementIcon = std::make_shared<Image>(dir + "/graphics/button_announcement.png");
@@ -285,6 +353,10 @@ ThrottleMenu::ThrottleMenu(const std::string& appDir, SDL_GameController* gGameC
   mediumMomentumIcon = std::make_shared<Image>(dir + "/graphics/med_momentum.png");
   highMomentumIcon = std::make_shared<Image>(dir + "/graphics/hi_momentum.png");
   letOffIcon = std::make_shared<Image>(dir + "/graphics/let_off.png");
+  setIcon = std::make_shared<Image>(dir + "/graphics/set.png");
+  boostIcon = std::make_shared<Image>(dir + "/graphics/boost.png");
+  brakeIcon = std::make_shared<Image>(dir + "/graphics/brake.png");
+  emergencyIcon = std::make_shared<Image>(dir + "/graphics/emergency.png");
 
   acelaArriveIcon = std::make_shared<Image>(dir + "/graphics/arriving_acela.png");
   acelaDepartIcon = std::make_shared<Image>(dir + "/graphics/departing_acela.png");
@@ -390,11 +462,12 @@ void ThrottleMenu::Draw(const std::string& appDir, SDL_GameController* gGameCont
 
   if (accessoryMenuVisible)              AccessoryWindow(&accessoryMenuVisible);
   if (switchMenuVisible)              SwitchWindow(&switchMenuVisible);
-
+  if (show_demo_window)
+    ImGui::ShowDemoWindow(&show_demo_window);
 
   // Debug Windows
   if (soundMaskWindowVisible)              SoundMaskWindow(&soundMaskWindowVisible);
-  if (lightingWindowVisible)              ShowSoundWindow(&lightingWindowVisible);
+  if (lightingWindowVisible)              DebugLightingWindow(&lightingWindowVisible);
   if (serialTermainalVisible)              ShowSoundWindow(&serialTermainalVisible);
   if (bellDebugWindowVisible)              DebugBellWindow(&bellDebugWindowVisible);
   if (whistleDebugWindowVisible)              ShowSoundWindow(&whistleDebugWindowVisible);
@@ -439,7 +512,7 @@ void ThrottleMenu::Draw(const std::string& appDir, SDL_GameController* gGameCont
       ImGui::MenuItem("Sound Menu", NULL, &soundMenuVisible);
       ImGui::MenuItem("CrewTalk/TowerCom Announcements", NULL, &voiceClipMenuVisible);
       ImGui::MenuItem("StationSounds Diner Announcements", NULL, &dinerVoiceClipMenuVisible);
-      //ImGui::MenuItem("Lighting Menu", NULL, &test);
+      ImGui::MenuItem("Lighting Menu", NULL, &lightingWindowVisible);
       //ImGui::MenuItem("Enable Surface Dial", NULL, &surfaceDialEnabled);
       ImGui::EndMenu();
     }
@@ -458,6 +531,7 @@ void ThrottleMenu::Draw(const std::string& appDir, SDL_GameController* gGameCont
       //ImGui::MenuItem("Lighting Menu", NULL, &lightingWindowVisible);
       ImGui::MenuItem("Bell Menu", NULL, &bellDebugWindowVisible);
       ImGui::MenuItem("Whistle/Horn Menu", NULL, &whistleDebugWindowVisible);      
+      ImGui::MenuItem("ImGui Demo Menu", NULL, &show_demo_window);
       //ImGui::MenuItem("Terminal Window", NULL, &serialTermainalVisible);
       //ImGui::MenuItem("PDI Window", NULL, &pdiTestingWindowVisible);
       ImGui::EndMenu();
@@ -543,9 +617,7 @@ void ThrottleMenu::Draw(const std::string& appDir, SDL_GameController* gGameCont
     //static int value = 0;
     static float f = 0.0f;
     static int counter = 0;
-    bool show_demo_window = true;
-    if (show_demo_window)
-      ImGui::ShowDemoWindow(&show_demo_window);
+    
 
     //ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
 
@@ -731,7 +803,215 @@ void ThrottleMenu::Draw(const std::string& appDir, SDL_GameController* gGameCont
 
     }
   };
+  void ThrottleMenu::DebugLightingWindow(bool* p_open)
+  {
+    ImGui::SetNextWindowSize(ImVec2(455, 300), ImGuiCond_FirstUseEver);
+    if (ImGui::Begin("Lighting Menu", p_open, ImGuiWindowFlags_MenuBar))
+    {
+      ImGui::BulletText("Works with Legacy Locomotives/Cars only.");
 
+      if (ImGui::Button("DOG HOUSE\nOFF", ImVec2(76, 76)))
+      {
+        printf("Dog House Off\n");
+        TMCCInterface::EngineSetDoghouseLight(engineID, TMCC_OFF);
+      };
+      ImGui::SameLine();
+      if (ImGui::Button("DOG HOUSE\nON", ImVec2(76, 76)))
+      {
+        printf("Dog House On\n");
+        TMCCInterface::EngineSetDoghouseLight(engineID, TMCC_ON);
+      };
+
+      ImGui::SameLine();
+      if (ImGui::Button("HAZARD\nON", ImVec2(76, 76)))
+      {
+        printf("Hazard Light On\n");
+        TMCCInterface::EngineSetHazardLight(engineID, TMCC_ON);
+      };
+      ImGui::SameLine();
+      if (ImGui::Button("HAZARD\nOFF", ImVec2(76, 76)))
+      {
+        printf("Hazard Light Off\n");
+        TMCCInterface::EngineSetHazardLight(engineID, TMCC_OFF);
+      };
+      ImGui::SameLine();
+      if (ImGui::Button("HAZARD\nAUTO", ImVec2(76, 76)))
+      {
+        printf("Hazard Light Auto\n");
+        TMCCInterface::EngineSetHazardLightAuto(engineID);
+      };
+
+      // line break 
+      if (ImGui::Button("DITCH OFF\nPULSE ON", ImVec2(76, 76)))
+      {
+        printf("Ditch Light OFF\n");
+        TMCCInterface::EngineSetDitchLights(engineID, TMCC_OFF, (TMCCActiveState)LT_DITCH_LIGHTS_OFF_PULSE_ON);
+      };
+      ImGui::SameLine();
+      if (ImGui::Button("DITCH ON\nPULSE OFF", ImVec2(76, 76)))
+      {
+        printf("Ditch Light OFF\n");
+        TMCCInterface::EngineSetDitchLights(engineID, TMCC_ON, (TMCCActiveState)LT_DITCH_LIGHTS_ON_PULSE_OFF);
+      };
+
+      ImGui::SameLine();
+      if (ImGui::Button("DITCH ON", ImVec2(76, 76)))
+      {
+        printf("Ditch Light OFF\n");
+        TMCCInterface::EngineSetDitchLights(engineID, TMCC_ON, (TMCCActiveState)LT_DITCH_LIGHTS_OFF_PULSE_ON);
+      };
+
+      ImGui::SameLine();
+      if (ImGui::Button("LOCO\nMARKER OFF", ImVec2(76, 76)))
+      {
+        printf("Loco Marker OFF\n");
+        TMCCInterface::EngineSetLocoMarkerLight(engineID, TMCC_OFF);
+      };
+
+      ImGui::SameLine();
+      if (ImGui::Button("LOCO\nMARKER ON", ImVec2(76, 76)))
+      {
+        printf("Loco Marker OFF\n");
+        TMCCInterface::EngineSetLocoMarkerLight(engineID, TMCC_ON);
+      };
+
+      // line break
+
+      if (ImGui::Button("TENDER\nMARKER OFF", ImVec2(76, 76)))
+      {
+        printf("Tender Marker OFF\n");
+        TMCCInterface::EngineSetTenderMarkerLight(engineID, TMCC_OFF);
+      };
+      ImGui::SameLine();
+      if (ImGui::Button("TENDER\nMARKER ON", ImVec2(76, 76)))
+      {
+        printf("Tender Marker OFF\n");
+        TMCCInterface::EngineSetTenderMarkerLight(engineID, TMCC_ON);
+      };
+
+      ImGui::SameLine();
+      if (ImGui::Button("GROUND\nLIGHT ON", ImVec2(76, 76)))
+      {
+        printf("Ground Light On\n");
+        TMCCInterface::EngineSetGroundLights(engineID, TMCC_ON);
+      };
+
+      ImGui::SameLine();
+      if (ImGui::Button("GROUND\nLIGHT OFF", ImVec2(76, 76)))
+      {
+        printf("Ground Light OFF\n");
+        TMCCInterface::EngineSetGroundLights(engineID, TMCC_OFF);
+      };
+
+      ImGui::SameLine();
+      if (ImGui::Button("GROUND\nLIGHT AUTO", ImVec2(76, 76)))
+      {
+        printf("Ground Light Auto\n");
+        TMCCInterface::EngineSetGroundLightsAuto(engineID);
+      };
+
+      // line break
+
+      if (ImGui::Button("STROBE\nOFF", ImVec2(76, 76)))
+      {
+        printf("Strobe OFF\n");
+        TMCCInterface::EngineSetStrobeLight(engineID, 0);
+      };
+      ImGui::SameLine();
+      if (ImGui::Button("STROBE ON\n SINGLE\nFLASH", ImVec2(76, 76)))
+      {
+        printf("Strobe Single Flash On\n");
+        TMCCInterface::EngineSetStrobeLight(engineID, 1);
+      };
+
+      ImGui::SameLine();
+      if (ImGui::Button("STROBE ON\n DOUBLE\nFLASH", ImVec2(76, 76)))
+      {
+        printf("Strobe Double Flash On\n");
+        TMCCInterface::EngineSetStrobeLight(engineID, 2);
+      };
+
+      ImGui::SameLine();
+      if (ImGui::Button("MARS LIGHT\nOFF", ImVec2(76, 76)))
+      {
+        printf("Mars Light OFF\n");
+        TMCCInterface::EngineSetMarsLight(engineID, TMCC_OFF);
+      };
+
+      ImGui::SameLine();
+      if (ImGui::Button("MARS LIGHT\nON", ImVec2(76, 76)))
+      {
+        printf("Mars Light On\n");
+        TMCCInterface::EngineSetMarsLight(engineID, TMCC_ON);
+      };
+
+      // line break
+
+      if (ImGui::Button("CAB LIGHT\nOFF", ImVec2(76, 76)))
+      {
+        printf("Cab Light OFF\n");
+        TMCCInterface::EngineSetCabLight(engineID, TMCC_OFF);
+      };
+      ImGui::SameLine();
+      if (ImGui::Button("CAB LIGHT\nON", ImVec2(76, 76)))
+      {
+        printf("Cab Light On\n");
+        TMCCInterface::EngineSetCabLight(engineID, TMCC_ON);
+      };
+
+      ImGui::SameLine();
+      if (ImGui::Button("CAB LIGHT\nAUTO", ImVec2(76, 76)))
+      {
+        printf("Cab Light Auto\n");
+        TMCCInterface::EngineSetCabLightAuto(engineID);
+      };
+
+      ImGui::SameLine();
+      if (ImGui::Button("RULE 17\nOFF", ImVec2(76, 76)))
+      {
+        printf("Rule 17 OFF\n");
+        TMCCInterface::EngineSetRule17(engineID, TMCC_OFF);
+      };
+
+      ImGui::SameLine();
+      if (ImGui::Button("RULE 17\nON", ImVec2(76, 76)))
+      {
+        printf("Rule 17 On\n");
+        TMCCInterface::EngineSetRule17(engineID, TMCC_ON);
+      };
+
+      // line break
+
+      if (ImGui::Button("RULE 17\nAUTO", ImVec2(76, 76)))
+      {
+        printf("Rule 17 Auto\n");
+        TMCCInterface::EngineSetRule17Auto(engineID);
+      };
+      ImGui::SameLine();
+      if (ImGui::Button("CAR CABIN\nLIGHT ON", ImVec2(76, 76)))
+      {
+        printf("Car Cabin Light On\n");
+        TMCCInterface::EngineSetCarCabinLight(engineID, TMCC_ON);
+      };
+
+      ImGui::SameLine();
+      if (ImGui::Button("CAR CABIN\nLIGHT AUTO", ImVec2(76, 76)))
+      {
+        printf("Car Cabin Light Auto\n");
+        TMCCInterface::EngineSetCarCabinLightAuto(engineID);
+      };
+
+      ImGui::SameLine();
+      if (ImGui::Button("CAR CABIN\nLIGHT OFF", ImVec2(76, 76)))
+      {
+        printf("Car Cabin Light OFF\n");
+        TMCCInterface::EngineSetCarCabinLight(engineID, TMCC_OFF);
+      };
+
+      ImGui::End();
+
+    }
+  };
   void ThrottleMenu::SoundMaskWindow(bool* p_open)
   {
     ImGui::SetNextWindowSize(ImVec2(455, 300), ImGuiCond_FirstUseEver);
@@ -1153,6 +1433,8 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
         m_enginedefs[m_selected_engine].SetSpeedMultiplier(1.0 - m_enginedefs[m_selected_engine].currentTrainBrake, m_enginedefs[m_selected_engine].legacyEngine, true);
     }
 
+    // Push our invisible button style
+    ImGui::PushStyleColor(ImGuiCol_Button, invisible);
 
     if (ImGui::ImageButton((void*)(intptr_t)fwdIcon->GetGLHandle(), ImVec2(70, 70)))
     {
@@ -1185,6 +1467,8 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
       TMCCInterface::EngineAux2Option1(engineID);
     };
 
+    // Then Pop the Invisible Style Back
+    ImGui::PopStyleColor();
     
     
 
@@ -1266,8 +1550,13 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
                 Tooltip("Diesel Fuel Level");
               }
 
+              // Push our invisible button style
+              ImGui::PushStyleColor(ImGuiCol_Button, invisible);
+
               ImGui::PushButtonRepeat(true);
-              if (ImGui::Button("-", ImVec2(52, 28)))
+
+              // Old Size ImVec2(52,28)
+              if (ImGui::ImageButton((void*)(intptr_t)minusIcon->GetGLHandle(), ImVec2(52, 28)))
               {
                 if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_STEAM)
                 {
@@ -1298,7 +1587,7 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
               ImGui::SameLine();
 
               ImGui::PushButtonRepeat(true);
-              if (ImGui::Button("+", ImVec2(52, 28)))
+              if (ImGui::ImageButton((void*)(intptr_t)plusIcon->GetGLHandle(), ImVec2(52, 28)))
               {
                 if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_STEAM)
                 {
@@ -1341,6 +1630,9 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
                 ImGui::Image((void*)(intptr_t)waterIcon->GetGLHandle(), ImVec2(25, 25), uv_min, uv_max, tint_col, border_col);
               }
 
+              // Pop back our invisible button style
+              ImGui::PopStyleColor();
+
 
             }
 
@@ -1377,9 +1669,12 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
               // TMCC Version For Crane
             }
           }
+          // Push our invisible button style
+          ImGui::PushStyleColor(ImGuiCol_Button, invisible);
 
+          // Old Button ImVec2(78,28)
             ImGui::PushButtonRepeat(true);
-            if (ImGui::Button("MPH -", ImVec2(78, 28)))
+            if (ImGui::ImageButton((void*)(intptr_t)minusThrottleIcon->GetGLHandle(), ImVec2(70, 32)))
             {
               printf("Speed -1\n");
               if (m_enginedefs[m_selected_engine].legacyEngine)
@@ -1405,7 +1700,7 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
             ImGui::PopButtonRepeat();
 
             ImGui::SameLine();
-            if (ImGui::Button("STOP", ImVec2(78, 28)))
+            if (ImGui::ImageButton((void*)(intptr_t)stopThrottleIcon->GetGLHandle(), ImVec2(70, 32)))
             {
               printf("STOP\n");
               if (m_enginedefs[m_selected_engine].legacyEngine)
@@ -1423,7 +1718,7 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
             ImGui::SameLine();
 
             ImGui::PushButtonRepeat(true);
-            if (ImGui::Button("MPH +", ImVec2(78, 28)))
+            if (ImGui::ImageButton((void*)(intptr_t)plusThrottleIcon->GetGLHandle(), ImVec2(70, 32)))
             {
               printf("Speed +1\n");
               if (m_enginedefs[m_selected_engine].legacyEngine)
@@ -1447,6 +1742,9 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
             };
             ImGui::PopButtonRepeat();
           
+
+            
+
             // Aux 3 and TMCC Let off
             if (m_enginedefs[m_selected_engine].legacyEngine)
             {
@@ -1470,7 +1768,7 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
             ImGui::SameLine();
             // Boost  and brake
             ImGui::PushButtonRepeat(true);
-            if (ImGui::ImageButton((void*)(intptr_t)aux1arrowIcon->GetGLHandle(), ImVec2(70, 70)))
+            if (ImGui::ImageButton((void*)(intptr_t)boostIcon->GetGLHandle(), ImVec2(70, 70)))
             {
               printf("Boost\n");
               TMCCInterface::EngineBoostSpeed(engineID);
@@ -1478,12 +1776,15 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
             ImGui::PopButtonRepeat();
             ImGui::SameLine();
             ImGui::PushButtonRepeat(true);
-            if (ImGui::ImageButton((void*)(intptr_t)aux2arrowIcon->GetGLHandle(), ImVec2(70, 70)))
+            if (ImGui::ImageButton((void*)(intptr_t)brakeIcon->GetGLHandle(), ImVec2(70, 70)))
             {
               printf("Brake\n");
               TMCCInterface::EngineBrakeSpeed(engineID);
             };
             ImGui::PopButtonRepeat();
+
+            // Then Pop our style back
+            ImGui::PopStyleColor();
         }
 
           
@@ -1536,6 +1837,8 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
 
         }
     
+        // Push our invisible button style
+        ImGui::PushStyleColor(ImGuiCol_Button, invisible);
     
         if (ImGui::ImageButton((void*)(intptr_t)reverseIcon->GetGLHandle(), ImVec2(70, 70)))
         {
@@ -1563,23 +1866,23 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
         //}
       //}
       ImGui::PushButtonRepeat(true);
-      if (ImGui::Button("Bell 3", ImVec2(79, 20)))
+      if (ImGui::ImageButton((void*)(intptr_t)bellWideOneShot_3Icon->GetGLHandle(), ImVec2(70, 32)))
       {
         printf("EngineBellOneShotDing: 3\n");
         TMCCInterface::EngineBellOneShotDing(engineID, 3);
       };
-      if (ImGui::Button("Bell 2", ImVec2(79, 20)))
+      if (ImGui::ImageButton((void*)(intptr_t)bellWideOneShot_2Icon->GetGLHandle(), ImVec2(70, 32)))
       {
         printf("EngineBellOneShotDing: 2\n");
         TMCCInterface::EngineBellOneShotDing(engineID, 2);
       };
-      if (ImGui::Button("Bell 1", ImVec2(79, 20)))
+      if (ImGui::ImageButton((void*)(intptr_t)bellWideOneShot_1Icon->GetGLHandle(), ImVec2(70, 32)))
       {
         printf("EngineBellOneShotDing: 1\n");
         TMCCInterface::EngineBellOneShotDing(engineID, 1);
       };
       ImGui::PopButtonRepeat();
-      if (ImGui::Button("Bell", ImVec2(79, 20)))
+      if (ImGui::ImageButton((void*)(intptr_t)bellWideIcon->GetGLHandle(), ImVec2(70, 35)))
       {
         printf("EngineToggleBell\n");
         TMCCInterface::EngineRingBell(engineID);
@@ -1617,7 +1920,8 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
     };
 
     
-
+    // Then Pop our style back
+    ImGui::PopStyleColor();
     
 
     //ImGui::Image();

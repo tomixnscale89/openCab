@@ -269,6 +269,8 @@ private:
   ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);   // No tint
   ImVec4 border_col = ImVec4(1.0f, 1.0f, 1.0f, 0.5f); // 50% opaque white
 
+  ImVec4 invisible = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
+
 
   float curTime;
   bool guitarController = false;
@@ -346,6 +348,10 @@ private:
   
   std::shared_ptr<Image> swapHornIcon;  
   std::shared_ptr<Image> bellIcon;  
+  std::shared_ptr<Image> bellWideIcon;  
+  std::shared_ptr<Image> bellWideOneShot_1Icon;
+  std::shared_ptr<Image> bellWideOneShot_2Icon;
+  std::shared_ptr<Image> bellWideOneShot_3Icon;
 
   std::shared_ptr<Image> num1Icon;
   std::shared_ptr<Image> num2Icon;
@@ -358,6 +364,13 @@ private:
   std::shared_ptr<Image> num9Icon;
   std::shared_ptr<Image> num0Icon;
 
+  std::shared_ptr<Image> minusIcon;
+  std::shared_ptr<Image> plusIcon;
+  std::shared_ptr<Image> minusThrottleIcon;
+  std::shared_ptr<Image> plusThrottleIcon;
+  std::shared_ptr<Image> stopThrottleIcon;
+
+
   std::shared_ptr<Image> stopSlow0Icon;
   std::shared_ptr<Image> marsonIcon;
   std::shared_ptr<Image> marsoffIcon;
@@ -365,9 +378,15 @@ private:
   std::shared_ptr<Image> doglightonIcon;
   std::shared_ptr<Image> groundlightonIcon;
   std::shared_ptr<Image> groundlightoffIcon;
+  std::shared_ptr<Image> groundlightAutoIcon;
   std::shared_ptr<Image> ditchlightoffIcon;
   std::shared_ptr<Image> ditchlightonIcon;
   std::shared_ptr<Image> ditchlightautoIcon;
+  std::shared_ptr<Image> ditchlightHornIcon;
+  std::shared_ptr<Image> strobeOnIcon;
+  std::shared_ptr<Image> strobeOffIcon;
+  std::shared_ptr<Image> hazardOnIcon;
+  std::shared_ptr<Image> hazardOffIcon;
   std::shared_ptr<Image> locomarkeronIcon;
   std::shared_ptr<Image> locomarkeroffIcon;
   std::shared_ptr<Image> doorcloseIcon;
@@ -393,6 +412,10 @@ private:
   std::shared_ptr<Image> mediumMomentumIcon;
   std::shared_ptr<Image> highMomentumIcon;
   std::shared_ptr<Image> letOffIcon;
+  std::shared_ptr<Image> setIcon;
+  std::shared_ptr<Image> boostIcon;
+  std::shared_ptr<Image> brakeIcon;
+  std::shared_ptr<Image> emergencyIcon;
 
 
   // Crane icons
@@ -443,6 +466,7 @@ private:
   bool cab1Menu = false;
   bool engineAddressUpdateWindowVisible = false;
   bool consistBuilderVisible = false;
+  bool show_demo_window = false;
 
   bool switchMenuVisible = false;
   bool accessoryMenuVisible = false;
@@ -517,6 +541,7 @@ private:
   void ShowSoundWindow(bool* p_open);
   void ShowVoiceWindow(bool* p_open);
   void DebugBellWindow(bool* p_open);
+  void DebugLightingWindow(bool* p_open);
   void DebugPDIWindow(bool* p_open);
   void SoundMaskWindow(bool* p_open);
   void ShowDinerVoiceWindow(bool* p_open);
