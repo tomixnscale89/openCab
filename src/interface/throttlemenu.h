@@ -388,6 +388,13 @@ private:
   std::shared_ptr<Image> lightOnIcon;
   std::shared_ptr<Image> lightOffIcon;
 
+  std::shared_ptr<Image> stallVoltageIcon;
+  std::shared_ptr<Image> lowMomentumIcon;
+  std::shared_ptr<Image> mediumMomentumIcon;
+  std::shared_ptr<Image> highMomentumIcon;
+  std::shared_ptr<Image> letOffIcon;
+
+
   // Crane icons
   std::shared_ptr<Image> craneBoomIcon;
   std::shared_ptr<Image> craneHookDownIcon;

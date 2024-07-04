@@ -2124,7 +2124,7 @@ void ThrottleMenu::DrawTMCCSteamKeypad(int engineID)
     Tooltip("Smoke On");
 
     ImGui::PushButtonRepeat(true);
-      if (ImGui::Button("Let Off", ImVec2(78, 76)))
+      if (ImGui::ImageButton((void*)(intptr_t)letOffIcon->GetGLHandle(), ImVec2(70, 70)))
       {
         printf("TMCC Let off Pressed\n");
         TMCCInterface::EngineLetOffSound(engineID);
@@ -2141,31 +2141,38 @@ void ThrottleMenu::DrawTMCCSteamKeypad(int engineID)
     Tooltip("Reset (0 key)");
 
     ImGui::SameLine();
-    if (ImGui::ImageButton((void*)(intptr_t)blankIcon->GetGLHandle(), ImVec2(70, 70)))
-    {
-
-    };
-
-
-    if (ImGui::ImageButton((void*)(intptr_t)blankIcon->GetGLHandle(), ImVec2(70, 70)))
-    {
-
-    };
-
-
-    ImGui::SameLine();
-    if (ImGui::Button("Toggle\nHorn 1/2", ImVec2(78, 76)))
+    if (ImGui::ImageButton((void*)(intptr_t)swapHornIcon->GetGLHandle(), ImVec2(70, 70)))
     {
       printf("Toggle Horn 1 and 2\n");
       m_enginedefs[m_selected_engine].useHorn2 = !m_enginedefs[m_selected_engine].useHorn2;
     };
     Tooltip("Horn 1 is the normal TMCC horn. Horn 2 is the same sound,\nbut will not enable ditch lights on diesel locos when blown.");
 
-    ImGui::SameLine();
-    if (ImGui::ImageButton((void*)(intptr_t)blankIcon->GetGLHandle(), ImVec2(70, 70)))
-    {
 
+
+    if (ImGui::ImageButton((void*)(intptr_t)lowMomentumIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+      printf("Low Momentum\n");
+      TMCCInterface::EngineSetMomentumLow(m_enginedefs[m_selected_engine].engineID);
     };
+    Tooltip("Low Momentum");
+
+
+    ImGui::SameLine();
+    if (ImGui::ImageButton((void*)(intptr_t)mediumMomentumIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+      printf("Medium Momentum\n");
+      TMCCInterface::EngineSetMomentumMedium(m_enginedefs[m_selected_engine].engineID);
+    };
+    Tooltip("Medium Momentum");
+
+    ImGui::SameLine();
+    if (ImGui::ImageButton((void*)(intptr_t)highMomentumIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+      printf("High Momentum\n");
+      TMCCInterface::EngineSetMomentumHigh(m_enginedefs[m_selected_engine].engineID);
+    };
+    Tooltip("High Momentum");
 
 
 
@@ -2284,7 +2291,7 @@ void ThrottleMenu::DrawTMCCDieselKeypad(int engineID)
     Tooltip("Smoke On");
 
     ImGui::PushButtonRepeat(true);
-    if (ImGui::Button("Let Off", ImVec2(78, 76)))
+    if (ImGui::ImageButton((void*)(intptr_t)letOffIcon->GetGLHandle(), ImVec2(70, 70)))
     {
       printf("TMCC Let off Pressed\n");
       TMCCInterface::EngineLetOffSound(engineID);
@@ -2301,31 +2308,39 @@ void ThrottleMenu::DrawTMCCDieselKeypad(int engineID)
     Tooltip("Reset (0 key)");
 
     ImGui::SameLine();
-    if (ImGui::ImageButton((void*)(intptr_t)blankIcon->GetGLHandle(), ImVec2(70, 70)))
-    {
-
-    };
-
-
-    if (ImGui::ImageButton((void*)(intptr_t)blankIcon->GetGLHandle(), ImVec2(70, 70)))
-    {
-
-    };
-
-
     ImGui::SameLine();
-    if (ImGui::Button("Toggle\nHorn 1/2", ImVec2(78, 76)))
+    if (ImGui::ImageButton((void*)(intptr_t)swapHornIcon->GetGLHandle(), ImVec2(70, 70)))
     {
       printf("Toggle Horn 1 and 2\n");
       m_enginedefs[m_selected_engine].useHorn2 = !m_enginedefs[m_selected_engine].useHorn2;
     };
     Tooltip("Horn 1 is the normal TMCC horn. Horn 2 is the same sound,\nbut will not enable ditch lights on diesel locos when blown.");
 
-    ImGui::SameLine();
-    if (ImGui::ImageButton((void*)(intptr_t)blankIcon->GetGLHandle(), ImVec2(70, 70)))
-    {
 
+
+    if (ImGui::ImageButton((void*)(intptr_t)lowMomentumIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+      printf("Low Momentum\n");
+      TMCCInterface::EngineSetMomentumLow(m_enginedefs[m_selected_engine].engineID);
     };
+    Tooltip("Low Momentum");
+
+
+    ImGui::SameLine();
+    if (ImGui::ImageButton((void*)(intptr_t)mediumMomentumIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+      printf("Medium Momentum\n");
+      TMCCInterface::EngineSetMomentumMedium(m_enginedefs[m_selected_engine].engineID);
+    };
+    Tooltip("Medium Momentum");
+
+    ImGui::SameLine();
+    if (ImGui::ImageButton((void*)(intptr_t)highMomentumIcon->GetGLHandle(), ImVec2(70, 70)))
+    {
+      printf("High Momentum\n");
+      TMCCInterface::EngineSetMomentumHigh(m_enginedefs[m_selected_engine].engineID);
+    };
+    Tooltip("High Momentum");
 
 
 
@@ -2441,7 +2456,7 @@ void ThrottleMenu::DrawTMCCCraneKeypad(int engineID)
     Tooltip("Sound On");
 
     ImGui::PushButtonRepeat(true);
-    if (ImGui::Button("Let Off", ImVec2(78, 76)))
+    if (ImGui::ImageButton((void*)(intptr_t)letOffIcon->GetGLHandle(), ImVec2(70, 70)))
     {
       printf("TMCC Let off Pressed\n");
       TMCCInterface::EngineLetOffSound(engineID);
@@ -2654,7 +2669,7 @@ void ThrottleMenu::DrawTMCCAcelaKeypad(int engineID)
         m_enginedefs[m_selected_engine].keyPadPage = 2;
     };
     ImGui::SameLine();
-    if (ImGui::Button("Toggle\nHorn 1/2", ImVec2(78, 76)))
+    if (ImGui::ImageButton((void*)(intptr_t)swapHornIcon->GetGLHandle(), ImVec2(70, 70)))
     {
       printf("Toggle Horn 1 and 2\n");
       m_enginedefs[m_selected_engine].useHorn2 = !m_enginedefs[m_selected_engine].useHorn2;

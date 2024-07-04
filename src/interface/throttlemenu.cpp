@@ -280,6 +280,12 @@ ThrottleMenu::ThrottleMenu(const std::string& appDir, SDL_GameController* gGameC
   soundOnIcon = std::make_shared<Image>(dir + "/graphics/sound_on.png");
   soundOffIcon = std::make_shared<Image>(dir + "/graphics/sound_off.png");
 
+  stallVoltageIcon = std::make_shared<Image>(dir + "/graphics/stall_voltage.png");
+  lowMomentumIcon = std::make_shared<Image>(dir + "/graphics/low_momentum.png");
+  mediumMomentumIcon = std::make_shared<Image>(dir + "/graphics/med_momentum.png");
+  highMomentumIcon = std::make_shared<Image>(dir + "/graphics/hi_momentum.png");
+  letOffIcon = std::make_shared<Image>(dir + "/graphics/let_off.png");
+
   acelaArriveIcon = std::make_shared<Image>(dir + "/graphics/arriving_acela.png");
   acelaDepartIcon = std::make_shared<Image>(dir + "/graphics/departing_acela.png");
 
@@ -1142,7 +1148,7 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
     ImGui::TableNextColumn();
     
     // brakeslidervalue from 0.0f to 1.0f
-    if (ImGui::VSliderFloat("##int", ImVec2(80, 250), &m_enginedefs[m_selected_engine].currentTrainBrake, 1.0f, 0.0f, "Train\nBrake", ImGuiSliderFlags_AlwaysClamp))
+    if (ImGui::VSliderFloat("##int", ImVec2(78, 258), &m_enginedefs[m_selected_engine].currentTrainBrake, 1.0f, 0.0f, "Train\nBrake", ImGuiSliderFlags_AlwaysClamp))
     {
         m_enginedefs[m_selected_engine].SetSpeedMultiplier(1.0 - m_enginedefs[m_selected_engine].currentTrainBrake, m_enginedefs[m_selected_engine].legacyEngine, true);
     }
@@ -1373,7 +1379,7 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
           }
 
             ImGui::PushButtonRepeat(true);
-            if (ImGui::Button("MPH -", ImVec2(52, 28)))
+            if (ImGui::Button("MPH -", ImVec2(78, 28)))
             {
               printf("Speed -1\n");
               if (m_enginedefs[m_selected_engine].legacyEngine)
@@ -1399,7 +1405,7 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
             ImGui::PopButtonRepeat();
 
             ImGui::SameLine();
-            if (ImGui::Button("STOP", ImVec2(52, 28)))
+            if (ImGui::Button("STOP", ImVec2(78, 28)))
             {
               printf("STOP\n");
               if (m_enginedefs[m_selected_engine].legacyEngine)
@@ -1417,7 +1423,7 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
             ImGui::SameLine();
 
             ImGui::PushButtonRepeat(true);
-            if (ImGui::Button("MPH +", ImVec2(52, 28)))
+            if (ImGui::Button("MPH +", ImVec2(78, 28)))
             {
               printf("Speed +1\n");
               if (m_enginedefs[m_selected_engine].legacyEngine)
@@ -1454,7 +1460,7 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
             else
             {
               ImGui::PushButtonRepeat(true);
-              if (ImGui::Button("Let Off", ImVec2(78, 76)))
+              if (ImGui::ImageButton((void*)(intptr_t)letOffIcon->GetGLHandle(), ImVec2(70, 70)))
               {
                 printf("TMCC Let off Pressed\n");
                 TMCCInterface::EngineLetOffSound(engineID);
@@ -1464,7 +1470,7 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
             ImGui::SameLine();
             // Boost  and brake
             ImGui::PushButtonRepeat(true);
-            if (ImGui::Button("Boost", ImVec2(78, 76)))
+            if (ImGui::ImageButton((void*)(intptr_t)aux1arrowIcon->GetGLHandle(), ImVec2(70, 70)))
             {
               printf("Boost\n");
               TMCCInterface::EngineBoostSpeed(engineID);
@@ -1472,7 +1478,7 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
             ImGui::PopButtonRepeat();
             ImGui::SameLine();
             ImGui::PushButtonRepeat(true);
-            if (ImGui::Button("Brake", ImVec2(78, 76)))
+            if (ImGui::ImageButton((void*)(intptr_t)aux2arrowIcon->GetGLHandle(), ImVec2(70, 70)))
             {
               printf("Brake\n");
               TMCCInterface::EngineBrakeSpeed(engineID);
@@ -1557,23 +1563,23 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
         //}
       //}
       ImGui::PushButtonRepeat(true);
-      if (ImGui::Button("Bell 3", ImVec2(70, 20)))
+      if (ImGui::Button("Bell 3", ImVec2(79, 20)))
       {
         printf("EngineBellOneShotDing: 3\n");
         TMCCInterface::EngineBellOneShotDing(engineID, 3);
       };
-      if (ImGui::Button("Bell 2", ImVec2(70, 20)))
+      if (ImGui::Button("Bell 2", ImVec2(79, 20)))
       {
         printf("EngineBellOneShotDing: 2\n");
         TMCCInterface::EngineBellOneShotDing(engineID, 2);
       };
-      if (ImGui::Button("Bell 1", ImVec2(70, 20)))
+      if (ImGui::Button("Bell 1", ImVec2(79, 20)))
       {
         printf("EngineBellOneShotDing: 1\n");
         TMCCInterface::EngineBellOneShotDing(engineID, 1);
       };
       ImGui::PopButtonRepeat();
-      if (ImGui::Button("Bell", ImVec2(70, 20)))
+      if (ImGui::Button("Bell", ImVec2(79, 20)))
       {
         printf("EngineToggleBell\n");
         TMCCInterface::EngineRingBell(engineID);
@@ -1765,53 +1771,41 @@ void ThrottleMenu::SwitchWindow(bool* p_open)
   ImGui::SetNextWindowSize(ImVec2(480, 574), ImGuiCond_FirstUseEver);
   if (ImGui::Begin("Switches", p_open, ImGuiWindowFlags_MenuBar))
   {
-    std::string hint = "No Switches Found.";
-    if (m_switchdefs.size())
-      hint = m_switchdefs[m_selected_switch].switchName;
-    // second argument is the text hint for the current item
-    if (ImGui::BeginCombo("Switch", hint.c_str()))
-    {
-      // combobox has been clicked, list the options
-      for (int i = 0; i < m_switchdefs.size(); i++)
-      {
-        // first argument is the option name, second argument is whether to display this item as selected
-        if (ImGui::Selectable(m_switchdefs[i].switchName.c_str(), m_selected_switch == i))
-        {
-          // combobox item has been clicked, set the new selected engine
-          m_selected_switch = i;
-          switchID = m_switchdefs[m_selected_switch].switchID;
-          printf("Switch ID to use: %d\n", switchID);
-
-        }
-      }
-      ImGui::EndCombo();
-    }
-
     if (m_switchdefs.size() > 0) // if size of the accessory def array is bigger than one, show our options
     {
-      ImGui::PushButtonRepeat(true);
-      if (ImGui::Button("Throw\nOut", ImVec2(100, 60)))
+      for (int i = 0; i < m_switchdefs.size(); i++)
       {
-        printf("Switch Throw Out\n");
+        ImGui::Text(m_switchdefs[i].switchName.c_str());
+        ImGui::PushID(i);
+        ImGui::PushButtonRepeat(true);
+        if (ImGui::Button("Throw\nOut", ImVec2(100, 60)))
+        {
+          printf("%s Throw Out\n", m_switchdefs[i].switchName);
 
-        TMCCInterface::SwitchThrowOut(switchID);
-      };
-      ImGui::PopButtonRepeat();
+          TMCCInterface::SwitchThrowOut(m_switchdefs[i].switchID);
+        };
+        ImGui::PopButtonRepeat();
 
-      ImGui::SameLine();
+        ImGui::SameLine();
 
-      ImGui::PushButtonRepeat(true);
-      if (ImGui::Button("Throw\Through", ImVec2(100, 60)))
-      {
-        printf("Switch Throw Through\n");
+        ImGui::PushButtonRepeat(true);
+        if (ImGui::Button("Throw\nThrough", ImVec2(100, 60)))
+        {
+          printf("%s Throw Through\n", m_switchdefs[i].switchName);
 
-        TMCCInterface::SwitchThrowThrough(switchID);
-      };
-      ImGui::PopButtonRepeat();
-
+          TMCCInterface::SwitchThrowThrough(m_switchdefs[i].switchID);
+        };
+        ImGui::PopButtonRepeat();
+        ImGui::PopID();
+      }
+      
      
 
     }
+
+    else
+      ImGui::Text("No Switches Found.");
+
     ImGui::End();
   }
 }

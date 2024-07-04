@@ -99,13 +99,13 @@ void ThrottleMenu::CAB1Window(bool* p_open, float curTime)
       };
 
       // Aux 3 and TMCC Let off
-      ImGui::PushButtonRepeat(true);
-      if (ImGui::Button("Let Off", ImVec2(78, 76)))
-      {
-        printf("TMCC Let off Pressed\n");
-        TMCCInterface::EngineLetOffSound(engineID);
-      };
-      ImGui::PopButtonRepeat();
+      //ImGui::PushButtonRepeat(true);
+      //if (ImGui::ImageButton((void*)(intptr_t)letOffIcon->GetGLHandle(), ImVec2(70, 70))) {
+      //  {
+      //  printf("TMCC Let off Pressed\n");
+      //  TMCCInterface::EngineLetOffSound(engineID);
+      //};
+      //ImGui::PopButtonRepeat();
 
       // Boost  and brake
       ImGui::PushButtonRepeat(true);
