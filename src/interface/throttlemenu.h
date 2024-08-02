@@ -35,7 +35,8 @@ enum EngineTypeTMCC : uint8
   ENGINE_TYPE_TMCC_CAR = 0x9,
   ENGINE_TYPE_TMCC_CRANE = 0xA,
   ENGINE_TYPE_TMCC_ACELA = 0xB,
-  ENGINE_TYPE_TMCC_BREAKDOWN_UNIT = 0xC
+  ENGINE_TYPE_TMCC_BREAKDOWN_UNIT = 0xC,
+  ENGINE_TYPE_TMCC_LIONCHIEF = 0xD
 };
 
 
@@ -99,7 +100,7 @@ struct EngineDef
     if (legacyEngine)
     {
       int finalSpeed = (int)(legacy_speed * legacy_speed_multiplier);
-      printf("FinalSpeed: %d\n", finalSpeed);
+      //printf("FinalSpeed: %d\n", finalSpeed);
       TMCCInterface::EngineSetAbsoluteSpeed2(engineID, finalSpeed);
     }
     else
@@ -114,16 +115,16 @@ struct EngineDef
       if (previousFinalSpeed < finalSpeed) 
       {
         TMCCInterface::EngineSetRelativeSpeed(engineID, 1);
-        printf("Relative Speed: %d\n", 1);
+        //printf("Relative Speed: %d\n", 1);
 
       }
       else if(previousFinalSpeed > finalSpeed)
       {
         TMCCInterface::EngineSetRelativeSpeed(engineID, -1);
-        printf("Relative Speed: %d\n", -1);
+        //printf("Relative Speed: %d\n", -1);
       }
       previousFinalSpeed = finalSpeed;
-      printf("FinalSpeed TMCC: %d\n", finalSpeed);
+      //printf("FinalSpeed TMCC: %d\n", finalSpeed);
       TMCCInterface::EngineSetAbsoluteSpeed(engineID, finalSpeed);
     }
     
@@ -259,6 +260,7 @@ public:
   std::vector<SwitchDef> m_switchdefs;
   std::vector<AccessoryDef> m_accessorydefs;
 
+  //std::vector<
 
 private:
   std::byte objectIDByte;
@@ -271,6 +273,7 @@ private:
 
   ImVec4 invisible = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
 
+  bool useBase3USB = false;
 
   float curTime;
   bool guitarController = false;

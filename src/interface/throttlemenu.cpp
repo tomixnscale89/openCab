@@ -53,7 +53,8 @@ static engine_type_tmcc engineTypes[]{
     {"TMCC Enabled Car", ENGINE_TYPE_TMCC_CAR},
     {"Crane Car", ENGINE_TYPE_TMCC_CRANE},
     {"Acela", ENGINE_TYPE_TMCC_ACELA},
-    {"Breakdown Unit", ENGINE_TYPE_TMCC_BREAKDOWN_UNIT}
+    {"Breakdown Unit", ENGINE_TYPE_TMCC_BREAKDOWN_UNIT},
+    {"Lionchief", ENGINE_TYPE_TMCC_LIONCHIEF}
 };
 
 static dialog_entry dialog_map[]{
@@ -698,7 +699,62 @@ void ThrottleMenu::Draw(const std::string& appDir, SDL_GameController* gGameCont
     ImGui::SetNextWindowSize(ImVec2(455, 300), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Consist Builder Window", p_open, ImGuiWindowFlags_MenuBar))
     {
+      if (m_enginedefs.size()) // if size is real, then load the first entry and store it so the icon, keypad, and engine id are loaded properly
+      {
+        engineID = m_enginedefs[m_selected_engine].engineID;
+        legacyEnabled = m_enginedefs[m_selected_engine].legacyEngine;
+        Image o;
+        if (o.Load(dir + "/engine_picture/" + m_enginedefs[m_selected_engine].engineName + ".png"))
+        {
+          m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + m_enginedefs[m_selected_engine].engineName + ".png");
+          m_enginedefs[m_selected_engine].engineHasCustomIcon = true;
+        }
+        else
+        {
+          printf("Using default image\n");
 
+          switch (m_enginedefs[m_selected_engine].engineType)
+          {
+          case EngineTypeLegacy::ENGINE_TYPE_STEAM:
+          case EngineTypeTMCC::ENGINE_TYPE_TMCC_STEAM:
+            m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "steam" + ".png");
+            break;
+
+          case EngineTypeLegacy::ENGINE_TYPE_DIESEL:
+          case EngineTypeTMCC::ENGINE_TYPE_TMCC_DIESEL:
+            m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "diesel" + ".png");
+            break;
+
+          case EngineTypeLegacy::ENGINE_TYPE_ELECTRIC:
+          case EngineTypeTMCC::ENGINE_TYPE_TMCC_ELECTRIC:
+            m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "electric" + ".png");
+            break;
+
+          case EngineTypeTMCC::ENGINE_TYPE_TMCC_ACELA:
+            m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "acela" + ".png");
+            break;
+
+          case EngineTypeLegacy::ENGINE_TYPE_STATIONSOUND_CAR:
+            m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "station_sound_diner" + ".png");
+            break;
+
+          case EngineTypeLegacy::ENGINE_TYPE_STOCK_CAR:
+            m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "stock_car" + ".png");
+            break;
+
+          case EngineTypeLegacy::ENGINE_TYPE_SUBWAY:
+            m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "subway" + ".png");
+            break;
+
+          case EngineTypeLegacy::ENGINE_TYPE_CRANE_CAR:
+          case EngineTypeTMCC::ENGINE_TYPE_TMCC_CRANE:
+            m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "default_crane" + ".png");
+            break;
+
+          }
+          m_enginedefs[m_selected_engine].engineHasCustomIcon = true;
+        }
+      }
       const char* engineLocationitems[] = { "SINGLE", "FRONT", "MIDDLE", "REAR"};
       static int item_current_idx = 0; // Here we store our selection data as an index.
       const char* combo_preview_value = engineLocationitems[item_current_idx];  // Pass in the preview value visible before opening the combo (it could be anything)
@@ -1228,8 +1284,11 @@ void ThrottleMenu::Draw(const std::string& appDir, SDL_GameController* gGameCont
     ImGui::SetNextWindowSize(ImVec2(455, 300), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Serial Devices", p_open, ImGuiWindowFlags_MenuBar))
     {
+      ImGui::Checkbox("Use Base3 USB Port", &useBase3USB);
+
       if (ImGui::BeginCombo("Devices", m_device.c_str()))
       {
+
         DeviceInfo* devices;
         int numDevices = TMCCInterface::EnumerateDevices(&devices);
         for (int i = 0; i < numDevices; i++)
@@ -1240,7 +1299,7 @@ void ThrottleMenu::Draw(const std::string& appDir, SDL_GameController* gGameCont
           if (ImGui::Selectable(deviceName.c_str(), is_selected))
           {
             m_device = deviceName;
-            TMCCInterface::Init(i);
+            TMCCInterface::Init(i, useBase3USB);
           }
 
           // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
@@ -1647,7 +1706,7 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
                 float realSpeed = uiSpeed / std::max(m_enginedefs[m_selected_engine].legacy_speed_multiplier, 0.01f);
                 m_enginedefs[m_selected_engine].legacy_speed = std::min(std::max(realSpeed, 0.0f), 200.0f);
                 m_enginedefs[m_selected_engine].UpdateSpeed();
-                printf("UI Speed: %f, Real Speed: %f, Brake Multiplier: %f\n", uiSpeed, realSpeed, m_enginedefs[m_selected_engine].legacy_speed_multiplier);
+                //printf("UI Speed: %f, Real Speed: %f, Brake Multiplier: %f\n", uiSpeed, realSpeed, m_enginedefs[m_selected_engine].legacy_speed_multiplier);
               }
           }
 
@@ -1661,7 +1720,7 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
                 float realSpeed = uiSpeedTMCC / std::max(m_enginedefs[m_selected_engine].legacy_speed_multiplier, 0.01f);
                 m_enginedefs[m_selected_engine].tmcc_speed = std::min(std::max(realSpeed, 0.0f), 32.0f);
                 m_enginedefs[m_selected_engine].UpdateSpeed();
-                printf("UI Speed: %f, Real Speed: %f, Brake Multiplier: %f\n", uiSpeedTMCC, realSpeed, m_enginedefs[m_selected_engine].legacy_speed_multiplier);
+                //printf("UI Speed: %f, Real Speed: %f, Brake Multiplier: %f\n", uiSpeedTMCC, realSpeed, m_enginedefs[m_selected_engine].legacy_speed_multiplier);
               }
             }
             else
@@ -2363,24 +2422,25 @@ void ThrottleMenu::ShowSoundWindow(bool* p_open)
         };
         ImGui::PopButtonRepeat();
 
-      if (ImGui::Button("Cycle Horn", ImVec2(100, 60)))
+      if (ImGui::Button("Seq CTRL On", ImVec2(100, 60)))
       {
-        printf("Cycle Legacy Horn\n");
-        TMCCInterface::EngineAux1Option1(engineID_sound_menu);
-        TMCCInterface::EngineSetQuillingHornIntensity(engineID_sound_menu, 1);
+        printf("Seq CTRL On\n");
+        TMCCInterface::EnginePlayRailsoundsEffectTrigger(engineID_sound_menu, ET_SEQUENCE_CONTROL_ON);
+        //TMCCInterface::EngineDialogCommand(engineID_sound_menu, DC_SEQ_CONTROL_ENABLE);
       };
       ImGui::SameLine();
-      if (ImGui::Button("Cycle Bell", ImVec2(100, 60)))
+      if (ImGui::Button("Seq CTRL Off", ImVec2(100, 60)))
       {
-        printf("Cycle Legacy Bell\n");
-        TMCCInterface::EngineAux1Option1(engineID_sound_menu);
-        TMCCInterface::EngineBellOneShotDing(engineID_sound_menu, 3);
+        printf("Seq CTRL Off\n");
+        //TMCCInterface::EngineDialogCommand(engineID_sound_menu, DC_SEQ_CONTROL_DISABLE);
+        TMCCInterface::EnginePlayRailsoundsEffectTrigger(engineID_sound_menu, ET_SEQUENCE_CONTROL_OFF);
+
       };
       ImGui::SameLine();
       ImGui::PushButtonRepeat(true);
       if (ImGui::Button("Blow Horn 1", ImVec2(100, 60)))
       {
-        printf("Legacy Horn 1\n");
+        printf("Legacy Horn 1\n"); // is this even correct?
 
         TMCCInterface::EngineBlowHorn1TMCC2(engineID_sound_menu);
       };
@@ -2389,7 +2449,7 @@ void ThrottleMenu::ShowSoundWindow(bool* p_open)
       ImGui::SameLine();
 
       ImGui::PushButtonRepeat(true);
-      if (ImGui::Button("Blow Horn 2", ImVec2(100, 60)))
+      if (ImGui::Button("Blow Horn 2", ImVec2(100, 60))) // is this even correct?
       {
         printf("Legacy Horn 2 (doesn't seem to work)\n");
 
@@ -2797,25 +2857,44 @@ void ThrottleMenu::HandleGameControllerEvents(SDL_GameController* gGameControlle
       ThrottleMenu::lastTime = curTime;
       if (SDL_GameControllerGetAxis(gGameController, SDL_CONTROLLER_AXIS_RIGHTY))
       {
+        
         // The speed here will also update the UI Throttle. Yay!
         float value = (float)SDL_GameControllerGetAxis(gGameController, SDL_CONTROLLER_AXIS_RIGHTY);
         if (value > rightStickYDeadZone + 10000)
         {
-          
-          //printf("Down Right Stick Y: %d\n", (int)value);
-          m_enginedefs[m_selected_engine].legacy_speed--;
-          if (m_enginedefs[m_selected_engine].legacy_speed < 0)
-            m_enginedefs[m_selected_engine].legacy_speed = 0;
-        
+          if (m_enginedefs[m_selected_engine].legacyEngine)
+          {
+            //printf("Down Right Stick Y: %d\n", (int)value);
+            m_enginedefs[m_selected_engine].legacy_speed--;
+            if (m_enginedefs[m_selected_engine].legacy_speed < 0)
+              m_enginedefs[m_selected_engine].legacy_speed = 0;
+          }
+          else
+          {
+            m_enginedefs[m_selected_engine].tmcc_speed--;
+            if (m_enginedefs[m_selected_engine].tmcc_speed < 0)
+              m_enginedefs[m_selected_engine].tmcc_speed = 0;
+          }
           m_enginedefs[m_selected_engine].UpdateSpeed();
+
         }
         else if (value < rightStickYDeadZone - 10000)
         {
           //printf("UP Right Stick Y: %d\n", (int)value);
-          m_enginedefs[m_selected_engine].legacy_speed++;
-          if (m_enginedefs[m_selected_engine].legacy_speed > 200)
-            m_enginedefs[m_selected_engine].legacy_speed = 200;
-          
+          if (m_enginedefs[m_selected_engine].legacyEngine)
+          {
+            //printf("Down Right Stick Y: %d\n", (int)value);
+            m_enginedefs[m_selected_engine].legacy_speed++;
+            if (m_enginedefs[m_selected_engine].legacy_speed > 200)
+              m_enginedefs[m_selected_engine].legacy_speed = 200;
+          }
+          else
+          {
+            m_enginedefs[m_selected_engine].tmcc_speed++;
+            if (m_enginedefs[m_selected_engine].tmcc_speed > 32)
+              m_enginedefs[m_selected_engine].tmcc_speed = 32;
+          }
+
           m_enginedefs[m_selected_engine].UpdateSpeed();
         }
       }
