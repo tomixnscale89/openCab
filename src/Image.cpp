@@ -59,6 +59,7 @@ Image::Image()
 
 bool Image::Load(const std::string& filename)
 {
+  //printf("%s\n",filename.c_str());
   return LoadTextureFromFile(filename.c_str(), &handle, &width, &height);
 }
 Image::~Image()

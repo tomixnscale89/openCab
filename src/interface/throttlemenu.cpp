@@ -2855,7 +2855,7 @@ void ThrottleMenu::HandleGameControllerEvents(SDL_GameController* gGameControlle
     if (curTime - ThrottleMenu::lastTime >= interval)
     {
       ThrottleMenu::lastTime = curTime;
-      if (SDL_GameControllerGetAxis(gGameController, SDL_CONTROLLER_AXIS_RIGHTY))
+      if (SDL_GameControllerGetAxis(gGameController, SDL_CONTROLLER_AXIS_RIGHTY)) // Speed Control
       {
         
         // The speed here will also update the UI Throttle. Yay!
@@ -2877,6 +2877,17 @@ void ThrottleMenu::HandleGameControllerEvents(SDL_GameController* gGameControlle
           }
           m_enginedefs[m_selected_engine].UpdateSpeed();
 
+          if (SDL_GameControllerHasRumble(gGameController)) // doesn't seem to work in Bluetooth mode
+          {
+            value = abs(value) / 2; // absolute the value and then half it for the intensity
+
+            printf("Game controller Rumble: %d\n", (int)value);
+
+            if (SDL_GameControllerRumble(gGameController, value, 0, 150) == -1)
+            {
+              printf("Game controller Rumble Failed. Controller not supported?\n");
+            }
+          }
         }
         else if (value < rightStickYDeadZone - 10000)
         {
@@ -2896,8 +2907,23 @@ void ThrottleMenu::HandleGameControllerEvents(SDL_GameController* gGameControlle
           }
 
           m_enginedefs[m_selected_engine].UpdateSpeed();
+
+
+          if (SDL_GameControllerHasRumble(gGameController)) // doesn't seem to work in Bluetooth mode
+          {
+            value = abs(value) / 2; // absolute the value and then half it for the intensity
+
+            printf("Game controller Rumble: %d\n", (int)value);
+
+            if (SDL_GameControllerRumble(gGameController, 0, value, 150) == -1)
+            {
+              printf("Game controller Rumble Failed. Controller not supported?\n");
+            }
+          }
         }
+
       }
+
       if (SDL_GameControllerGetAxis(gGameController, SDL_CONTROLLER_AXIS_LEFTY) && !guitarController)
       {
         float value = (float)SDL_GameControllerGetAxis(gGameController, SDL_CONTROLLER_AXIS_LEFTY);
@@ -2923,22 +2949,7 @@ void ThrottleMenu::HandleGameControllerEvents(SDL_GameController* gGameControlle
               int brakevalue = (int)(m_enginedefs[m_selected_engine].gamepadTrainBrake * 8.0f);
               m_enginedefs[m_selected_engine].currentTrainBrake = m_enginedefs[m_selected_engine].gamepadTrainBrake;
               m_enginedefs[m_selected_engine].SetSpeedMultiplier(1.0 - m_enginedefs[m_selected_engine].gamepadTrainBrake, m_enginedefs[m_selected_engine].legacyEngine, true);
-              //TMCCInterface::EngineSetTrainBrake2(engineID, brakevalue);
-              //if (brakeSoundEnabledAllTypes)
-              //  TMCCInterface::EngineBrakeSquealSound(engineID);
 
-              //if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_STEAM)
-              //{
-              //  int labourvalue = (int)(m_enginedefs[m_selected_engine].gamepadTrainBrake * 32.0f);
-              //  m_enginedefs[m_selected_engine].steam_labour_intensity = labourvalue;
-              //  TMCCInterface::EngineSetLabor(engineID, labourvalue);
-              //}
-              //else
-              //{
-              //  int dieselRun = (int)(m_enginedefs[m_selected_engine].gamepadTrainBrake * 8.0f);
-              //  m_enginedefs[m_selected_engine].diesel_electric_rev_lvl = dieselRun;
-              //  TMCCInterface::EngineSetDieselRunLevel(engineID, dieselRun);
-              //}
             }
           }
         }
@@ -2995,19 +3006,31 @@ void ThrottleMenu::HandleGameControllerEvents(SDL_GameController* gGameControlle
       if (SDL_GameControllerGetButton(gGameController, SDL_CONTROLLER_BUTTON_A))
       {
         printf("Game controller Bell\n");
-        if (!m_enginedefs[m_selected_engine].oneShotBellEnabled)
+        if (m_enginedefs[m_selected_engine].legacyEngine) // TMCC 2
         {
-          //printf("Bell Toggle\n");
+          if (!m_enginedefs[m_selected_engine].oneShotBellEnabled)
+          {
+            //printf("Bell Toggle\n");
+            m_enginedefs[m_selected_engine].bellOn = !m_enginedefs[m_selected_engine].bellOn;
+            if (m_enginedefs[m_selected_engine].bellOn)
+              TMCCInterface::EngineSetBell(engineID, TMCC_ON);
+            else
+              TMCCInterface::EngineSetBell(engineID, TMCC_OFF);
+          }
+          else
+          {
+            printf("Controller One Shot Bell Ding: %d\n", m_enginedefs[m_selected_engine].bellDingCount);
+            TMCCInterface::EngineBellOneShotDing(engineID, m_enginedefs[m_selected_engine].bellDingCount);
+
+          }
+        }
+        else // TMCC 1
+        {
           m_enginedefs[m_selected_engine].bellOn = !m_enginedefs[m_selected_engine].bellOn;
           if (m_enginedefs[m_selected_engine].bellOn)
             TMCCInterface::EngineSetBell(engineID, TMCC_ON);
           else
             TMCCInterface::EngineSetBell(engineID, TMCC_OFF);
-        }
-        else
-        {
-          printf("Controller One Shot Bell Ding: %d\n", m_enginedefs[m_selected_engine].bellDingCount);
-          TMCCInterface::EngineBellOneShotDing(engineID, m_enginedefs[m_selected_engine].bellDingCount);
         }
       }
       if (SDL_GameControllerGetButton(gGameController, SDL_CONTROLLER_BUTTON_B))
@@ -3084,8 +3107,17 @@ void ThrottleMenu::HandleGameControllerEvents(SDL_GameController* gGameControlle
         }
         else
         {
-          printf("Controller Aux 3\n");
-          TMCCInterface::EngineAux3Trigger(engineID);
+          if (m_enginedefs[m_selected_engine].legacyEngine)
+          {
+            printf("Controller Aux 3\n");
+            TMCCInterface::EngineAux3Trigger(engineID);
+          }
+          else
+          {
+            printf("Controller Let off Sound\n");
+            TMCCInterface::EngineLetOffSound(engineID);
+          }
+          
         }
       }
       
@@ -3108,8 +3140,6 @@ void ThrottleMenu::HandleGameControllerEvents(SDL_GameController* gGameControlle
 
       if (SDL_GameControllerGetButton(gGameController, SDL_CONTROLLER_BUTTON_RIGHTSTICK))
       {
-        
-
         printf("Change Direction\n");
         TMCCInterface::EngineToggleDirection(engineID);
       }
@@ -3128,17 +3158,34 @@ void ThrottleMenu::HandleGameControllerEvents(SDL_GameController* gGameControlle
         //SetUpEngineFromRoster(engineID, legacyEnabled, dir);
         engineID = m_enginedefs[m_selected_engine].engineID;
         legacyEnabled = m_enginedefs[m_selected_engine].legacyEngine;
+
+
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // Something funky is going on with the dir ONLY when the controller events are triggered. Need to investigate further.
+
         Image o;
-        if (o.Load(dir + "/engine_picture/" + m_enginedefs[m_selected_engine].engineName + ".png"))
+        std::string removeWord = "CABPC.exe";
+        auto wordLocation = dir.find(removeWord);
+        std::string newDir = dir;
+        while (wordLocation != std::string::npos)
         {
-          m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + m_enginedefs[m_selected_engine].engineName + ".png");
+          // https://stackoverflow.com/questions/68515699/how-to-delete-a-whole-word-from-a-string-in-c
+          // Erase "CABPC.exe" and the forward carriage so the path is valid 
+          newDir.erase(wordLocation, removeWord.length());
+          // Advance further, look for "she" starting from iter
+          wordLocation = newDir.find(removeWord, wordLocation);
+        }
+
+        if (o.Load(newDir + "engine_picture/" + m_enginedefs[m_selected_engine].engineName + ".png"))
+        {
+          m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(newDir + "engine_picture/" + m_enginedefs[m_selected_engine].engineName + ".png");
           m_enginedefs[m_selected_engine].engineHasCustomIcon = true;
         }
         else
         {
-          m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default" + ".png");
-
+          m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(newDir + "engine_picture/" + "default" + ".png");
         }
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       }
 
 
@@ -3159,17 +3206,35 @@ void ThrottleMenu::HandleGameControllerEvents(SDL_GameController* gGameControlle
 
         engineID = m_enginedefs[m_selected_engine].engineID;
         legacyEnabled = m_enginedefs[m_selected_engine].legacyEngine;
+        
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // Something funky is going on with the dir ONLY when the controller events are triggered. Need to investigate further.
+
         Image o;
-        if (o.Load(dir + "/engine_picture/" + m_enginedefs[m_selected_engine].engineName + ".png"))
+        std::string removeWord = "CABPC.exe";
+        auto wordLocation = dir.find(removeWord);
+        std::string newDir = dir;
+        while (wordLocation != std::string::npos)
         {
-          m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + m_enginedefs[m_selected_engine].engineName + ".png");
+          // https://stackoverflow.com/questions/68515699/how-to-delete-a-whole-word-from-a-string-in-c
+          // Erase "CABPC.exe" and the forward carriage so the path is valid 
+          newDir.erase(wordLocation, removeWord.length());
+          // Advance further, look for "she" starting from iter
+          wordLocation = newDir.find(removeWord, wordLocation);
+        }
+
+        if (o.Load(newDir + "engine_picture/" + m_enginedefs[m_selected_engine].engineName + ".png"))
+        {
+          m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(newDir + "engine_picture/" + m_enginedefs[m_selected_engine].engineName + ".png");
           m_enginedefs[m_selected_engine].engineHasCustomIcon = true;
         }
         else
         {
-          m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default" + ".png");
-
+          m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(newDir + "engine_picture/" + "default" + ".png");
         }
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        
+
         //SetUpEngineFromRoster(engineID, legacyEnabled, dir);
       }
     }
@@ -3184,22 +3249,37 @@ void ThrottleMenu::HandleGameControllerEvents(SDL_GameController* gGameControlle
       }
       else if (value > leftStickYDeadZone + 10000)
       {
-        //printf("Left Stick Y: %d\n", (int)value);
         value = (value / 32767) * 15.0f;
-        if ((int)value > 0)
+
+        if (m_enginedefs[m_selected_engine].legacyEngine) // TMCC 2
         {
-          TMCCInterface::EngineSetQuillingHornIntensity(engineID, (int)value);
+          if ((int)value > 0)
+          {
+            TMCCInterface::EngineSetQuillingHornIntensity(engineID, (int)value);
+          }
+          else
+          {
+            TMCCInterface::EngineSetQuillingHornIntensity(engineID, 0);
+          }
+          printf("Guitar Game controller Quilling: %d\n", (int)value);
         }
-        else
+        else // TMCC 1
         {
-          TMCCInterface::EngineSetQuillingHornIntensity(engineID, 0);
+          if ((int)value > 3) // Start whistle after 3 steps
+          {
+            TMCCInterface::EngineBlowHorn1(engineID);
+            printf("Guitar Game controller Horn\n");
+          }
         }
-        printf("Guitar Game controller Quilling: %d\n", (int)value);
+
+        
       }
     }
       else if (SDL_GameControllerGetAxis(gGameController, SDL_CONTROLLER_AXIS_TRIGGERRIGHT))
       {
-        float value = (float)SDL_GameControllerGetAxis(gGameController, SDL_CONTROLLER_AXIS_TRIGGERRIGHT);
+      float value = (float)SDL_GameControllerGetAxis(gGameController, SDL_CONTROLLER_AXIS_TRIGGERRIGHT);
+      if (m_enginedefs[m_selected_engine].legacyEngine)
+      {
         value = (value / 32767) * 15.0f;
         if ((int)value > 0)
         {
@@ -3210,6 +3290,27 @@ void ThrottleMenu::HandleGameControllerEvents(SDL_GameController* gGameControlle
           TMCCInterface::EngineSetQuillingHornIntensity(engineID, 0);
         }
         printf("Game controller Quilling: %d\n", (int)value);
+      }
+      else
+      {
+        value = (value / 32767) * 15.0f;
+        if ((int)value > 3) // Start whistle after 3 steps
+        {
+          TMCCInterface::EngineBlowHorn1(engineID);
+          printf("Game controller Horn\n");
+        }
+      }
+      if (SDL_GameControllerHasRumble(gGameController)) // doesn't seem to work in Bluetooth mode
+      {
+        value = ((float)SDL_GameControllerGetAxis(gGameController, SDL_CONTROLLER_AXIS_TRIGGERRIGHT)) * 2;
+
+        printf("Game controller Rumble: %d\n", (int)value);
+
+        if (SDL_GameControllerRumble(gGameController, 0, value, 100) == -1)
+        {
+          printf("Game controller Rumble Failed\n");
+        }
+      }
         //printf("Right Trigger value: %d\n", SDL_GameControllerGetAxis(gGameController, SDL_CONTROLLER_AXIS_TRIGGERRIGHT));
       }
 
