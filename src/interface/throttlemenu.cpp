@@ -17,16 +17,34 @@
 
 using json = nlohmann::json;
 
-struct engine_type_legacy
+struct engine_type
 {
   std::string engineTypeName;
-  EngineTypeLegacy engineType; // engine type
+  EngineType engineType; // engine type
 };
 
-struct engine_type_tmcc
+//struct engine_type_tmcc
+//{
+//  std::string engineTypeName;
+//  EngineTypeTMCC engineType; // engine type
+//};
+
+struct engine_control_type
 {
-  std::string engineTypeName;
-  EngineTypeTMCC engineType; // engine type
+  std::string engineCTRLTypeName;
+  EngineControlType engineCTRLType; // engine control type
+};
+
+struct engine_sound_type
+{
+  std::string engineSoundTypeName;
+  EngineSoundType engineSoundType; // engine sound type
+};
+
+struct engine_class_type
+{
+  std::string engineClassTypeName;
+  EngineClassType engineClassType; // engine class type
 };
 
 struct dialog_entry
@@ -36,25 +54,68 @@ struct dialog_entry
 };
 
 
-static engine_type_legacy engineTypesLegacy[]{
+static engine_type engineTypes[]{
     {"Steam Locomotive", ENGINE_TYPE_STEAM},
+    {"Steam Switcher Locomotive", ENGINE_TYPE_STEAM_SWITCHER},
+    {"Steam Flyer/Pullmor Locomotive", ENGINE_TYPE_STEAM_SWITCHER},
     {"Diesel Locomotive", ENGINE_TYPE_DIESEL},
+    {"Diesel Switcher Locomotive", ENGINE_TYPE_DIESEL_SWITCHER},
+    {"Diesel Flyer/Pullmor Locomotive", ENGINE_TYPE_DIESEL_SWITCHER},
     {"Electric Locomotive", ENGINE_TYPE_ELECTRIC},
     {"Subway", ENGINE_TYPE_SUBWAY},
     {"Passenger Car", ENGINE_TYPE_STATIONSOUND_CAR},
+    {"Accessory Car", ENGINE_TYPE_ACCESSORY_CAR},
     {"Freight Car", ENGINE_TYPE_STOCK_CAR},
-    {"Crane Car", ENGINE_TYPE_CRANE_CAR}
+    {"Crane Car", ENGINE_TYPE_CRANE_CAR},
+    {"Lionel Acela", ENGINE_TYPE_TMCC_ACELA},
+    {"Breakdown Unit", ENGINE_TYPE_BREAKDOWN_UNIT},
+    {"Transformer", ENGINE_TYPE_TRANSFORMER}
 };
 
-static engine_type_tmcc engineTypes[]{
-    {"Steam Locomotive", ENGINE_TYPE_TMCC_STEAM},
-    {"Diesel Locomotive", ENGINE_TYPE_TMCC_DIESEL},
-    {"Electric Locomotive", ENGINE_TYPE_TMCC_ELECTRIC},
-    {"TMCC Enabled Car", ENGINE_TYPE_TMCC_CAR},
-    {"Crane Car", ENGINE_TYPE_TMCC_CRANE},
-    {"Acela", ENGINE_TYPE_TMCC_ACELA},
-    {"Breakdown Unit", ENGINE_TYPE_TMCC_BREAKDOWN_UNIT},
-    {"Lionchief", ENGINE_TYPE_TMCC_LIONCHIEF}
+//static engine_type_legacy engineTypesLegacy[]{
+//    {"Steam Locomotive", ENGINE_TYPE_STEAM},
+//    {"Diesel Locomotive", ENGINE_TYPE_DIESEL},
+//    {"Electric Locomotive", ENGINE_TYPE_ELECTRIC},
+//    {"Subway", ENGINE_TYPE_SUBWAY},
+//    {"Passenger Car", ENGINE_TYPE_STATIONSOUND_CAR},
+//    {"Freight Car", ENGINE_TYPE_STOCK_CAR},
+//    {"Crane Car", ENGINE_TYPE_CRANE_CAR}
+//};
+
+//static engine_type_tmcc engineTypes[]{
+//    {"Steam Locomotive", ENGINE_TYPE_TMCC_STEAM},
+//    {"Diesel Locomotive", ENGINE_TYPE_TMCC_DIESEL},
+//    {"Electric Locomotive", ENGINE_TYPE_TMCC_ELECTRIC},
+//    {"TMCC Enabled Car", ENGINE_TYPE_TMCC_CAR},
+//    {"Crane Car", ENGINE_TYPE_TMCC_CRANE},
+//    {"Acela", ENGINE_TYPE_TMCC_ACELA},
+//    {"Breakdown Unit", ENGINE_TYPE_TMCC_BREAKDOWN_UNIT},
+//    {"Lionchief", ENGINE_TYPE_TMCC_LIONCHIEF}
+//};
+
+static engine_control_type engineCTRLTypes[]{
+      {"Cab 1 Mode", CAB1_CONTROL},
+      {"TMCC Absolute Mode (32 Speed Steps)", TMCC_ABSOLUTE},
+      {"Legacy Absolute Mode (200 Speed Steps)", LEGACY_ABSOLUTE},
+      {"Relative 100 Mode", TMCC_RELATIVE_100},
+};
+
+static engine_sound_type engineSoundTypes[]{
+      {"No Sounds", NO_SOUNDS},
+      {"Railsounds 1-4", RAILSOUNDS},
+      {"Railsounds 5", RAILSOUNDS_5},
+      {"Legacy Sounds", LEGACY},
+      {"Legacy 2 Sounds (only Crane Car)", LEGACY_2},
+};
+
+static engine_class_type engineClassTypes[]{
+      {"Road Locomotive", ROAD_LOCO},
+      {"Switcher Locomotive", SWITCHER_LOCO},
+      {"Subway Locomotive", SUBWAY_LOCO},
+      {"Diesel/Steam/Flyer/LegacyPullmor", DIESEL_STEAM_FLYER_LEGACYPULLMOR},
+      {"Transformer", TRANSFORMER},
+      {"Wildcard", WILDCARD},
+
 };
 
 static dialog_entry dialog_map[]{
@@ -274,7 +335,8 @@ ThrottleMenu::ThrottleMenu(const std::string& appDir, SDL_GameController* gGameC
 
   fwdIcon = std::make_shared<Image>(dir + "/graphics/forward_direction.png");
   reverseIcon = std::make_shared<Image>(dir + "/graphics/reverse_direction.png");
-  
+  tmccDirIcon = std::make_shared<Image>(dir + "/graphics/swap_direction.png");
+
   bellIcon = std::make_shared<Image>(dir + "/graphics/bell.png");
   bellWideIcon = std::make_shared<Image>(dir + "/graphics/bell_wide.png");
   bellWideOneShot_1Icon = std::make_shared<Image>(dir + "/graphics/bell_wide_oneshot_1.png");
@@ -337,6 +399,13 @@ ThrottleMenu::ThrottleMenu(const std::string& appDir, SDL_GameController* gGameC
   lightOnIcon = std::make_shared<Image>(dir + "/graphics/light_on.png");
   lightOffIcon = std::make_shared<Image>(dir + "/graphics/light_off.png");
 
+  visionCoalEmptyIcon = std::make_shared<Image>(dir + "/graphics/vision_coal_empty.png");
+  visionCoalEmptyingIcon = std::make_shared<Image>(dir + "/graphics/vision_coal_emptying.png");
+  visionCoalMaxIcon = std::make_shared<Image>(dir + "/graphics/vision_coal_max.png");
+  visionCoalRefillIcon = std::make_shared<Image>(dir + "/graphics/vision_coal_refill.png");
+  wheelSlipIcon = std::make_shared<Image>(dir + "/graphics/wheel_slip.png");
+  flatWheelIcon = std::make_shared<Image>(dir + "/graphics/flat_wheel.png");
+
   craneBoomIcon = std::make_shared<Image>(dir + "/graphics/boom.png");
   craneHookDownIcon = std::make_shared<Image>(dir + "/graphics/lower_hook.png");
   craneHookUpIcon = std::make_shared<Image>(dir + "/graphics/raise_hook.png");
@@ -386,7 +455,8 @@ void ThrottleMenu::LoadRosterLaunch(const std::string& appDir)
   {
     dir = appDir.substr(0, appDir.find_last_of("/\\"));
     engineID = m_enginedefs[m_selected_engine].engineID;
-    legacyEnabled = m_enginedefs[m_selected_engine].legacyEngine;
+    currentEngineCtrlType = m_enginedefs[m_selected_engine].engineCtrlType;
+    currentEngineSndType = m_enginedefs[m_selected_engine].engineSndType;
     Image o;
     if (o.Load(dir + "/engine_picture/" + m_enginedefs[m_selected_engine].engineName + ".png"))
     {
@@ -399,40 +469,44 @@ void ThrottleMenu::LoadRosterLaunch(const std::string& appDir)
 
       switch (m_enginedefs[m_selected_engine].engineType)
       {
-      case EngineTypeLegacy::ENGINE_TYPE_STEAM:
-      case EngineTypeTMCC::ENGINE_TYPE_TMCC_STEAM:
+      case EngineType::ENGINE_TYPE_STEAM:
+      case EngineType::ENGINE_TYPE_STEAM_SWITCHER:
+      case EngineType::ENGINE_TYPE_STEAM_FLYER_PULLMOR:
         m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "steam" + ".png");
         break;
 
-      case EngineTypeLegacy::ENGINE_TYPE_DIESEL:
-      case EngineTypeTMCC::ENGINE_TYPE_TMCC_DIESEL:
+      case EngineType::ENGINE_TYPE_DIESEL:
+      case EngineType::ENGINE_TYPE_DIESEL_SWITCHER:
+      case EngineType::ENGINE_TYPE_DIESEL_FLYER_PULLMOR:
         m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "diesel" + ".png");
         break;
 
-      case EngineTypeLegacy::ENGINE_TYPE_ELECTRIC:
-      case EngineTypeTMCC::ENGINE_TYPE_TMCC_ELECTRIC:
+      case EngineType::ENGINE_TYPE_ELECTRIC:
         m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "electric" + ".png");
         break;
 
-      case EngineTypeTMCC::ENGINE_TYPE_TMCC_ACELA:
+      case EngineType::ENGINE_TYPE_TMCC_ACELA:
         m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "acela" + ".png");
         break;
 
-      case EngineTypeLegacy::ENGINE_TYPE_STATIONSOUND_CAR:
+      case EngineType::ENGINE_TYPE_STATIONSOUND_CAR:
         m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "station_sound_diner" + ".png");
         break;
 
-      case EngineTypeLegacy::ENGINE_TYPE_STOCK_CAR:
+      case EngineType::ENGINE_TYPE_STOCK_CAR:
         m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "stock_car" + ".png");
         break;
 
-      case EngineTypeLegacy::ENGINE_TYPE_SUBWAY:
+      case EngineType::ENGINE_TYPE_SUBWAY:
         m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "subway" + ".png");
         break;
 
-      case EngineTypeLegacy::ENGINE_TYPE_CRANE_CAR:
-      case EngineTypeTMCC::ENGINE_TYPE_TMCC_CRANE:
+      case EngineType::ENGINE_TYPE_CRANE_CAR:
         m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "default_crane" + ".png");
+        break;
+
+      default:
+        m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "steam" + ".png");
         break;
 
       }
@@ -556,7 +630,8 @@ void ThrottleMenu::Draw(const std::string& appDir, SDL_GameController* gGameCont
           m_selected_engine = i;
           //SetUpEngineFromRoster(engineID, legacyEnabled, dir);
           engineID = m_enginedefs[m_selected_engine].engineID;
-          legacyEnabled = m_enginedefs[m_selected_engine].legacyEngine;
+          currentEngineCtrlType = m_enginedefs[m_selected_engine].engineCtrlType;
+          currentEngineSndType = m_enginedefs[m_selected_engine].engineSndType;
           Image o;
           if(o.Load(dir + "/engine_picture/" + m_enginedefs[m_selected_engine].engineName + ".png"))
           {
@@ -569,41 +644,45 @@ void ThrottleMenu::Draw(const std::string& appDir, SDL_GameController* gGameCont
 
             switch (m_enginedefs[m_selected_engine].engineType)
             {
-              case EngineTypeLegacy::ENGINE_TYPE_STEAM:
-              case EngineTypeTMCC::ENGINE_TYPE_TMCC_STEAM:
-                m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "steam"+ ".png");
-                break;
+            case EngineType::ENGINE_TYPE_STEAM:
+            case EngineType::ENGINE_TYPE_STEAM_SWITCHER:
+            case EngineType::ENGINE_TYPE_STEAM_FLYER_PULLMOR:
+              m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "steam" + ".png");
+              break;
 
-              case EngineTypeLegacy::ENGINE_TYPE_DIESEL:
-              case EngineTypeTMCC::ENGINE_TYPE_TMCC_DIESEL:
-                m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "diesel" + ".png");
-                break;
+            case EngineType::ENGINE_TYPE_DIESEL:
+            case EngineType::ENGINE_TYPE_DIESEL_SWITCHER:
+            case EngineType::ENGINE_TYPE_DIESEL_FLYER_PULLMOR:
+              m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "diesel" + ".png");
+              break;
 
-              case EngineTypeLegacy::ENGINE_TYPE_ELECTRIC:
-              case EngineTypeTMCC::ENGINE_TYPE_TMCC_ELECTRIC:
-                m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "electric" + ".png");
-                break;
+            case EngineType::ENGINE_TYPE_ELECTRIC:
+              m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "electric" + ".png");
+              break;
 
-              case EngineTypeTMCC::ENGINE_TYPE_TMCC_ACELA:
-                m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "acela" + ".png");
-                break;
-                
-              case EngineTypeLegacy::ENGINE_TYPE_STATIONSOUND_CAR:
-                m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "station_sound_diner" + ".png");
-                break;
-                
-              case EngineTypeLegacy::ENGINE_TYPE_STOCK_CAR:
-                m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "stock_car" + ".png");
-                break;
+            case EngineType::ENGINE_TYPE_TMCC_ACELA:
+              m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "acela" + ".png");
+              break;
 
-              case EngineTypeLegacy::ENGINE_TYPE_SUBWAY:
-                m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "subway" + ".png");
-                break;
+            case EngineType::ENGINE_TYPE_STATIONSOUND_CAR:
+              m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "station_sound_diner" + ".png");
+              break;
 
-              case EngineTypeLegacy::ENGINE_TYPE_CRANE_CAR:
-              case EngineTypeTMCC::ENGINE_TYPE_TMCC_CRANE:
-                m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "default_crane" + ".png");
-                break;
+            case EngineType::ENGINE_TYPE_STOCK_CAR:
+              m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "stock_car" + ".png");
+              break;
+
+            case EngineType::ENGINE_TYPE_SUBWAY:
+              m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "subway" + ".png");
+              break;
+
+            case EngineType::ENGINE_TYPE_CRANE_CAR:
+              m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "crane" + ".png");
+              break;
+
+            default:
+              m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "steam" + ".png");
+              break;
 
             }
             m_enginedefs[m_selected_engine].engineHasCustomIcon = true;
@@ -702,7 +781,8 @@ void ThrottleMenu::Draw(const std::string& appDir, SDL_GameController* gGameCont
       if (m_enginedefs.size()) // if size is real, then load the first entry and store it so the icon, keypad, and engine id are loaded properly
       {
         engineID = m_enginedefs[m_selected_engine].engineID;
-        legacyEnabled = m_enginedefs[m_selected_engine].legacyEngine;
+        currentEngineCtrlType = m_enginedefs[m_selected_engine].engineCtrlType;
+        currentEngineSndType = m_enginedefs[m_selected_engine].engineSndType;
         Image o;
         if (o.Load(dir + "/engine_picture/" + m_enginedefs[m_selected_engine].engineName + ".png"))
         {
@@ -715,39 +795,35 @@ void ThrottleMenu::Draw(const std::string& appDir, SDL_GameController* gGameCont
 
           switch (m_enginedefs[m_selected_engine].engineType)
           {
-          case EngineTypeLegacy::ENGINE_TYPE_STEAM:
-          case EngineTypeTMCC::ENGINE_TYPE_TMCC_STEAM:
+          case EngineType::ENGINE_TYPE_STEAM:
             m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "steam" + ".png");
             break;
 
-          case EngineTypeLegacy::ENGINE_TYPE_DIESEL:
-          case EngineTypeTMCC::ENGINE_TYPE_TMCC_DIESEL:
+          case EngineType::ENGINE_TYPE_DIESEL:
             m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "diesel" + ".png");
             break;
 
-          case EngineTypeLegacy::ENGINE_TYPE_ELECTRIC:
-          case EngineTypeTMCC::ENGINE_TYPE_TMCC_ELECTRIC:
+          case EngineType::ENGINE_TYPE_ELECTRIC:
             m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "electric" + ".png");
             break;
 
-          case EngineTypeTMCC::ENGINE_TYPE_TMCC_ACELA:
+          case EngineType::ENGINE_TYPE_TMCC_ACELA:
             m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "acela" + ".png");
             break;
 
-          case EngineTypeLegacy::ENGINE_TYPE_STATIONSOUND_CAR:
+          case EngineType::ENGINE_TYPE_STATIONSOUND_CAR:
             m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "station_sound_diner" + ".png");
             break;
 
-          case EngineTypeLegacy::ENGINE_TYPE_STOCK_CAR:
+          case EngineType::ENGINE_TYPE_STOCK_CAR:
             m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "stock_car" + ".png");
             break;
 
-          case EngineTypeLegacy::ENGINE_TYPE_SUBWAY:
+          case EngineType::ENGINE_TYPE_SUBWAY:
             m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "subway" + ".png");
             break;
 
-          case EngineTypeLegacy::ENGINE_TYPE_CRANE_CAR:
-          case EngineTypeTMCC::ENGINE_TYPE_TMCC_CRANE:
+          case EngineType::ENGINE_TYPE_CRANE_CAR:
             m_enginedefs[m_selected_engine].locoIcon = std::make_shared<Image>(dir + "/engine_picture/" + "default_" + "default_crane" + ".png");
             break;
 
@@ -1229,7 +1305,7 @@ void ThrottleMenu::Draw(const std::string& appDir, SDL_GameController* gGameCont
             engine.engineID = newEngineTMCCAddress;
             engine.engineName = m_enginedefs[m_selected_engine_cabpc_programming_menu].engineName;
             engine.engineType = m_enginedefs[m_selected_engine_cabpc_programming_menu].engineType;
-            engine.legacyEngine = m_enginedefs[m_selected_engine_cabpc_programming_menu].legacyEngine;
+            //engine.legacyEngine = m_enginedefs[m_selected_engine_cabpc_programming_menu].legacyEngine;
             m_enginedefs.push_back(engine);
             printf("Engine ID: %d, EngineName: %s, engineType: %d, Legacy: %d\n", newEngineID, newEngineName.c_str(), newEngineType, newEngineisLegacy);
             printf("%s\n", appDir.c_str());
@@ -1319,39 +1395,35 @@ void ThrottleMenu::AddEngineWindow(bool* p_open, const std::string& appDir)
   ImGui::SetNextWindowSize(ImVec2(455, 300), ImGuiCond_FirstUseEver);
   if (ImGui::Begin("Add New Engine", p_open, ImGuiWindowFlags_MenuBar))
   {
-    ImGui::Text("Engine Name: ");
+    ImGui::Text("Engine Road Name: ");
     ImGui::SameLine();
-    if (ImGui::InputText("##NewEngineName", &newEngineName, 64))
+    if (ImGui::InputText("##NewEngineRoadName", &newEngineName, 64))
     {
       //printf("New Engine NAME: %s\n", newEngineName.c_str());
     }
-    ImGui::Text("Engine ID: ");
+    ImGui::Text("Engine Road Number: ");
+    ImGui::SameLine();
+    if (ImGui::InputText("##NewEngineRoadNumber", &newEngineRoadNumber, 64))
+    {
+      //printf("New Engine ID: %d\n", (int)newEngineID);
+    }
+    ImGui::Text("Engine TMCC ID: ");
     ImGui::SameLine();
     if (ImGui::InputText("##NewEngineID", &newEngineIDStr, 64))
     {
       newEngineID = std::atoi(newEngineIDStr.c_str());
       //printf("New Engine ID: %d\n", (int)newEngineID);
     }
-    ImGui::Text("Engine has Legacy? :");
-    ImGui::SameLine();
-    ImGui::Checkbox("##", &newEngineisLegacy);
+
+    // OLD TO REMOVE
+    //ImGui::Text("Engine has Legacy? :");
+    //ImGui::SameLine();
+    //ImGui::Checkbox("##", &newEngineisLegacy);
+    //
+
     ImGui::Text("Select Engine Type:");
-    if (newEngineisLegacy)
-    {
-      if (ImGui::BeginListBox("##LegacyEngList", ImVec2(256, 128)))
-      {
-        for (int i = 0; i < IM_ARRAYSIZE(engineTypesLegacy); i++)
-        {
-          const bool is_selected = (type_index == i);
-          if (ImGui::Selectable(engineTypesLegacy[i].engineTypeName.c_str(), is_selected))
-            type_index = i;
-        }
-        ImGui::EndListBox();
-      }
-    }
-    else
-    {
-      if (ImGui::BeginListBox("##TMCCEngList", ImVec2(256, 128)))
+
+      if (ImGui::BeginListBox("##EngList", ImVec2(256, 128)))
       {
         for (int i = 0; i < IM_ARRAYSIZE(engineTypes); i++)
         {
@@ -1360,25 +1432,112 @@ void ThrottleMenu::AddEngineWindow(bool* p_open, const std::string& appDir)
             type_index = i;
         }
         ImGui::EndListBox();
-        newEngineType = engineTypes[type_index].engineType;
       }
+
+    ImGui::Text("Select Control Type:");
+    if (ImGui::BeginListBox("##ControlTypeList", ImVec2(256, 128)))
+    {
+      for (int i = 0; i < IM_ARRAYSIZE(engineCTRLTypes); i++)
+      {
+        const bool is_selected = (ctrl_type_index == i);
+        if (ImGui::Selectable(engineCTRLTypes[i].engineCTRLTypeName.c_str(), is_selected))
+          ctrl_type_index = i;
+      }
+      ImGui::EndListBox();
     }
-    ImGui::SameLine();
+
+    ImGui::Text("Select Sound Type:");
+    if (ImGui::BeginListBox("##SoundTypeList", ImVec2(256, 128)))
+    {
+      for (int i = 0; i < IM_ARRAYSIZE(engineSoundTypes); i++)
+      {
+        const bool is_selected = (snd_type_index == i);
+        if (ImGui::Selectable(engineSoundTypes[i].engineSoundTypeName.c_str(), is_selected))
+          snd_type_index = i;
+      }
+      ImGui::EndListBox();
+    }
 
     if (ImGui::Button("Add Engine", ImVec2(80, 60)))
     {
-      if (newEngineisLegacy)
-        newEngineType = engineTypesLegacy[type_index].engineType;
-      else
-        newEngineType = engineTypes[type_index].engineType;
+      newEngineType = engineTypes[type_index].engineType;
+      newEngineCtrlType = engineCTRLTypes[ctrl_type_index].engineCTRLType;
+      newEngineSoundType = engineSoundTypes[snd_type_index].engineSoundType;
 
       EngineDef engine = EngineDef();
       engine.engineID = newEngineID;
       engine.engineName = newEngineName.c_str();
+      engine.engineRoadNumber = newEngineRoadNumber.c_str();
       engine.engineType = newEngineType;
-      engine.legacyEngine = newEngineisLegacy;
+      engine.engineCtrlType = newEngineCtrlType;
+      engine.engineSndType = newEngineSoundType;
+
+
+      // Temporary record entries for unused data!
+      engine.engineTouchPadLeftIconSetting = 0x0; // Temporarily set these to BLANK.
+      engine.engineTouchPadRightSetting = 0x0; // Temporarily set these to BLANK.
+      engine.speedLimit = 0xFF; // Temporarily set these to 255 (max).
+      engine.steam_labour_intensity = 0x0;
+      engine.diesel_electric_rev_lvl = 0x0;
+      engine.currentFuelLevel = 0xFF;
+      engine.currentWaterLevel = 0xFF;
+      engine.trainAddressRecorded = 0xFF;
+      engine.trainPosition = 0xFF;
+      engine.smoke_state_legacy = 0xFF;
+      engine.ditchLightState = 0xFF;
+      engine.base_speed_record = 0x0;
+      engine.momentum = 0xFF;
+      engine.trainBrake = 0x0;
+
+      /*
+        Depending on the locomotive type, let's set the Class type.
+        The legacy CAB2 remote only seems to set this value if the engine is set
+        to LEGACY Control Type.
+      */
+      if (newEngineCtrlType == LEGACY_ABSOLUTE)
+      {
+        switch (newEngineType)
+        {
+        case ENGINE_TYPE_DIESEL:
+        case ENGINE_TYPE_STEAM:
+        case ENGINE_TYPE_ELECTRIC:
+          engine.engineClassType = ROAD_LOCO;
+          break;
+
+        case ENGINE_TYPE_DIESEL_SWITCHER:
+        case ENGINE_TYPE_STEAM_SWITCHER:
+          engine.engineClassType = SWITCHER_LOCO;
+          break;
+
+        case ENGINE_TYPE_SUBWAY:
+          engine.engineClassType = SUBWAY_LOCO;
+          break;
+
+        case ENGINE_TYPE_TRANSFORMER:
+          engine.engineClassType = TRANSFORMER;
+          break;
+
+        case ENGINE_TYPE_DIESEL_FLYER_PULLMOR:
+        case ENGINE_TYPE_STEAM_FLYER_PULLMOR:
+          engine.engineClassType = DIESEL_STEAM_FLYER_LEGACYPULLMOR;
+          break;
+
+        default:
+          engine.engineClassType = WILDCARD;
+          break;
+        }
+      }
+      else // Cab2 doesn't seem to set this if the engine isn't set to a legacy control type.
+        // Unsure if I should force this... the base doesn't seem to do anything with this data.
+      {
+        engine.engineClassType = WILDCARD;
+      }
+
+
+      engine.legacyEngine = true; // temporarily have this, need to remove.
+
       m_enginedefs.push_back(engine);
-      printf("Engine ID: %d, EngineName: %s, engineType: %d, Legacy: %d\n", newEngineID, newEngineName.c_str(), newEngineType, newEngineisLegacy);
+      printf("Engine ID: %d, EngineName: %s added to local roster.\n", newEngineID, newEngineName.c_str(), newEngineType, newEngineisLegacy);
       printf("%s\n", appDir.c_str());
       //EngineManagement::AddEngineToJson(test, newEngineID, newEngineType, newEngineisLegacy, appDir.c_str());
       json j;
@@ -1489,7 +1648,7 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
     // brakeslidervalue from 0.0f to 1.0f
     if (ImGui::VSliderFloat("##int", ImVec2(78, 258), &m_enginedefs[m_selected_engine].currentTrainBrake, 1.0f, 0.0f, "Train\nBrake", ImGuiSliderFlags_AlwaysClamp))
     {
-        m_enginedefs[m_selected_engine].SetSpeedMultiplier(1.0 - m_enginedefs[m_selected_engine].currentTrainBrake, m_enginedefs[m_selected_engine].legacyEngine, true);
+        m_enginedefs[m_selected_engine].SetSpeedMultiplier(1.0 - m_enginedefs[m_selected_engine].currentTrainBrake, m_enginedefs[m_selected_engine].IsLegacyControlType(), true);
     }
 
     // Push our invisible button style
@@ -1541,11 +1700,11 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
 
     }
 
-    DrawKeypadType(currentKeypadStyle, m_enginedefs[m_selected_engine].legacyEngine, m_enginedefs[m_selected_engine].engineType, m_enginedefs[m_selected_engine].engineID);
+    DrawKeypadType(m_enginedefs[m_selected_engine].engineSndType, m_enginedefs[m_selected_engine].IsLegacyControlType(), m_enginedefs[m_selected_engine].engineType, m_enginedefs[m_selected_engine].engineID);
 
 
         // if we have the stationsound diner or the stock car, don't show the throttle column.
-        if ((m_enginedefs[m_selected_engine].engineType != EngineTypeLegacy::ENGINE_TYPE_STOCK_CAR && m_enginedefs[m_selected_engine].engineType != EngineTypeLegacy::ENGINE_TYPE_STATIONSOUND_CAR))
+        if ((m_enginedefs[m_selected_engine].engineType != EngineType::ENGINE_TYPE_STOCK_CAR && m_enginedefs[m_selected_engine].engineType != EngineType::ENGINE_TYPE_STATIONSOUND_CAR))
         {
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(50);
@@ -1553,12 +1712,12 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
         // DIESEL RUN GAUGE AND STEAM LABOUR GAUGE
         // IF STATIONSOUND DINER OR STOCK CAR, DON'T SHOW THESE
         //////////////////////////////////////////////////////
-          if (m_enginedefs[m_selected_engine].legacyEngine)
+          if (m_enginedefs[m_selected_engine].engineSndType == EngineSoundType::LEGACY || m_enginedefs[m_selected_engine].engineSndType == EngineSoundType::LEGACY_2)
             {
               // value was changed
                   // if steam, use labour
                   // else, use diesel run level
-              if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_STEAM)
+              if (m_enginedefs[m_selected_engine].engineType == EngineType::ENGINE_TYPE_STEAM)
               {
                 if (ImGui::VSliderInt("##Labour", ImVec2(113, 160), &m_enginedefs[m_selected_engine].steam_labour_intensity, 0, 31, "%f", ImGuiSliderFlags_AlwaysClamp)) {
 
@@ -1570,11 +1729,11 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
               {
                 if (ImGui::VSliderInt("##Diesel Run Lvl.", ImVec2(113, 160), &m_enginedefs[m_selected_engine].diesel_electric_rev_lvl, 0, 8, "%f", ImGuiSliderFlags_AlwaysClamp)) {
 
-                  if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_DIESEL)
+                  if (m_enginedefs[m_selected_engine].engineType == EngineType::ENGINE_TYPE_DIESEL)
                     TMCCInterface::EngineSetDieselRunLevel(engineID, m_enginedefs[m_selected_engine].diesel_electric_rev_lvl);
-                  else if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_ELECTRIC)
+                  else if (m_enginedefs[m_selected_engine].engineType == EngineType::ENGINE_TYPE_ELECTRIC)
                     TMCCInterface::EngineSetDieselRunLevel(engineID, m_enginedefs[m_selected_engine].diesel_electric_rev_lvl);
-                  else if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_SUBWAY)
+                  else if (m_enginedefs[m_selected_engine].engineType == EngineType::ENGINE_TYPE_SUBWAY)
                     TMCCInterface::EngineSetDieselRunLevel(engineID, m_enginedefs[m_selected_engine].diesel_electric_rev_lvl);
                 };
                 Tooltip("Diesel Run Lvl.");
@@ -1586,9 +1745,9 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
               //////////////////////////////////////////////////////
               ImGui::SameLine();
 
-              if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_STEAM)
+              if (m_enginedefs[m_selected_engine].engineType == EngineType::ENGINE_TYPE_STEAM)
               {
-                if (ImGui::VSliderInt("##Coal Level", ImVec2(62, 160), &m_enginedefs[m_selected_engine].currentCoalLevel, 0, 31, "%f")) {
+                if (ImGui::VSliderInt("##Coal Level", ImVec2(62, 160), &m_enginedefs[m_selected_engine].currentFuelLevel, 0, 31, "%f")) {
 
                   // todo
                 };
@@ -1603,7 +1762,7 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
               }
               else
               {
-                if (ImGui::VSliderInt("##Diesel Fuel", ImVec2(113, 160), &m_enginedefs[m_selected_engine].currentDieselFuel, 0, 8, "%f")) {
+                if (ImGui::VSliderInt("##Diesel Fuel", ImVec2(113, 160), &m_enginedefs[m_selected_engine].currentFuelLevel, 0, 8, "%f")) {
                   // todo
                 };
                 Tooltip("Diesel Fuel Level");
@@ -1617,7 +1776,7 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
               // Old Size ImVec2(52,28)
               if (ImGui::ImageButton((void*)(intptr_t)minusIcon->GetGLHandle(), ImVec2(52, 28)))
               {
-                if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_STEAM)
+                if (m_enginedefs[m_selected_engine].engineType == EngineType::ENGINE_TYPE_STEAM)
                 {
                   m_enginedefs[m_selected_engine].steam_labour_intensity--;
                   if (m_enginedefs[m_selected_engine].steam_labour_intensity < 0)
@@ -1632,11 +1791,11 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
                   if (m_enginedefs[m_selected_engine].diesel_electric_rev_lvl < 0)
                     m_enginedefs[m_selected_engine].diesel_electric_rev_lvl = 0;
 
-                  if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_DIESEL)
+                  if (m_enginedefs[m_selected_engine].engineType == EngineType::ENGINE_TYPE_DIESEL)
                     TMCCInterface::EngineSetDieselRunLevel(engineID, m_enginedefs[m_selected_engine].diesel_electric_rev_lvl);
-                  else if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_ELECTRIC)
+                  else if (m_enginedefs[m_selected_engine].engineType == EngineType::ENGINE_TYPE_ELECTRIC)
                     TMCCInterface::EngineSetDieselRunLevel(engineID, m_enginedefs[m_selected_engine].diesel_electric_rev_lvl);
-                  else if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_SUBWAY)
+                  else if (m_enginedefs[m_selected_engine].engineType == EngineType::ENGINE_TYPE_SUBWAY)
                     TMCCInterface::EngineSetDieselRunLevel(engineID, m_enginedefs[m_selected_engine].diesel_electric_rev_lvl);
                 }
 
@@ -1648,7 +1807,7 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
               ImGui::PushButtonRepeat(true);
               if (ImGui::ImageButton((void*)(intptr_t)plusIcon->GetGLHandle(), ImVec2(52, 28)))
               {
-                if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_STEAM)
+                if (m_enginedefs[m_selected_engine].engineType == EngineType::ENGINE_TYPE_STEAM)
                 {
                   m_enginedefs[m_selected_engine].steam_labour_intensity++;
                   if (m_enginedefs[m_selected_engine].steam_labour_intensity > 31)
@@ -1665,17 +1824,17 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
                   if (m_enginedefs[m_selected_engine].diesel_electric_rev_lvl > 8)
                     m_enginedefs[m_selected_engine].diesel_electric_rev_lvl = 8;
 
-                  if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_DIESEL)
+                  if (m_enginedefs[m_selected_engine].engineType == EngineType::ENGINE_TYPE_DIESEL)
                     TMCCInterface::EngineSetDieselRunLevel(engineID, m_enginedefs[m_selected_engine].diesel_electric_rev_lvl);
-                  else if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_ELECTRIC)
+                  else if (m_enginedefs[m_selected_engine].engineType == EngineType::ENGINE_TYPE_ELECTRIC)
                     TMCCInterface::EngineSetDieselRunLevel(engineID, m_enginedefs[m_selected_engine].diesel_electric_rev_lvl);
-                  else if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_SUBWAY)
+                  else if (m_enginedefs[m_selected_engine].engineType == EngineType::ENGINE_TYPE_SUBWAY)
                     TMCCInterface::EngineSetDieselRunLevel(engineID, m_enginedefs[m_selected_engine].diesel_electric_rev_lvl);
                 }
               };
               ImGui::PopButtonRepeat();
 
-              if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_STEAM)
+              if (m_enginedefs[m_selected_engine].engineType == EngineType::ENGINE_TYPE_STEAM)
               {
                 ImGui::SameLine();
                 ImGui::Image((void*)(intptr_t)coalIcon->GetGLHandle(), ImVec2(25, 25), uv_min, uv_max, tint_col, border_col);
@@ -1698,45 +1857,63 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
           float uiSpeed = m_enginedefs[m_selected_engine].legacy_speed * m_enginedefs[m_selected_engine].legacy_speed_multiplier;
           float uiSpeedTMCC = m_enginedefs[m_selected_engine].tmcc_speed * m_enginedefs[m_selected_engine].legacy_speed_multiplier;
           // THROTTLE COLUMN
-          if (m_enginedefs[m_selected_engine].legacyEngine)
+
+          switch (m_enginedefs[m_selected_engine].engineCtrlType)
           {
-            // Legacy Version
-              if (ImGuiKnobs::Knob("Throttle", &uiSpeed, 0.0, 200.0, 0.3, "%f MPH", ImGuiKnobVariant_Stepped, 256, ImGuiKnobFlags_NoInput | ImGuiKnobFlags_ValueTooltip, 50))
+          default:
+          case CAB1_CONTROL:
+          case TMCC_RELATIVE_100:
+            if (ImGui::VSliderFloat("##intCab1R100Slider", ImVec2(80, 250), &currentCab1Slider, -12.0f, 12.0f, "Throttle"))
+            {
+              if (currentCab1Slider > 2.5)
               {
-                float realSpeed = uiSpeed / std::max(m_enginedefs[m_selected_engine].legacy_speed_multiplier, 0.01f);
-                m_enginedefs[m_selected_engine].legacy_speed = std::min(std::max(realSpeed, 0.0f), 200.0f);
-                m_enginedefs[m_selected_engine].UpdateSpeed();
-                //printf("UI Speed: %f, Real Speed: %f, Brake Multiplier: %f\n", uiSpeed, realSpeed, m_enginedefs[m_selected_engine].legacy_speed_multiplier);
+                sendCab1RelativeCommands = true;
               }
+              else if (currentCab1Slider < -2.5)
+              {
+                sendCab1RelativeCommands = true;
+              }
+              else
+              {
+                sendCab1RelativeCommands = false;
+              }
+            };
+            SendCab1ThrottleCommand(sendCab1RelativeCommands, curTime, currentCab1Slider, engineID);
+
+            break;
+
+          case TMCC_ABSOLUTE:
+            if (ImGuiKnobs::Knob("Throttle", &uiSpeedTMCC, 0.0, 32.0, 0.3, "%f MPH", ImGuiKnobVariant_Stepped, 256, ImGuiKnobFlags_NoInput | ImGuiKnobFlags_ValueTooltip, 32))
+            {
+              float realSpeed = uiSpeedTMCC / std::max(m_enginedefs[m_selected_engine].legacy_speed_multiplier, 0.01f);
+              m_enginedefs[m_selected_engine].tmcc_speed = std::min(std::max(realSpeed, 0.0f), 32.0f);
+              m_enginedefs[m_selected_engine].UpdateSpeed();
+              //printf("UI Speed: %f, Real Speed: %f, Brake Multiplier: %f\n", uiSpeedTMCC, realSpeed, m_enginedefs[m_selected_engine].legacy_speed_multiplier);
+            }
+            break;
+
+          case LEGACY_ABSOLUTE:
+            if (ImGuiKnobs::Knob("Throttle", &uiSpeed, 0.0, 200.0, 0.3, "%f MPH", ImGuiKnobVariant_Stepped, 256, ImGuiKnobFlags_NoInput | ImGuiKnobFlags_ValueTooltip, 50))
+            {
+              float realSpeed = uiSpeed / std::max(m_enginedefs[m_selected_engine].legacy_speed_multiplier, 0.01f);
+              m_enginedefs[m_selected_engine].legacy_speed = std::min(std::max(realSpeed, 0.0f), 200.0f);
+              m_enginedefs[m_selected_engine].UpdateSpeed();
+              //printf("UI Speed: %f, Real Speed: %f, Brake Multiplier: %f\n", uiSpeed, realSpeed, m_enginedefs[m_selected_engine].legacy_speed_multiplier);
+            }
+            break;
           }
 
-          else
-          {
-            // TMCC Version
-            if (m_enginedefs[m_selected_engine].engineType != EngineTypeTMCC::ENGINE_TYPE_TMCC_CRANE)
-            {
-              if (ImGuiKnobs::Knob("Throttle", &uiSpeedTMCC, 0.0, 32.0, 0.3, "%f MPH", ImGuiKnobVariant_Stepped, 256, ImGuiKnobFlags_NoInput | ImGuiKnobFlags_ValueTooltip, 32))
-              {
-                float realSpeed = uiSpeedTMCC / std::max(m_enginedefs[m_selected_engine].legacy_speed_multiplier, 0.01f);
-                m_enginedefs[m_selected_engine].tmcc_speed = std::min(std::max(realSpeed, 0.0f), 32.0f);
-                m_enginedefs[m_selected_engine].UpdateSpeed();
-                //printf("UI Speed: %f, Real Speed: %f, Brake Multiplier: %f\n", uiSpeedTMCC, realSpeed, m_enginedefs[m_selected_engine].legacy_speed_multiplier);
-              }
-            }
-            else
-            {
-              // TMCC Version For Crane
-            }
-          }
           // Push our invisible button style
           ImGui::PushStyleColor(ImGuiCol_Button, invisible);
 
           // Old Button ImVec2(78,28)
+          if (m_enginedefs[m_selected_engine].IsAbsoluteMode())
+          {
             ImGui::PushButtonRepeat(true);
             if (ImGui::ImageButton((void*)(intptr_t)minusThrottleIcon->GetGLHandle(), ImVec2(70, 32)))
             {
               printf("Speed -1\n");
-              if (m_enginedefs[m_selected_engine].legacyEngine)
+              if (m_enginedefs[m_selected_engine].IsLegacyControlType())
               {
                 m_enginedefs[m_selected_engine].legacy_speed--;
                 if (m_enginedefs[m_selected_engine].legacy_speed < 0)
@@ -1746,7 +1923,7 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
 
               }
 
-              else
+              else if (m_enginedefs[m_selected_engine].IsTMCCControlType())
               {
                 m_enginedefs[m_selected_engine].tmcc_speed--;
                 if (m_enginedefs[m_selected_engine].tmcc_speed < 0)
@@ -1762,12 +1939,12 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
             if (ImGui::ImageButton((void*)(intptr_t)stopThrottleIcon->GetGLHandle(), ImVec2(70, 32)))
             {
               printf("STOP\n");
-              if (m_enginedefs[m_selected_engine].legacyEngine)
+              if (m_enginedefs[m_selected_engine].IsLegacyControlType())
               {
                 m_enginedefs[m_selected_engine].legacy_speed = 0;
                 m_enginedefs[m_selected_engine].UpdateSpeed();
               }
-              else
+              else if (m_enginedefs[m_selected_engine].IsTMCCControlType())
               {
                 m_enginedefs[m_selected_engine].tmcc_speed = 0;
                 m_enginedefs[m_selected_engine].UpdateSpeed();
@@ -1780,7 +1957,7 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
             if (ImGui::ImageButton((void*)(intptr_t)plusThrottleIcon->GetGLHandle(), ImVec2(70, 32)))
             {
               printf("Speed +1\n");
-              if (m_enginedefs[m_selected_engine].legacyEngine)
+              if (m_enginedefs[m_selected_engine].IsLegacyControlType())
               {
                 m_enginedefs[m_selected_engine].legacy_speed++;
                 if (m_enginedefs[m_selected_engine].legacy_speed > 200)
@@ -1789,7 +1966,7 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
 
               }
 
-              else
+              else if (m_enginedefs[m_selected_engine].IsTMCCControlType())
               {
                 m_enginedefs[m_selected_engine].tmcc_speed++;
                 if (m_enginedefs[m_selected_engine].tmcc_speed > 32)
@@ -1800,12 +1977,14 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
               }
             };
             ImGui::PopButtonRepeat();
+          }
+            
           
 
             
 
             // Aux 3 and TMCC Let off
-            if (m_enginedefs[m_selected_engine].legacyEngine)
+            if (m_enginedefs[m_selected_engine].IsLegacySounds())
             {
               ImGui::ImageButton((void*)(intptr_t)aux3arrowIcon->GetGLHandle(), ImVec2(70, 70));
               if (ImGui::IsItemHovered() && ImGui::IsMouseDown(0))
@@ -1857,7 +2036,7 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(50);
     // Whistle
-        if (m_enginedefs[m_selected_engine].legacyEngine)
+        if (m_enginedefs[m_selected_engine].IsLegacySounds())
         {
           if (ImGui::VSliderFloat("##intLegacyHorn", ImVec2(80, 250), &currentQuill, 1.0f, 0.0f, "Whistle"))
           {
@@ -1905,7 +2084,7 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
           TMCCInterface::EngineSetDirection(engineID, TMCC_REVERSE);
         };
 
-    if (m_enginedefs[m_selected_engine].legacyEngine)
+    if (m_enginedefs[m_selected_engine].IsLegacySounds())
     {
       //if (ImGui::ImageButton((void*)(intptr_t)bellIcon->GetGLHandle(), ImVec2(70, 70)))
       //{
@@ -1953,7 +2132,7 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
 
       if (ImGui::ImageButton((void*)(intptr_t)bellIcon->GetGLHandle(), ImVec2(70, 70)))
       {
-        if (m_enginedefs[m_selected_engine].legacyEngine)
+        if (m_enginedefs[m_selected_engine].engineSndType == EngineSoundType::LEGACY || m_enginedefs[m_selected_engine].engineSndType == EngineSoundType::LEGACY_2)
         {
           printf("TMCC2 Bell Toggle\n");
           m_enginedefs[m_selected_engine].bellOn = !m_enginedefs[m_selected_engine].bellOn;
@@ -2040,10 +2219,10 @@ void ThrottleMenu::ShowSecondaryEngineWindow(bool* p_open, const std::string& ap
       ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, 250.0f);
       ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, 80.0f);
       ImGui::TableNextColumn();
-      DrawKeypadType(currentKeypadStyle, m_enginedefs[m_selected_engine_secondary_window].legacyEngine, m_enginedefs[m_selected_engine_secondary_window].engineType,m_enginedefs[m_selected_engine_secondary_window].engineID);
+      DrawKeypadType(m_enginedefs[m_selected_engine_secondary_window].engineSndType, m_enginedefs[m_selected_engine_secondary_window].IsLegacyControlType(), m_enginedefs[m_selected_engine_secondary_window].engineType, m_enginedefs[m_selected_engine_secondary_window].engineID);
       ImGui::TableNextColumn();
 
-      if (m_enginedefs[m_selected_engine_secondary_window].legacyEngine)
+      if (m_enginedefs[m_selected_engine_secondary_window].IsLegacySounds())
       {
         if (ImGui::VSliderFloat("##intLegacyHorn2", ImVec2(80, 250), &m_enginedefs[m_selected_engine_secondary_window].currentQuill, 1.0f, 0.0f, "Whistle"))
         {
@@ -2098,7 +2277,7 @@ void ThrottleMenu::ShowSecondaryEngineWindow(bool* p_open, const std::string& ap
       };
 
       // Aux 3 and TMCC Let off
-      if (m_enginedefs[m_selected_engine_secondary_window].legacyEngine)
+      if (m_enginedefs[m_selected_engine_secondary_window].IsLegacySounds())
       {
         ImGui::ImageButton((void*)(intptr_t)aux3arrowIcon->GetGLHandle(), ImVec2(70, 70));
         if (ImGui::IsItemHovered() && ImGui::IsMouseDown(0))
@@ -2321,7 +2500,7 @@ void ThrottleMenu::ShowSoundWindow(bool* p_open)
       ImGui::EndCombo();
     }
 
-    if (m_enginedefs[m_selected_engine_sound_menu].legacyEngine) // if selected engine is legacy, show legacy menu options
+    if (m_enginedefs[m_selected_engine_sound_menu].IsLegacySounds()) // if selected engine is legacy, show legacy menu options
     {
         ImGui::Text("One Shot Bell Enabled:");
         ImGui::SameLine();
@@ -2769,69 +2948,218 @@ void ThrottleMenu::PlayWhistleTMCC(bool enabled, float curTime, float currentQui
 
 }
 
+void ThrottleMenu::SendCab1ThrottleCommand(bool sendCab1RelativeCommands, float curTime, float currentCab1Slider, int engineID)
+{
+  float interval = 0.2f;
+  if (sendCab1RelativeCommands)
+  {
+    if (curTime - ThrottleMenu::lastCab1ThrottleCmdTime >= interval)
+    {
+      ThrottleMenu::lastCab1ThrottleCmdTime = curTime;
+      TMCCInterface::EngineSetRelativeSpeed(engineID, (int)(currentCab1Slider * 0.4167f));
+      printf("Cab1 Relative Speed : %d\n", (int)(currentCab1Slider * 0.4167f));
+    }
+  }
+
+}
 
 
 void ThrottleMenu::DrawKeypadType(int currentKeypadType, bool isLegacy, int engineType, int m_selected_engine)
 {
-  if (isLegacy) // Legacy Locos
-  {
-    switch (engineType)
-    {
-    case EngineTypeLegacy::ENGINE_TYPE_STEAM:
-    default:
-      DrawCAB2SteamKeypad(m_selected_engine);
-      break;
-    
-    case EngineTypeLegacy::ENGINE_TYPE_DIESEL:
-      DrawCAB2DieselKeypad(m_selected_engine);
-      break;
+  /*
+      The Keypad is drawn based on the Sound Type, not the Control Type.
+      For example, a Legacy Steamer could have Legacy Absolute Speed Steps, but NO SOUNDS
+      as the selected option.
 
-    case EngineTypeLegacy::ENGINE_TYPE_ELECTRIC:
-      DrawCAB2ElectricKeypad(m_selected_engine);
-      break;
-    case EngineTypeLegacy::ENGINE_TYPE_STATIONSOUND_CAR:
-      DrawStationDinerKeypad(m_selected_engine);
-      break;
-    case EngineTypeLegacy::ENGINE_TYPE_STOCK_CAR:
-      DrawFreightCarKeypad(m_selected_engine);
-      break;
-    case EngineTypeLegacy::ENGINE_TYPE_SUBWAY:
-      DrawCAB2SteamKeypad(m_selected_engine);
-      break;
-    }
-    
-  }
+      There are some limitations on which type of Keypad can be shown.
+  
+      Notes:
+      Breakdown Unit shares same icons for RS, RS5, LEGACY.
 
-  else // TMCC Locos
+      Crane Car can ONLY be RS5, LEGACY, or LEGACY2.
+
+      Transformer ALWAYS shows NO SOUNDS.
+
+      11-17-24: Let's repurpose "currentKeyPadType" as the Sound Control Type for now.
+  */
+
+  switch (currentKeypadType)
   {
-    switch (engineType)
-    {
-    case EngineTypeTMCC::ENGINE_TYPE_TMCC_STEAM:
-      DrawTMCCSteamKeypad(m_selected_engine);
-      break;
-    case EngineTypeTMCC::ENGINE_TYPE_TMCC_DIESEL:
-      DrawTMCCDieselKeypad(m_selected_engine);
-      break;
-    case EngineTypeTMCC::ENGINE_TYPE_TMCC_ELECTRIC:
-      DrawTMCCAcelaKeypad(m_selected_engine);
-      break;
-    case EngineTypeTMCC::ENGINE_TYPE_TMCC_ACELA:
-      DrawTMCCAcelaKeypad(m_selected_engine);
-      break;
-    case EngineTypeTMCC::ENGINE_TYPE_TMCC_CRANE:
-      DrawTMCCCraneKeypad(m_selected_engine);
-      break;
-    default:
+    case NO_SOUNDS: // NO SOUNDS ALWAYS shows the Cab1 keypad.
       DrawCAB1Keypad(m_selected_engine);
+    break;
+
+    case RAILSOUNDS: // Railsounds 1-4 has some unique keypad icons for Steam/Diesel/Electric.
+      switch (engineType)
+      {
+      case EngineType::ENGINE_TYPE_STEAM:
+      case EngineType::ENGINE_TYPE_STEAM_SWITCHER:
+      case EngineType::ENGINE_TYPE_STEAM_FLYER_PULLMOR:
+        DrawRSSteamKeypad(m_selected_engine);
+        break;
+
+      case EngineType::ENGINE_TYPE_DIESEL:
+      case EngineType::ENGINE_TYPE_DIESEL_SWITCHER:
+      case EngineType::ENGINE_TYPE_DIESEL_FLYER_PULLMOR:
+        DrawRSDieselKeypad(m_selected_engine);
+        break;
+
+      case EngineType::ENGINE_TYPE_ELECTRIC:
+        DrawRSElectricKeypad(m_selected_engine);
+        break;
+      
+      default:
+        DrawCAB1Keypad(m_selected_engine);
+        break;
+      }
+      
+    break;
+
+    case RAILSOUNDS_5: // Railsounds 5 has some unique keypad icons for Steam/Diesel/Electric. Lionel Acela can ONLY select this option.
+      switch (engineType)
+      {
+      case EngineType::ENGINE_TYPE_STEAM:
+      case EngineType::ENGINE_TYPE_STEAM_SWITCHER:
+      case EngineType::ENGINE_TYPE_STEAM_FLYER_PULLMOR:
+        DrawRS5SteamKeypad(m_selected_engine);
+        break;
+
+      case EngineType::ENGINE_TYPE_DIESEL:
+      case EngineType::ENGINE_TYPE_DIESEL_SWITCHER:
+      case EngineType::ENGINE_TYPE_DIESEL_FLYER_PULLMOR:
+        DrawRS5DieselKeypad(m_selected_engine);
+        break;
+
+      case EngineType::ENGINE_TYPE_ELECTRIC:
+        DrawRS5ElectricKeypad(m_selected_engine);
+        break;
+
+      case EngineType::ENGINE_TYPE_TMCC_ACELA:
+        DrawTMCCAcelaKeypad(m_selected_engine);
+        break;
+
+      case EngineType::ENGINE_TYPE_CRANE_CAR:
+        DrawTMCCCraneKeypad(m_selected_engine);
+        break;
+
+      default:
+        DrawCAB1Keypad(m_selected_engine);
+        break;
+      }
       break;
-    }
+
+    case LEGACY: // Legacy has unique keypad icons for Steam/Diesel/Electric.
+      switch (engineType)
+      {
+      case EngineType::ENGINE_TYPE_STEAM:
+      case EngineType::ENGINE_TYPE_STEAM_SWITCHER:
+      case EngineType::ENGINE_TYPE_STEAM_FLYER_PULLMOR:
+        DrawCAB2SteamKeypad(m_selected_engine);
+        break;
+
+      case EngineType::ENGINE_TYPE_DIESEL:
+      case EngineType::ENGINE_TYPE_DIESEL_SWITCHER:
+      case EngineType::ENGINE_TYPE_DIESEL_FLYER_PULLMOR:
+        DrawCAB2DieselKeypad(m_selected_engine);
+        break;
+
+      case EngineType::ENGINE_TYPE_ELECTRIC:
+        DrawCAB2ElectricKeypad(m_selected_engine);
+        break;
+      case EngineType::ENGINE_TYPE_STATIONSOUND_CAR:
+        DrawStationDinerKeypad(m_selected_engine);
+        break;
+      case EngineType::ENGINE_TYPE_STOCK_CAR:
+        DrawFreightCarKeypad(m_selected_engine);
+        break;
+      case EngineType::ENGINE_TYPE_SUBWAY: // Need to Create Legacy Subway Keypad
+        DrawCAB2SteamKeypad(m_selected_engine);
+        break;
+
+      case EngineType::ENGINE_TYPE_CRANE_CAR: // Need to Create Legacy Subway Keypad
+        DrawLegacyCraneKeypad(m_selected_engine);
+        break;
+
+      default:
+        DrawCAB1Keypad(m_selected_engine);
+        break;
+      }
+      break;
+    
+    case LEGACY_2: // Legacy 2 is unique to Legacy Crane cars as of Cab Ver 1.76. The Base doesn't even know what this is!
+      switch (engineType)
+      {
+      case EngineType::ENGINE_TYPE_CRANE_CAR: // Need to Create Legacy Subway Keypad
+        DrawLegacy2CraneKeypad(m_selected_engine);
+        break;
+
+      default:
+        DrawCAB1Keypad(m_selected_engine);
+        break;
+      }
+      break;
   }
+
+  //if (isLegacy) // Legacy Locos
+  //{
+  //  switch (engineType)
+  //  {
+  //  case EngineType::ENGINE_TYPE_STEAM:
+  //  default:
+  //    DrawCAB2SteamKeypad(m_selected_engine);
+  //    break;
+  //  
+  //  case EngineType::ENGINE_TYPE_DIESEL:
+  //    DrawCAB2DieselKeypad(m_selected_engine);
+  //    break;
+
+  //  case EngineType::ENGINE_TYPE_ELECTRIC:
+  //    DrawCAB2ElectricKeypad(m_selected_engine);
+  //    break;
+  //  case EngineType::ENGINE_TYPE_STATIONSOUND_CAR:
+  //    DrawStationDinerKeypad(m_selected_engine);
+  //    break;
+  //  case EngineType::ENGINE_TYPE_STOCK_CAR:
+  //    DrawFreightCarKeypad(m_selected_engine);
+  //    break;
+  //  case EngineType::ENGINE_TYPE_SUBWAY:
+  //    DrawCAB2SteamKeypad(m_selected_engine);
+  //    break;
+  //  }
+  //  
+  //}
+
+  //else // TMCC Locos
+  //{
+  //  switch (engineType)
+  //  {
+  //  case EngineTypeTMCC::ENGINE_TYPE_TMCC_STEAM:
+  //    DrawTMCCSteamKeypad(m_selected_engine);
+  //    break;
+  //  case EngineTypeTMCC::ENGINE_TYPE_TMCC_DIESEL:
+  //    DrawTMCCDieselKeypad(m_selected_engine);
+  //    break;
+  //  case EngineTypeTMCC::ENGINE_TYPE_TMCC_ELECTRIC:
+  //    DrawTMCCElectricKeypad(m_selected_engine);
+  //    break;
+  //  case EngineTypeTMCC::ENGINE_TYPE_TMCC_ACELA:
+  //    DrawTMCCAcelaKeypad(m_selected_engine);
+  //    break;
+  //  case EngineTypeTMCC::ENGINE_TYPE_TMCC_CRANE:
+  //    DrawTMCCCraneKeypad(m_selected_engine);
+  //    break;
+  //  default:
+  //    DrawCAB1Keypad(m_selected_engine);
+  //    break;
+  //  }
+  //}
 }
 
-void ThrottleMenu::SetUpEngineFromRoster(int engineID,bool legacyEnabled, const std::string& dir)
+void ThrottleMenu::SetUpEngineFromRoster(int engineID,int currentEngineCtrlType, int currentEngineSndType, bool legacyEnabled, const std::string& dir)
 {
   engineID = m_enginedefs[m_selected_engine].engineID;
-  legacyEnabled = m_enginedefs[m_selected_engine].legacyEngine;
+  currentEngineCtrlType = m_enginedefs[m_selected_engine].engineCtrlType;
+  currentEngineSndType = m_enginedefs[m_selected_engine].engineSndType;
   Image o;
   if (o.Load(dir + "/engine_picture/" + m_enginedefs[m_selected_engine].engineName + ".png"))
   {
@@ -2862,7 +3190,7 @@ void ThrottleMenu::HandleGameControllerEvents(SDL_GameController* gGameControlle
         float value = (float)SDL_GameControllerGetAxis(gGameController, SDL_CONTROLLER_AXIS_RIGHTY);
         if (value > rightStickYDeadZone + 10000)
         {
-          if (m_enginedefs[m_selected_engine].legacyEngine)
+          if (m_enginedefs[m_selected_engine].IsLegacyControlType())
           {
             //printf("Down Right Stick Y: %d\n", (int)value);
             m_enginedefs[m_selected_engine].legacy_speed--;
@@ -2892,7 +3220,7 @@ void ThrottleMenu::HandleGameControllerEvents(SDL_GameController* gGameControlle
         else if (value < rightStickYDeadZone - 10000)
         {
           //printf("UP Right Stick Y: %d\n", (int)value);
-          if (m_enginedefs[m_selected_engine].legacyEngine)
+          if (m_enginedefs[m_selected_engine].IsLegacyControlType())
           {
             //printf("Down Right Stick Y: %d\n", (int)value);
             m_enginedefs[m_selected_engine].legacy_speed++;
@@ -2935,7 +3263,7 @@ void ThrottleMenu::HandleGameControllerEvents(SDL_GameController* gGameControlle
 
           if (value < -0.9)
           {
-            if (m_enginedefs[m_selected_engine].legacyEngine)
+            if (m_enginedefs[m_selected_engine].IsLegacyControlType())
             {
               // if stick is pulled down enough, decrement the gamePadTrainBrake variable
               // and check if it's less than zero. if so, then set it min to zero.
@@ -2948,7 +3276,7 @@ void ThrottleMenu::HandleGameControllerEvents(SDL_GameController* gGameControlle
 
               int brakevalue = (int)(m_enginedefs[m_selected_engine].gamepadTrainBrake * 8.0f);
               m_enginedefs[m_selected_engine].currentTrainBrake = m_enginedefs[m_selected_engine].gamepadTrainBrake;
-              m_enginedefs[m_selected_engine].SetSpeedMultiplier(1.0 - m_enginedefs[m_selected_engine].gamepadTrainBrake, m_enginedefs[m_selected_engine].legacyEngine, true);
+              m_enginedefs[m_selected_engine].SetSpeedMultiplier(1.0 - m_enginedefs[m_selected_engine].gamepadTrainBrake, m_enginedefs[m_selected_engine].IsLegacyControlType(), true);
 
             }
           }
@@ -2962,7 +3290,7 @@ void ThrottleMenu::HandleGameControllerEvents(SDL_GameController* gGameControlle
           
           if (value > 0.9) 
           {
-            if (m_enginedefs[m_selected_engine].legacyEngine)
+            if (m_enginedefs[m_selected_engine].IsLegacyControlType())
             {
               // if stick is pulled down enough, increment the gamePadTrainBrake variable
               // and check if it's over 1. if so, then set it max to one.
@@ -2975,12 +3303,12 @@ void ThrottleMenu::HandleGameControllerEvents(SDL_GameController* gGameControlle
 
               int brakevalue = (int)(m_enginedefs[m_selected_engine].gamepadTrainBrake * 8.0f);
               m_enginedefs[m_selected_engine].currentTrainBrake = m_enginedefs[m_selected_engine].gamepadTrainBrake;
-              m_enginedefs[m_selected_engine].SetSpeedMultiplier(1.0 - m_enginedefs[m_selected_engine].gamepadTrainBrake, m_enginedefs[m_selected_engine].legacyEngine, true);
+              m_enginedefs[m_selected_engine].SetSpeedMultiplier(1.0 - m_enginedefs[m_selected_engine].gamepadTrainBrake, m_enginedefs[m_selected_engine].IsLegacyControlType(), true);
               /*TMCCInterface::EngineSetTrainBrake2(engineID, brakevalue);
               if (brakeSoundEnabledAllTypes)
                 TMCCInterface::EngineBrakeSquealSound(engineID);
 
-              if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_STEAM)
+              if (m_enginedefs[m_selected_engine].engineType == EngineType::ENGINE_TYPE_STEAM)
               {
                 int labourvalue = (int)(m_enginedefs[m_selected_engine].gamepadTrainBrake * 32.0f);
                 m_enginedefs[m_selected_engine].steam_labour_intensity = labourvalue;
@@ -3000,13 +3328,12 @@ void ThrottleMenu::HandleGameControllerEvents(SDL_GameController* gGameControlle
       //if (SDL_GameControllerGetButton(gGameController, SDL_CONTROLLER_BUTTON_RIGHTSTICK))
       //{
        // m_enginedefs[m_selected_engine].legacy_speed = 0;
-       // m_enginedefs[m_selected_engine].SetSpeed(m_enginedefs[m_selected_engine].legacy_speed, m_enginedefs[m_selected_engine].legacyEngine);
 
      // }
       if (SDL_GameControllerGetButton(gGameController, SDL_CONTROLLER_BUTTON_A))
       {
         printf("Game controller Bell\n");
-        if (m_enginedefs[m_selected_engine].legacyEngine) // TMCC 2
+        if (m_enginedefs[m_selected_engine].IsLegacySounds()) // TMCC 2
         {
           if (!m_enginedefs[m_selected_engine].oneShotBellEnabled)
           {
@@ -3083,7 +3410,6 @@ void ThrottleMenu::HandleGameControllerEvents(SDL_GameController* gGameControlle
           m_enginedefs[m_selected_engine].legacy_speed--;
           if (m_enginedefs[m_selected_engine].legacy_speed < 0)
             m_enginedefs[m_selected_engine].legacy_speed = 0;
-          //m_enginedefs[m_selected_engine].SetSpeed(m_enginedefs[m_selected_engine].legacy_speed, m_enginedefs[m_selected_engine].legacyEngine);
           m_enginedefs[m_selected_engine].UpdateSpeed();
         }
         else
@@ -3102,12 +3428,11 @@ void ThrottleMenu::HandleGameControllerEvents(SDL_GameController* gGameControlle
           m_enginedefs[m_selected_engine].legacy_speed++;
           if (m_enginedefs[m_selected_engine].legacy_speed > 200)
             m_enginedefs[m_selected_engine].legacy_speed = 200;
-          //m_enginedefs[m_selected_engine].SetSpeed(m_enginedefs[m_selected_engine].legacy_speed, m_enginedefs[m_selected_engine].legacyEngine);
           m_enginedefs[m_selected_engine].UpdateSpeed();
         }
         else
         {
-          if (m_enginedefs[m_selected_engine].legacyEngine)
+          if (m_enginedefs[m_selected_engine].IsLegacySounds())
           {
             printf("Controller Aux 3\n");
             TMCCInterface::EngineAux3Trigger(engineID);
@@ -3157,7 +3482,8 @@ void ThrottleMenu::HandleGameControllerEvents(SDL_GameController* gGameControlle
         }
         //SetUpEngineFromRoster(engineID, legacyEnabled, dir);
         engineID = m_enginedefs[m_selected_engine].engineID;
-        legacyEnabled = m_enginedefs[m_selected_engine].legacyEngine;
+        currentEngineCtrlType = m_enginedefs[m_selected_engine].engineCtrlType;
+        currentEngineSndType = m_enginedefs[m_selected_engine].engineSndType;
 
 
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3205,8 +3531,9 @@ void ThrottleMenu::HandleGameControllerEvents(SDL_GameController* gGameControlle
         }
 
         engineID = m_enginedefs[m_selected_engine].engineID;
-        legacyEnabled = m_enginedefs[m_selected_engine].legacyEngine;
-        
+        currentEngineCtrlType = m_enginedefs[m_selected_engine].engineCtrlType;
+        currentEngineSndType = m_enginedefs[m_selected_engine].engineSndType;
+
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // Something funky is going on with the dir ONLY when the controller events are triggered. Need to investigate further.
 
@@ -3251,7 +3578,7 @@ void ThrottleMenu::HandleGameControllerEvents(SDL_GameController* gGameControlle
       {
         value = (value / 32767) * 15.0f;
 
-        if (m_enginedefs[m_selected_engine].legacyEngine) // TMCC 2
+        if (m_enginedefs[m_selected_engine].IsLegacySounds()) // TMCC 2
         {
           if ((int)value > 0)
           {
@@ -3278,7 +3605,7 @@ void ThrottleMenu::HandleGameControllerEvents(SDL_GameController* gGameControlle
       else if (SDL_GameControllerGetAxis(gGameController, SDL_CONTROLLER_AXIS_TRIGGERRIGHT))
       {
       float value = (float)SDL_GameControllerGetAxis(gGameController, SDL_CONTROLLER_AXIS_TRIGGERRIGHT);
-      if (m_enginedefs[m_selected_engine].legacyEngine)
+      if (m_enginedefs[m_selected_engine].IsLegacySounds())
       {
         value = (value / 32767) * 15.0f;
         if ((int)value > 0)
@@ -3320,15 +3647,15 @@ void ThrottleMenu::HandleGameControllerEvents(SDL_GameController* gGameControlle
       value = (value / 32767);
 
       
-      if (m_enginedefs[m_selected_engine].legacyEngine)
+      if (m_enginedefs[m_selected_engine].IsLegacyControlType())
       {
         int brakevalue = (int)(value * 8.0f);
-        m_enginedefs[m_selected_engine].SetSpeedMultiplier(1.0 - value, m_enginedefs[m_selected_engine].legacyEngine, true);
+        m_enginedefs[m_selected_engine].SetSpeedMultiplier(1.0 - value, m_enginedefs[m_selected_engine].IsLegacyControlType(), true);
         //TMCCInterface::EngineSetTrainBrake2(engineID, brakevalue);
         //if (brakeSoundEnabledAllTypes)
         //  TMCCInterface::EngineBrakeSquealSound(engineID);
 
-        //if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_STEAM)
+        //if (m_enginedefs[m_selected_engine].engineType == EngineType::ENGINE_TYPE_STEAM)
         //{
         //  int labourvalue = (int)(value * 32.0f);
         //  m_enginedefs[m_selected_engine].steam_labour_intensity = labourvalue;

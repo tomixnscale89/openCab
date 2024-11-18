@@ -52,7 +52,26 @@ void EngineManagement::ReadEngineRoster(json & engineRoster, json& switchRoster,
       enginedef.engineID = engine["engineID"].get<int>();
       enginedef.engineType = engine["engineType"].get<int>();
       enginedef.engineName = engine["engineName"];
-      enginedef.legacyEngine = engine["isLegacy"].get<bool>();
+      enginedef.engineRoadNumber = engine["engineRoadNumber"];
+      enginedef.legacyEngine = engine["isLegacy"].get<bool>(); // remove this 
+
+      enginedef.engineCtrlType = engine["engineCtrlType"].get<int>();
+      enginedef.engineClassType = engine["engineClassType"].get<int>();
+      enginedef.engineSndType = engine["engineSndType"].get<int>();
+      enginedef.engineTouchPadLeftIconSetting = engine["engineTouchPadLeftIconSetting"].get<int>();
+      enginedef.engineTouchPadRightSetting = engine["engineTouchPadRightSetting"].get<int>();
+      enginedef.speedLimit = engine["speedLimit"].get<int>();
+      enginedef.steam_labour_intensity = engine["steam_labour_intensity"].get<int>();
+      enginedef.diesel_electric_rev_lvl = engine["diesel_electric_rev_lvl"].get<int>();
+      enginedef.currentFuelLevel = engine["currentFuelLevel"].get<int>();
+      enginedef.currentWaterLevel = engine["currentWaterLevel"].get<int>();
+      enginedef.trainAddressRecorded = engine["trainAddressRecorded"].get<int>();
+      enginedef.trainPosition = engine["trainPosition"].get<int>();
+      enginedef.smoke_state_legacy = engine["smoke_state_legacy"].get<int>();
+      enginedef.ditchLightState = engine["ditchLightState"].get<int>();
+      enginedef.base_speed_record = engine["base_speed_record"].get<int>();
+      enginedef.momentum = engine["momentum"].get<int>();
+      enginedef.trainBrake = engine["trainBrake"].get<int>();
       enginedefs.push_back(enginedef);
 
     }
@@ -175,7 +194,25 @@ void EngineManagement::AddEngineDataToJson(json& engineRoster, std::vector<Engin
     json enginedata;
     enginedata["engineID"] = engine.engineID;
     enginedata["engineName"] = engine.engineName;
+    enginedata["engineRoadNumber"] = engine.engineRoadNumber;
     enginedata["engineType"] = engine.engineType;
+    enginedata["engineCtrlType"] = engine.engineCtrlType;
+    enginedata["engineClassType"] = engine.engineClassType;
+    enginedata["engineSndType"] = engine.engineSndType;
+    enginedata["engineTouchPadLeftIconSetting"] = engine.engineTouchPadLeftIconSetting;
+    enginedata["engineTouchPadRightSetting"] = engine.engineTouchPadRightSetting;
+    enginedata["speedLimit"] = engine.speedLimit;
+    enginedata["steam_labour_intensity"] = engine.steam_labour_intensity;
+    enginedata["diesel_electric_rev_lvl"] = engine.diesel_electric_rev_lvl;
+    enginedata["currentFuelLevel"] = engine.currentFuelLevel;
+    enginedata["currentWaterLevel"] = engine.currentWaterLevel;
+    enginedata["trainAddressRecorded"] = engine.trainAddressRecorded;
+    enginedata["trainPosition"] = engine.trainPosition;
+    enginedata["smoke_state_legacy"] = engine.smoke_state_legacy;
+    enginedata["ditchLightState"] = engine.ditchLightState;
+    enginedata["base_speed_record"] = engine.base_speed_record;
+    enginedata["momentum"] = engine.momentum;
+    enginedata["trainBrake"] = engine.trainBrake;
     enginedata["isLegacy"] = engine.legacyEngine;
     engines.push_back(enginedata);
   }

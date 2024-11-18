@@ -16,47 +16,105 @@
 using json = nlohmann::json;
 
 
-enum EngineTypeLegacy : uint8
+enum EngineType : uint8
 {
-  ENGINE_TYPE_STEAM = 0x0,
-  ENGINE_TYPE_DIESEL = 0x1,
-  ENGINE_TYPE_ELECTRIC = 0x2,
-  ENGINE_TYPE_STATIONSOUND_CAR = 0x3,
-  ENGINE_TYPE_SUBWAY = 0x4,
-  ENGINE_TYPE_STOCK_CAR = 0x5,
-  ENGINE_TYPE_CRANE_CAR = 0xD
+  ENGINE_TYPE_DIESEL = TMCCInterface::ENGINE_DIESEL,
+  ENGINE_TYPE_STEAM = TMCCInterface::ENGINE_STEAM,
+  ENGINE_TYPE_ELECTRIC = TMCCInterface::ENGINE_ELECTRIC,
+  ENGINE_TYPE_SUBWAY = TMCCInterface::ENGINE_SUBWAY,
+  ENGINE_TYPE_ACCESSORY_CAR = TMCCInterface::ENGINE_STATIONSOUND_CAR,
+  ENGINE_TYPE_STATIONSOUND_CAR = TMCCInterface::ENGINE_STATIONSOUND_CAR,
+  ENGINE_TYPE_BREAKDOWN_UNIT = TMCCInterface::ENGINE_BREAKDOWN_UNIT,
+  ENGINE_TYPE_TMCC_ACELA = TMCCInterface::ENGINE_TMCC_ACELA,
+  ENGINE_TYPE_CRANE_CAR = TMCCInterface::ENGINE_CRANE,
+  ENGINE_TYPE_DIESEL_SWITCHER = TMCCInterface::ENGINE_DIESEL_SWITCHER,
+  ENGINE_TYPE_STEAM_SWITCHER = TMCCInterface::ENGINE_STEAM_SWITCHER,
+  ENGINE_TYPE_STOCK_CAR = TMCCInterface::ENGINE_STOCK_CAR,
+  ENGINE_TYPE_DIESEL_FLYER_PULLMOR = TMCCInterface::ENGINE_DIESEL_FLYER_PULLMOR,
+  ENGINE_TYPE_STEAM_FLYER_PULLMOR = TMCCInterface::ENGINE_STEAM_FLYER_PULLMOR,
+  ENGINE_TYPE_TRANSFORMER = TMCCInterface::ENGINE_TRANSFORMER,
 };
 
-enum EngineTypeTMCC : uint8
+//enum EngineTypeTMCC : uint8
+//{
+//  ENGINE_TYPE_TMCC_STEAM = 0x6,
+//  ENGINE_TYPE_TMCC_DIESEL = 0x7,
+//  ENGINE_TYPE_TMCC_ELECTRIC = 0x8,
+//  ENGINE_TYPE_TMCC_CAR = 0x9,
+//  ENGINE_TYPE_TMCC_CRANE = 0xA,
+//  ENGINE_TYPE_TMCC_ACELA = 0xB,
+//  ENGINE_TYPE_TMCC_BREAKDOWN_UNIT = 0xC,
+//  ENGINE_TYPE_TMCC_LIONCHIEF = 0xD
+//};
+
+enum EngineControlType : uint8
 {
-  ENGINE_TYPE_TMCC_STEAM = 0x6,
-  ENGINE_TYPE_TMCC_DIESEL = 0x7,
-  ENGINE_TYPE_TMCC_ELECTRIC = 0x8,
-  ENGINE_TYPE_TMCC_CAR = 0x9,
-  ENGINE_TYPE_TMCC_CRANE = 0xA,
-  ENGINE_TYPE_TMCC_ACELA = 0xB,
-  ENGINE_TYPE_TMCC_BREAKDOWN_UNIT = 0xC,
-  ENGINE_TYPE_TMCC_LIONCHIEF = 0xD
+  CAB1_CONTROL = TMCCInterface::CAB1_CONTROL,
+  TMCC_ABSOLUTE = TMCCInterface::TMCC_ABSOLUTE,
+  LEGACY_ABSOLUTE = TMCCInterface::LEGACY_ABSOLUTE,
+  TMCC_RELATIVE_100 = TMCCInterface::TMCC_RELATIVE_100,
 };
 
+enum EngineSoundType : uint8
+{
+  NO_SOUNDS = TMCCInterface::NO_SOUNDS,
+  RAILSOUNDS = TMCCInterface::RAILSOUNDS,
+  RAILSOUNDS_5 = TMCCInterface::RAILSOUNDS_5,
+  LEGACY = TMCCInterface::LEGACY,
+  LEGACY_2 = TMCCInterface::LEGACY_2,
+};
 
+enum EngineClassType : uint8
+{
+  ROAD_LOCO = TMCCInterface::ROAD_LOCO,
+  SWITCHER_LOCO = TMCCInterface::SWITCHER_LOCO,
+  SUBWAY_LOCO = TMCCInterface::SUBWAY_LOCO,
+  DIESEL_STEAM_FLYER_LEGACYPULLMOR = TMCCInterface::DIESEL_STEAM_FLYER_LEGACYPULLMOR,
+  TRANSFORMER = TMCCInterface::TRANSFORMER,
+  WILDCARD = TMCCInterface::WILDCARD
+};
 
 struct EngineDef
 {
+  ////////////////////////////////////////////////////
+  // LEGACY PARAMTERS FOR BASE
+  ////////////////////////////////////////////////////
   int engineID;
-  int engineType;
-  bool legacyEngine = false;
-  std::string engineName;
+  int engineType; // Engine Type
+  int engineCtrlType; // Engine Control Type
+  int engineSndType; // Engine Sound Type
+  int engineClassType; // Engine Class Type
+  int engineTouchPadLeftIconSetting; // Left Touch screen icon setting
+  int engineTouchPadRightSetting; // Left Touch screen icon setting
+
+
+  bool legacyEngine = false; // Old implementation, need to remove!!!!
+ 
+  std::string engineName; // road name (ASCII w/null termination)
+  std::string engineRoadNumber; // road number (ASCII w/null termination)
   // add temp engine speed
   float legacy_speed = 0;
   float temp_legacy_speed = 0;
   float tmcc_speed = 0;
-  int steam_labour_intensity = 0;
-  int diesel_electric_rev_lvl = 0;
-  int smoke_state_legacy = 0;
-  int currentDieselFuel = 0;
-  int currentCoalLevel = 0;
+  int steam_labour_intensity = 0; // Labor Bias (this ALSO applies to diesels/electric!!!)
+  int diesel_electric_rev_lvl = 0; // Run Level (electric doesn't seem to use this on the remote, but the train reacts to command)
+  int trainAddressRecorded; // Unsure what this is really for
+  int trainPosition; // records location in train/consist
+  int smoke_state_legacy = 0; // 0x0 off, 0x1 low, 0x2 med, 0x3 high
+  int ditchLightState; // 0x0, 0x1, 0x2, 0x3
+  int speedLimit;
+  int base_speed_record; // cast the openCab float to a int for this value.
+  int momentum;
+  int trainBrake;
+  
+  
+  int currentFuelLevel = 0;
+  //int currentCoalLevel = 0; // COAL and Diesel are combined into one
   int currentWaterLevel = 0;
+  ////////////////////////////////////////////////////
+
+
+  
   int keyPadPage = 0;
   bool useHorn2 = false;
   bool oneShotBellEnabled = false;
@@ -64,6 +122,7 @@ struct EngineDef
   bool bellOn = false;
   float currentTrainBrake;
   float currentQuill = 0;
+  float currentCab1Slider = 0;
 
   float gamepadTrainBrake = 0.0f;
 
@@ -94,10 +153,83 @@ struct EngineDef
   //  //}
   //}
 
+
+  /* 
+     My previous approach to determining if a engine is legacy is based on a bool.
+     This is incorrect since a legacy engine has many different potential combinations, depending
+     on the control type and sound type.
+
+     For future implementations, we will decide if an engine is "legacy" based on the Sound Type.
+     Ideally the rest of openCab should perform a Control Type and Sound Type check.
+
+     For now, determing the loco is legacy or not via the Sound Type is sufficient for now.
+  */ 
+  
+
+  bool EngineDef::IsLegacySounds() 
+  {
+    if (engineSndType == LEGACY || engineSndType == LEGACY_2)
+    {
+      return true;
+    }
+    else
+      return false;
+  }
+
+  bool EngineDef::IsAbsoluteMode()
+  {
+    if (IsTMCCControlType() || IsLegacyControlType())
+    {
+      return true;
+    }
+    else
+      return false;
+  }
+
+  bool EngineDef::IsR100ControlType()
+  {
+    if (engineCtrlType == TMCC_RELATIVE_100)
+    {
+      return true;
+    }
+    else
+      return false;
+  }
+
+  bool EngineDef::IsCAB1ControlType()
+  {
+    if (engineCtrlType == CAB1_CONTROL)
+    {
+      return true;
+    }
+    else
+      return false;
+  }
+  
+  bool EngineDef::IsTMCCControlType()
+  {
+    if (engineCtrlType == TMCC_ABSOLUTE)
+    {
+      return true;
+    }
+    else
+      return false;
+  }
+
+  bool EngineDef::IsLegacyControlType()
+  {
+    if (engineCtrlType == LEGACY_ABSOLUTE)
+    {
+      return true;
+    }
+    else
+      return false;
+  }
+
   void EngineDef::UpdateSpeed()
   {
     
-    if (legacyEngine)
+    if (IsLegacyControlType())
     {
       int finalSpeed = (int)(legacy_speed * legacy_speed_multiplier);
       //printf("FinalSpeed: %d\n", finalSpeed);
@@ -141,7 +273,7 @@ struct EngineDef
         if (brakeSoundEnabled)
           TMCCInterface::EngineBrakeSquealSound(engineID);
 
-        if (engineType == EngineTypeLegacy::ENGINE_TYPE_STEAM)
+        if (engineType == EngineType::ENGINE_TYPE_STEAM)
         {
           steam_labour_intensity = (int)(currentTrainBrake * 32.0f);
           TMCCInterface::EngineSetLabor(engineID, steam_labour_intensity);
@@ -283,9 +415,18 @@ private:
   std::string m_device;
   std::string m_pdi_device;
   float lastQuillTime = 0.0f;
+  float lastCab1ThrottleCmdTime = 0.0f;
   bool whistleEnabled = false;
+
+  bool sendCab1RelativeCommands = false;
+
+
   int speed = 0; // current speed
   int engineID = 0;
+  int currentEngineCtrlType = 0;
+  int currentEngineSndType = 0;
+
+
   int engineID_secondary = 0;
   int engineID_cabpc_programming_menu = 0;
   int engineID_sound_menu = 0;
@@ -331,6 +472,14 @@ private:
   std::shared_ptr<Image> rule17offIcon;
   std::shared_ptr<Image> blankIcon;
   std::shared_ptr<Image> coalIcon;
+  std::shared_ptr<Image> wheelSlipIcon;
+  std::shared_ptr<Image> flatWheelIcon;
+
+  std::shared_ptr<Image> visionCoalEmptyIcon;
+  std::shared_ptr<Image> visionCoalMaxIcon;
+  std::shared_ptr<Image> visionCoalRefillIcon;
+  std::shared_ptr<Image> visionCoalEmptyingIcon;
+
 
   std::shared_ptr<Image> leftArrowIcon;
   std::shared_ptr<Image> rightArrowIcon;
@@ -345,6 +494,7 @@ private:
 
   std::shared_ptr<Image> fwdIcon;
   std::shared_ptr<Image> reverseIcon;
+  std::shared_ptr<Image> tmccDirIcon;
   std::shared_ptr<Image> aux1arrowIcon;
   std::shared_ptr<Image> aux2arrowIcon;
   std::shared_ptr<Image> aux3arrowIcon;  
@@ -508,6 +658,7 @@ private:
   int currentLegacySmoke = 0;
   int currentLegacyMomentum = 0;
   float currentQuill = 0;
+  float currentCab1Slider = 0;
   int currentLocoBrake = 0;
   int currentPantoPosition = 0;
 
@@ -520,20 +671,54 @@ private:
 
   int m_dialog_index = 0;
 
+  // KEYPAD FUNCTIONS
 
+  // GENERIC (CAB1, NO SOUND)
   void DrawCAB1Keypad(int m_selected_engine);
+
+
+  // STEAM SPECIFIC (RS, RS5, LEGACY)
   void DrawCAB2SteamKeypad(int m_selected_engine);
-  void DrawCAB2DieselKeypad(int m_selected_engine);
-  void DrawCAB2ElectricKeypad(int m_selected_engine);
-  void DrawStationDinerKeypad(int m_selected_engine);
-  void DrawFreightCarKeypad(int m_selected_engine);
   void DrawTMCCSteamKeypad(int m_selected_engine);
+  void DrawRSSteamKeypad(int m_selected_engine);
+  void DrawRS5SteamKeypad(int m_selected_engine);
+  // DIESEL SPECIFIC (RS, RS5, LEGACY)
+  void DrawCAB2DieselKeypad(int m_selected_engine);
   void DrawTMCCDieselKeypad(int m_selected_engine);
+  void DrawRSDieselKeypad(int m_selected_engine);
+  void DrawRS5DieselKeypad(int m_selected_engine);
+  // ELECTRIC SPECIFIC (RS, RS5, LEGACY)
+  void DrawCAB2ElectricKeypad(int m_selected_engine);
+  void DrawTMCCElectricKeypad(int m_selected_engine);
+  void DrawRSElectricKeypad(int m_selected_engine);
+  void DrawRS5ElectricKeypad(int m_selected_engine);
+  // FREIGHT CAR SPECIFIC (RS, RS5, LEGACY)
+  void DrawFreightCarKeypad(int m_selected_engine);
+  void DrawRSFreightCarKeypad(int m_selected_engine);
+  void DrawRS5FreightCarKeypad(int m_selected_engine);
+  // PASSENGER CAR SPECIFIC (RS, RS5, LEGACY)
+  void DrawStationDinerKeypad(int m_selected_engine);
+  void DrawRSStationDinerKeypad(int m_selected_engine);
+  void DrawRS5StationDinerKeypad(int m_selected_engine);
+  // CRANE CAR SPECIFIC (RS5, LEGACY, LEGACY2)
   void DrawTMCCCraneKeypad(int m_selected_engine);
+  void DrawLegacyCraneKeypad(int m_selected_engine);
+  void DrawLegacy2CraneKeypad(int m_selected_engine);
+  // SUBWAY (RS, RS5, LEGACY)
+  void DrawCAB2SubwayKeypad(int m_selected_engine);
+  void DrawRSSubwayKeypad(int m_selected_engine);
+  void DrawRS5SubwayKeypad(int m_selected_engine);
+  // AUX TENDER (RS, RS5, LEGACY)
+
+  // LIONEL ACELA SPECIFIC
   void DrawTMCCAcelaKeypad(int m_selected_engine);
+
+  
+  
   void DrawKeypadType(int currentKeypadType, bool isLegacy, int engineType,int m_selected_engine);
   void PlayWhistle(bool enabled, float curTime, float currentQuill, int engineID);
   void PlayWhistleTMCC(bool enabled, float curTime, float currentQuill, int engineID, bool horn2Enabled);
+  void SendCab1ThrottleCommand(bool sendCab1RelativeCommands, float curTime, float currentCab1Slider, int engineID);
   void SerialDeviceWindow(bool* p_open, const std::string& appDir);
   void ShowSecondaryEngineWindow(bool* p_open, const std::string& appDir);
   void UpdateEngineAddressWindow(bool* p_open, const std::string& appDir);
@@ -554,27 +739,57 @@ private:
   void ThrottleWindow(bool* p_open, float curTime);
   void CAB1Window(bool* p_open, float curTime);
   void HandleGameControllerEvents(SDL_GameController* gGameController, float curTime, const std::string& dir, int leftStickXDeadZone, int leftStickYDeadZone, int rightStickXDeadZone, int rightStickYDeadZone);
-  void SetUpEngineFromRoster(int engineID, bool legacyEnabled, const std::string& dir);
+  void SetUpEngineFromRoster(int engineID, int currentEngineCtrlType, int currentEngineSndType, bool legacyEnabled, const std::string& dir);
 
+  /*
+  
+     ENGINE SETUP WINDOW PARAMETERS
+  
+  */
 
   std::string newEngineIDStr = "0";
   int newEngineID = 0;
+  std::string newEngineRoadNumber = "0";
   std::string newEngineName  = "0";
-  int newEngineType = 0;
+  int newEngineType = 0; // default diesel
+  int newEngineCtrlType = 0; // default cab1
+  int newEngineSoundType = 0; // default no sound
+  int newEngineClassType = 0; // not sure how to use this, should the user select this option?
+
   bool newEngineisLegacy = false;
+
+  /*
+
+     TMCC ADDRESS CHANGE WINDOW PARAMETERS
+
+  */
 
   std::string newEngineTMCCAddressStr = "0";
   int newEngineTMCCAddress = 0;
 
+  /*
+
+     SWITCH SETUP WINDOW PARAMETERS
+
+  */
+
   std::string newSwitchName = "0";
   std::string newSwitchIDStr = "0";
   int newSwitchID = 0;
+
+  /*
+
+     ACCESSORY SETUP WINDOW PARAMETERS
+
+  */
 
   std::string newAccessoryName = "0";
   std::string newAccessoryIDStr = "0";
   int newAccessoryID = 0;
 
   int type_index = 0;
+  int ctrl_type_index = 0;
+  int snd_type_index = 0;
 
 
 

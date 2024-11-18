@@ -231,14 +231,14 @@ void ThrottleMenu::CAB1Window(bool* p_open, float curTime)
       };
 
       // IF STATIONSOUND DINER OR STOCK CAR, DON'T SHOW THESE
-      if (m_enginedefs[m_selected_engine].engineType != EngineType::ENGINE_STATIONSOUND_CAR && m_enginedefs[m_selected_engine].engineType != EngineType::ENGINE_STOCK_CAR)
+      if (m_enginedefs[m_selected_engine].engineType != EngineType::ENGINE_TYPE_STATIONSOUND_CAR && m_enginedefs[m_selected_engine].engineType != EngineType::ENGINE_TYPE_STOCK_CAR)
       {
         if (m_enginedefs[m_selected_engine].legacyEngine)
         {
           // value was changed
               // if steam, use labour
               // else, use diesel run level
-          if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_STEAM)
+          if (m_enginedefs[m_selected_engine].engineType == EngineType::ENGINE_TYPE_STEAM)
           {
             if (ImGuiKnobs::KnobInt("Labour", &m_enginedefs[m_selected_engine].steam_labour_intensity, 0, 31, 1, "%f Labour", ImGuiKnobVariant_Wiper, 100)) {
 
@@ -249,11 +249,11 @@ void ThrottleMenu::CAB1Window(bool* p_open, float curTime)
           {
             if (ImGuiKnobs::KnobInt("Diesel Run Lvl.", &m_enginedefs[m_selected_engine].diesel_electric_rev_lvl, 0, 8, 1, "%f Diesel Run Level", ImGuiKnobVariant_Wiper, 100)) {
 
-              if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_DIESEL)
+              if (m_enginedefs[m_selected_engine].engineType == EngineType::ENGINE_TYPE_DIESEL)
                 TMCCInterface::EngineSetDieselRunLevel(engineID, m_enginedefs[m_selected_engine].diesel_electric_rev_lvl);
-              else if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_ELECTRIC)
+              else if (m_enginedefs[m_selected_engine].engineType == EngineType::ENGINE_TYPE_ELECTRIC)
                 TMCCInterface::EngineSetDieselRunLevel(engineID, m_enginedefs[m_selected_engine].diesel_electric_rev_lvl);
-              else if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_SUBWAY)
+              else if (m_enginedefs[m_selected_engine].engineType == EngineType::ENGINE_TYPE_SUBWAY)
                 TMCCInterface::EngineSetDieselRunLevel(engineID, m_enginedefs[m_selected_engine].diesel_electric_rev_lvl);
             };
           }
@@ -261,7 +261,7 @@ void ThrottleMenu::CAB1Window(bool* p_open, float curTime)
           ImGui::PushButtonRepeat(true);
           if (ImGui::Button("EFX\n-", ImVec2(38, 64)))
           {
-            if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_STEAM)
+            if (m_enginedefs[m_selected_engine].engineType == EngineType::ENGINE_TYPE_STEAM)
             {
               m_enginedefs[m_selected_engine].steam_labour_intensity--;
               if (m_enginedefs[m_selected_engine].steam_labour_intensity < 0)
@@ -281,7 +281,7 @@ void ThrottleMenu::CAB1Window(bool* p_open, float curTime)
           ImGui::SameLine();
           if (ImGui::Button("Zero", ImVec2(38, 64)))
           {
-            if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_STEAM)
+            if (m_enginedefs[m_selected_engine].engineType == EngineType::ENGINE_TYPE_STEAM)
               m_enginedefs[m_selected_engine].steam_labour_intensity = 0;
             else
               m_enginedefs[m_selected_engine].diesel_electric_rev_lvl = 0;
@@ -291,7 +291,7 @@ void ThrottleMenu::CAB1Window(bool* p_open, float curTime)
           ImGui::PushButtonRepeat(true);
           if (ImGui::Button("EFX\n+", ImVec2(38, 64)))
           {
-            if (m_enginedefs[m_selected_engine].engineType == EngineTypeLegacy::ENGINE_TYPE_STEAM)
+            if (m_enginedefs[m_selected_engine].engineType == EngineType::ENGINE_TYPE_STEAM)
             {
               m_enginedefs[m_selected_engine].steam_labour_intensity++;
               if (m_enginedefs[m_selected_engine].steam_labour_intensity > 31)
