@@ -225,6 +225,9 @@ int main(int argc, char* argv[])
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+    /*ImGuiViewport* viewport = ImGui::GetMainViewport();
+    ImGui::SetNextWindowPos(viewport->Pos);
+    ImGui::SetNextWindowSize(viewport->Size);*/
 
     menu.Draw(argv[0], gGameController,leftStickXDeadZone,leftStickYDeadZone,rightStickXDeadZone,rightStickYDeadZone);
 

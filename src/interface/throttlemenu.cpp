@@ -294,6 +294,9 @@ ThrottleMenu::ThrottleMenu(const std::string& appDir, SDL_GameController* gGameC
   colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
 
 
+ /* ImGuiViewport* viewport = ImGui::GetMainViewport();
+  ImGui::SetNextWindowPos(viewport->Pos);
+  ImGui::SetNextWindowSize(viewport->Size);*/
 
   //ImGui::GetBackgroundDrawList()->AddImage();
 
@@ -518,6 +521,8 @@ void ThrottleMenu::LoadRosterLaunch(const std::string& appDir)
 
 void ThrottleMenu::Draw(const std::string& appDir, SDL_GameController* gGameController, int leftStickXDeadZone, int leftStickYDeadZone, int rightStickXDeadZone, int rightStickYDeadZone)
 {
+
+  
 
   curTime = (float)clock() / CLOCKS_PER_SEC;
 
@@ -1423,7 +1428,7 @@ void ThrottleMenu::AddEngineWindow(bool* p_open, const std::string& appDir)
 
     ImGui::Text("Select Engine Type:");
 
-      if (ImGui::BeginListBox("##EngList", ImVec2(256, 128)))
+      if (ImGui::BeginCombo("##EngList", engineTypes[type_index].engineTypeName.c_str()))
       {
         for (int i = 0; i < IM_ARRAYSIZE(engineTypes); i++)
         {
@@ -1431,31 +1436,51 @@ void ThrottleMenu::AddEngineWindow(bool* p_open, const std::string& appDir)
           if (ImGui::Selectable(engineTypes[i].engineTypeName.c_str(), is_selected))
             type_index = i;
         }
-        ImGui::EndListBox();
+        ImGui::EndCombo();
       }
 
     ImGui::Text("Select Control Type:");
-    if (ImGui::BeginListBox("##ControlTypeList", ImVec2(256, 128)))
+    if (ImGui::BeginCombo("##ControlTypeList", engineCTRLTypes[ctrl_type_index].engineCTRLTypeName.c_str()))
     {
-      for (int i = 0; i < IM_ARRAYSIZE(engineCTRLTypes); i++)
+      if (engineTypes[type_index].engineType == EngineType::ENGINE_TYPE_TMCC_ACELA) // TMCC Acela has a specific type
       {
-        const bool is_selected = (ctrl_type_index == i);
-        if (ImGui::Selectable(engineCTRLTypes[i].engineCTRLTypeName.c_str(), is_selected))
-          ctrl_type_index = i;
+        ctrl_type_index = EngineControlType::TMCC_ABSOLUTE;
       }
-      ImGui::EndListBox();
+      else if (engineTypes[type_index].engineType == EngineType::ENGINE_TYPE_CRANE_CAR) // Crane car's have a specific type
+      {
+        ctrl_type_index = EngineControlType::CAB1_CONTROL;
+      }
+      else // Allow User to select any option 
+      {
+        for (int i = 0; i < IM_ARRAYSIZE(engineCTRLTypes); i++)
+        {
+          const bool is_selected = (ctrl_type_index == i);
+          if (ImGui::Selectable(engineCTRLTypes[i].engineCTRLTypeName.c_str(), is_selected))
+            ctrl_type_index = i;
+        }
+      }
+      
+      ImGui::EndCombo();
     }
 
     ImGui::Text("Select Sound Type:");
-    if (ImGui::BeginListBox("##SoundTypeList", ImVec2(256, 128)))
+    if (ImGui::BeginCombo("##SoundTypeList", engineSoundTypes[snd_type_index].engineSoundTypeName.c_str()))
     {
-      for (int i = 0; i < IM_ARRAYSIZE(engineSoundTypes); i++)
+      if (engineTypes[type_index].engineType == EngineType::ENGINE_TYPE_TMCC_ACELA) // TMCC Acela has a specific type
       {
-        const bool is_selected = (snd_type_index == i);
-        if (ImGui::Selectable(engineSoundTypes[i].engineSoundTypeName.c_str(), is_selected))
-          snd_type_index = i;
+        snd_type_index = EngineSoundType::RAILSOUNDS_5;
       }
-      ImGui::EndListBox();
+      else
+      {
+        for (int i = 0; i < IM_ARRAYSIZE(engineSoundTypes); i++)
+        {
+          const bool is_selected = (snd_type_index == i);
+          if (ImGui::Selectable(engineSoundTypes[i].engineSoundTypeName.c_str(), is_selected))
+            snd_type_index = i;
+        }
+      }
+      
+      ImGui::EndCombo();
     }
 
     if (ImGui::Button("Add Engine", ImVec2(80, 60)))
@@ -1810,10 +1835,10 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
                 if (m_enginedefs[m_selected_engine].engineType == EngineType::ENGINE_TYPE_STEAM)
                 {
                   m_enginedefs[m_selected_engine].steam_labour_intensity++;
-                  if (m_enginedefs[m_selected_engine].steam_labour_intensity > 31)
-                    m_enginedefs[m_selected_engine].steam_labour_intensity = 31;
+                  if (m_enginedefs[m_selected_engine].steam_labour_intensity > 255)
+                    m_enginedefs[m_selected_engine].steam_labour_intensity = 255;
 
-                  TMCCInterface::EngineSetLabor(engineID, m_enginedefs[m_selected_engine].steam_labour_intensity);
+                  TMCCInterface::EngineSetLabor(engineID, m_enginedefs[m_selected_engine].steam_labour_intensity * (float)(32.0/255.0));
 
 
                 }
@@ -1821,15 +1846,15 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
                 else
                 {
                   m_enginedefs[m_selected_engine].diesel_electric_rev_lvl++;
-                  if (m_enginedefs[m_selected_engine].diesel_electric_rev_lvl > 8)
-                    m_enginedefs[m_selected_engine].diesel_electric_rev_lvl = 8;
+                  if (m_enginedefs[m_selected_engine].diesel_electric_rev_lvl > 255)
+                    m_enginedefs[m_selected_engine].diesel_electric_rev_lvl = 255;
 
                   if (m_enginedefs[m_selected_engine].engineType == EngineType::ENGINE_TYPE_DIESEL)
-                    TMCCInterface::EngineSetDieselRunLevel(engineID, m_enginedefs[m_selected_engine].diesel_electric_rev_lvl);
+                    TMCCInterface::EngineSetDieselRunLevel(engineID, m_enginedefs[m_selected_engine].diesel_electric_rev_lvl * (float)(8.0 / 255.0));
                   else if (m_enginedefs[m_selected_engine].engineType == EngineType::ENGINE_TYPE_ELECTRIC)
-                    TMCCInterface::EngineSetDieselRunLevel(engineID, m_enginedefs[m_selected_engine].diesel_electric_rev_lvl);
+                    TMCCInterface::EngineSetDieselRunLevel(engineID, m_enginedefs[m_selected_engine].diesel_electric_rev_lvl * (float)(8.0 / 255.0));
                   else if (m_enginedefs[m_selected_engine].engineType == EngineType::ENGINE_TYPE_SUBWAY)
-                    TMCCInterface::EngineSetDieselRunLevel(engineID, m_enginedefs[m_selected_engine].diesel_electric_rev_lvl);
+                    TMCCInterface::EngineSetDieselRunLevel(engineID, m_enginedefs[m_selected_engine].diesel_electric_rev_lvl * (float)(8.0 / 255.0));
                 }
               };
               ImGui::PopButtonRepeat();
@@ -1863,7 +1888,9 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
           default:
           case CAB1_CONTROL:
           case TMCC_RELATIVE_100:
-            if (ImGui::VSliderFloat("##intCab1R100Slider", ImVec2(80, 250), &currentCab1Slider, -12.0f, 12.0f, "Throttle"))
+
+            ImGui::VSliderFloat("##intCab1R100Slider", ImVec2(250, 250), &currentCab1Slider, -12.0f, 12.0f, "Cab 1 Throttle");
+            if (ImGui::IsMouseDown(0))
             {
               if (currentCab1Slider > 2.5)
               {
@@ -1877,8 +1904,10 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
               {
                 sendCab1RelativeCommands = false;
               }
-            };
-            SendCab1ThrottleCommand(sendCab1RelativeCommands, curTime, currentCab1Slider, engineID);
+              SendCab1ThrottleCommand(sendCab1RelativeCommands, curTime, currentCab1Slider, engineID);
+            }
+            else
+              currentCab1Slider = 0;
 
             break;
 
@@ -2035,26 +2064,41 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
 
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(50);
-    // Whistle
+    // Whistle Slider
         if (m_enginedefs[m_selected_engine].IsLegacySounds())
         {
-          if (ImGui::VSliderFloat("##intLegacyHorn", ImVec2(80, 250), &currentQuill, 1.0f, 0.0f, "Whistle"))
+          ImGui::VSliderFloat("##intLegacyHorn", ImVec2(80, 250), &currentQuill, -12.0f, 12.0f, "Whistle");
+          if (ImGui::IsMouseDown(0))
           {
-            if (currentQuill > 0)
+            //printf("currentQuill: %f\n", currentQuill* (float)(16.0 / 12.0));
+            if (currentQuill < 0) // slider pulled down
             {
               whistleEnabled = true;
             }
+            else if (currentQuill > 0)
+            {
+              printf("Bell Slider: %d\n", (int)(currentQuill* (float)(5.0 / 12.0)));
+              TMCCInterface::EngineSetBellSliderPosition(engineID, currentQuill* (float)(5.0 / 12.0));
+            }
+
             else
             {
               whistleEnabled = false;
               TMCCInterface::EngineSetQuillingHornIntensity(engineID, 0);
             }
-          };
-          PlayWhistle(whistleEnabled, curTime, currentQuill, engineID);
+          }
+          else
+          {
+            currentQuill = 0;
+            whistleEnabled = false;
+          }
+              
+          PlayWhistle(whistleEnabled, curTime, abs(currentQuill) * (float)(16.0/12.0), engineID);
         }
         else
         {
-          if (ImGui::VSliderFloat("##intTMCCHorn", ImVec2(80, 250), &currentQuill, 1.0f, 0.0f, "Whistle"))
+          ImGui::VSliderFloat("##intTMCCHorn", ImVec2(80, 250), &currentQuill, 1.0f, 0.0f, "Whistle");
+          if (ImGui::IsMouseDown(0))
           {
             if (currentQuill > 0.2f)
             {
@@ -2065,7 +2109,12 @@ void ThrottleMenu::ThrottleWindow(bool* p_open, float curTime)
               whistleEnabled = false;
             }
 
-          };
+          }
+          else
+          {
+            currentQuill = 0;
+            whistleEnabled = false;
+          }
           PlayWhistleTMCC(whistleEnabled, curTime, currentQuill, engineID, m_enginedefs[m_selected_engine].useHorn2);
 
           //ImGui::Text("Horn 2 Disabled:");
@@ -2909,12 +2958,12 @@ void ThrottleMenu::PlayWhistle(bool enabled , float curTime, float currentQuill,
   {
     if (curTime - ThrottleMenu::lastQuillTime >= quillInterval)
     {
-      int value = (int)(currentQuill * 15.0f);
-      if (value > 0)
+      //int value = (int)(currentQuill * 16.0f);
+      if (currentQuill > 0)
       {
         ThrottleMenu::lastQuillTime = curTime;
-        printf("Quilling: %d\n", value);
-        TMCCInterface::EngineSetQuillingHornIntensity(engineID, value);
+        printf("Quilling: %d\n", (int)currentQuill);
+        TMCCInterface::EngineSetQuillingHornIntensity(engineID, (int)currentQuill);
       }
       
     }
@@ -2957,6 +3006,7 @@ void ThrottleMenu::SendCab1ThrottleCommand(bool sendCab1RelativeCommands, float 
     {
       ThrottleMenu::lastCab1ThrottleCmdTime = curTime;
       TMCCInterface::EngineSetRelativeSpeed(engineID, (int)(currentCab1Slider * 0.4167f));
+      //printf("Cab1 Slider Value : %f\n", (currentCab1Slider));
       printf("Cab1 Relative Speed : %d\n", (int)(currentCab1Slider * 0.4167f));
     }
   }
